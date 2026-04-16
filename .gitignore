@@ -1,0 +1,24 @@
+# Private local configuration.
+c88e3e98.php
+google-maps-api-key.*
+*.inc
+
+# Local deprecated backups created during extraction/replacement work.
+*.deprecated
+
+# Runtime/session/cache output that should not be committed.
+*.log
+*.cache
+tmp/
+temp/
+cache/
+
+# OS and editor metadata.
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Dependency folders if tooling is added later.
+node_modules/
+vendor/
