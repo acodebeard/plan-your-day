@@ -1873,12 +1873,14 @@ if (!function_exists('dkc_plan_is_same_site_request')) {
 	/**
 	 * Same-site heuristic for the full-page GET render.
 	 *
-	 * If no Origin or Referer is present, treat the request as user-typed
-	 * and allow it (browsers omit these for address-bar navigations, RSS
-	 * prefetches, etc). If either is present, require the host to match
-	 * the server. This blocks <img src>, <iframe src>, and <link rel=
-	 * prefetch> from third-party pages triggering paid Google requests
-	 * on the visitor's session.
+	 * Prefer Fetch Metadata when the browser sends it: automatic
+	 * cross-site subresource loads are denied even if Referer is
+	 * intentionally suppressed. User-activated top-level document
+	 * navigations remain allowed so shared planner links still work.
+	 *
+	 * For older clients without Fetch Metadata, fall back to Origin /
+	 * Referer host matching. If neither legacy header is present, treat
+	 * the request as user-typed and allow it.
 	 */
 	function dkc_plan_is_same_site_request(): bool
 	{
@@ -1886,6 +1888,22 @@ if (!function_exists('dkc_plan_is_same_site_request')) {
 
 		if ('' === $expected_host) {
 			return true;
+		}
+
+		$fetch_site = strtolower(trim((string) ($_SERVER['HTTP_SEC_FETCH_SITE'] ?? '')));
+
+		if ('' !== $fetch_site && !in_array($fetch_site, ['same-origin', 'none'], true)) {
+			$fetch_mode = strtolower(trim((string) ($_SERVER['HTTP_SEC_FETCH_MODE'] ?? '')));
+			$fetch_dest = strtolower(trim((string) ($_SERVER['HTTP_SEC_FETCH_DEST'] ?? '')));
+			$fetch_user = trim((string) ($_SERVER['HTTP_SEC_FETCH_USER'] ?? ''));
+
+			if (
+				'navigate' !== $fetch_mode ||
+				'document' !== $fetch_dest ||
+				'?1' !== $fetch_user
+			) {
+				return false;
+			}
 		}
 
 		foreach (['HTTP_ORIGIN', 'HTTP_REFERER'] as $header) {
