@@ -74,7 +74,7 @@ if (!function_exists('wp_json_encode')) {
 	{
 		$encoded = json_encode(
 			$value,
-			JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE
+			JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_HEX_TAG
 		);
 
 		return false === $encoded ? 'null' : $encoded;
