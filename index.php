@@ -537,6 +537,10 @@ if (!function_exists('dkc_plan_get_client_ip')) {
 				continue;
 			}
 
+			if (false === @inet_pton($candidate)) {
+				continue;
+			}
+
 			$trusted = false;
 			foreach (DKC_PLAN_TRUSTED_PROXIES as $cidr) {
 				if (dkc_plan_ip_in_cidr($candidate, (string) $cidr)) {
