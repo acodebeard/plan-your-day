@@ -1875,6 +1875,18 @@ if ('dkc_plan_route' === $planner_endpoint_action) {
 	dkc_plan_handle_route_request();
 }
 
+/*
+ * The rendered HTML embeds a per-session ajaxNonce. Any shared cache
+ * (CDN, reverse proxy, browser shared cache) holding this response could
+ * leak one visitor's nonce to another. The page is lightweight and
+ * entirely personalized, so disabling shared caching is safe.
+ */
+if (!headers_sent()) {
+	header('Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0');
+	header('Pragma: no-cache');
+	header('Expires: 0');
+}
+
 $planner_section_id         = 'dkc-plan-your-day';
 $planner_title_id           = $planner_section_id . '-title';
 $planner_category_help_id   = $planner_section_id . '-category-help';
