@@ -11,6 +11,17 @@ declare(strict_types=1);
  */
 
 /*
+ * Never leak PHP errors to HTTP responses. An operator who wants
+ * browser-visible errors back on for debugging can still enable
+ * them explicitly via php.ini or php_admin_value; the defaults
+ * here are log-only. Any runtime notice or warning would otherwise
+ * corrupt JSON endpoint responses and expose local paths.
+ */
+@ini_set('display_errors', '0');
+@ini_set('display_startup_errors', '0');
+error_reporting(E_ALL);
+
+/*
  * Load the standalone Google Maps API key from a separate local PHP config.
  *
  * A .php config file is safer than .inc on this Apache/PHP stack because it is
