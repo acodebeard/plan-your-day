@@ -27,6 +27,29 @@ if (!defined('DKC_PLAN_STANDALONE_BOOTSTRAP')) {
 	exit;
 }
 
+/*
+ * SECURITY: two separate keys are strongly recommended.
+ *
+ * The Embed key is visible in the browser (it's the src= of the Maps
+ * iframe). The Places key is only used server-side and should never
+ * reach the browser. If you supply only DKC_PLAN_GOOGLE_API_KEY the
+ * planner will use it for both, and you MUST restrict that single key
+ * in Google Cloud to Maps Embed API + your site's referring domain.
+ *
+ * With two keys you can scope the Embed key to Maps Embed API only and
+ * the Places key to Places API (New) + Geocoding API, so a leaked
+ * browser-side key can't drive Places calls.
+ */
+if (!defined('DKC_PLAN_GOOGLE_EMBED_API_KEY')) {
+	define('DKC_PLAN_GOOGLE_EMBED_API_KEY', '');
+}
+
+if (!defined('DKC_PLAN_GOOGLE_PLACES_API_KEY')) {
+	define('DKC_PLAN_GOOGLE_PLACES_API_KEY', '');
+}
+
+// Legacy single-key fallback. If the two above are empty, this is used
+// for both server-side Places and browser-side Embed.
 if (!defined('DKC_PLAN_GOOGLE_API_KEY')) {
 	define('DKC_PLAN_GOOGLE_API_KEY', '');
 }
