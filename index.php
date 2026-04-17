@@ -161,6 +161,22 @@ if (!function_exists('esc_url')) {
 	}
 }
 
+if (!function_exists('dkc_plan_safe_https_url')) {
+	/**
+	 * Return the input only if it is a plain https:// URL.
+	 *
+	 * Used for externally sourced URL fields (currently Google's
+	 * googleMapsUri). Defends against an upstream ever returning a
+	 * non-https scheme — e.g. javascript: — landing in an href.
+	 */
+	function dkc_plan_safe_https_url(string $url): string
+	{
+		$url = trim($url);
+
+		return 1 === preg_match('#\Ahttps://[^\s<>"\']+\z#i', $url) ? $url : '';
+	}
+}
+
 if (!function_exists('checked')) {
 	/**
 	 * Echo a checked attribute when two values match.
@@ -813,7 +829,7 @@ if (!function_exists('dkc_plan_parse_google_place')) {
 		$place_id  = dkc_plan_sanitize_place_id((string) ($place['id'] ?? ''));
 		$label     = trim((string) ($place['displayName']['text'] ?? ''));
 		$address   = trim((string) ($place['formattedAddress'] ?? ''));
-		$maps_uri  = trim((string) ($place['googleMapsUri'] ?? ''));
+		$maps_uri  = dkc_plan_safe_https_url((string) ($place['googleMapsUri'] ?? ''));
 		$latitude  = isset($place['location']['latitude']) ? (float) $place['location']['latitude'] : null;
 		$longitude = isset($place['location']['longitude']) ? (float) $place['location']['longitude'] : null;
 

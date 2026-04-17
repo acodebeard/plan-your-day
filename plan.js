@@ -208,6 +208,9 @@
 
   const escapeAttr = (value) => escapeHtml(value);
 
+  const safeHttpsUrl = (value) =>
+    /^https:\/\/[^\s<>"']+$/i.test(String(value ?? '')) ? String(value) : '';
+
   const getCurrentPlannerState = () => ({
     category: state.browse.activeCategoryKey,
     selectedWaypointIds: [...state.trip.selectedWaypointIds],
@@ -680,9 +683,9 @@
                 </div>
                 <div class="dkc-plan__result-tools">
                   ${
-                    result.maps_uri
+                    safeHttpsUrl(result.maps_uri)
                       ? `<a class="dkc-plan__result-link" href="${escapeAttr(
-                          result.maps_uri
+                          safeHttpsUrl(result.maps_uri)
                         )}" target="_blank" rel="noopener noreferrer">View in Google Maps</a>`
                       : ''
                   }
