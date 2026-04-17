@@ -253,11 +253,17 @@
   const buildAjaxUrl = (action) => {
     const nextUrl = new URL(config.ajaxUrl || window.location.pathname, window.location.origin);
     nextUrl.searchParams.set('action', action);
-    if (config.ajaxNonce) {
-      nextUrl.searchParams.set('nonce', config.ajaxNonce);
-    }
-    appendStateToSearchParams(nextUrl.searchParams, getCurrentPlannerState());
     return nextUrl;
+  };
+
+  const buildAjaxBody = (action) => {
+    const body = new URLSearchParams();
+    appendStateToSearchParams(body, getCurrentPlannerState());
+    body.set('action', action);
+    if (config.ajaxNonce) {
+      body.set('nonce', config.ajaxNonce);
+    }
+    return body;
   };
 
   const syncUrl = () => {
@@ -1028,12 +1034,15 @@
     renderAll();
   };
 
-  const fetchJson = async (scope, url, controller) => {
+  const fetchJson = async (scope, url, body, controller) => {
     const response = await window.fetch(url.toString(), {
+      method: 'POST',
       credentials: 'same-origin',
       headers: {
         Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
       },
+      body,
       signal: controller.signal,
       cache: 'no-store',
     });
@@ -1131,9 +1140,11 @@
     }
 
     try {
+      const browseAction = config.endpoints?.browseAction || 'dkc_plan_browse';
       const responseData = await fetchJson(
         'browse',
-        buildAjaxUrl(config.endpoints?.browseAction || 'dkc_plan_browse'),
+        buildAjaxUrl(browseAction),
+        buildAjaxBody(browseAction),
         browseRequestController
       );
 
@@ -1185,9 +1196,11 @@
     });
 
     try {
+      const routeAction = config.endpoints?.routeAction || 'dkc_plan_route';
       const responseData = await fetchJson(
         'route',
-        buildAjaxUrl(config.endpoints?.routeAction || 'dkc_plan_route'),
+        buildAjaxUrl(routeAction),
+        buildAjaxBody(routeAction),
         routeRequestController
       );
 

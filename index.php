@@ -1883,10 +1883,26 @@ if (!function_exists('dkc_plan_validate_ajax_request')) {
 	 * The planner remains public, but these checks prevent routine cross-site
 	 * requests and keep one visitor from triggering unbounded Google API work
 	 * through the focused AJAX endpoints.
+	 *
+	 * The POST requirement is layered hygiene — it filters out browser
+	 * prefetches, link-preview bots, and <img src> drive-by requests.
+	 * The nonce check is the actual CSRF defense: without it, any same-
+	 * origin page could form-POST to these endpoints. Do not remove the
+	 * nonce check on the assumption that POST-only is sufficient.
 	 */
 	function dkc_plan_validate_ajax_request(string $scope): void
 	{
-		$nonce = isset($_GET['nonce']) ? sanitize_text_field(wp_unslash((string) $_GET['nonce'])) : '';
+		if ('POST' !== (string) ($_SERVER['REQUEST_METHOD'] ?? '')) {
+			header('Allow: POST');
+			wp_send_json_error(
+				[
+					'message' => 'Planner endpoints require POST.',
+				],
+				405
+			);
+		}
+
+		$nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash((string) $_POST['nonce'])) : '';
 
 		if (!wp_verify_nonce($nonce, 'dkc_plan_ajax')) {
 			wp_send_json_error(
@@ -1924,7 +1940,7 @@ if (!function_exists('dkc_plan_handle_browse_request')) {
 	{
 		dkc_plan_validate_ajax_request('browse');
 
-		$request_args = dkc_plan_get_request_state_args($_GET);
+		$request_args = dkc_plan_get_request_state_args($_POST);
 		$planner_state = dkc_plan_build_runtime_state(
 			$request_args,
 			[
@@ -1953,7 +1969,7 @@ if (!function_exists('dkc_plan_handle_route_request')) {
 	{
 		dkc_plan_validate_ajax_request('route');
 
-		$request_args = dkc_plan_get_request_state_args($_GET);
+		$request_args = dkc_plan_get_request_state_args($_POST);
 		$planner_state = dkc_plan_build_runtime_state(
 			$request_args,
 			[
@@ -1981,12 +1997,25 @@ if (!function_exists('dkc_plan_handle_route_request')) {
  */
 $planner_endpoint_action = isset($_GET['action']) ? sanitize_key(wp_unslash((string) $_GET['action'])) : '';
 
-if ('dkc_plan_browse' === $planner_endpoint_action) {
-	dkc_plan_handle_browse_request();
-}
-
-if ('dkc_plan_route' === $planner_endpoint_action) {
-	dkc_plan_handle_route_request();
+if ('dkc_plan_browse' === $planner_endpoint_action || 'dkc_plan_route' === $planner_endpoint_action) {
+	// These are exclusively POST endpoints now. A stray GET on the
+	// action= query parameter during a full-page navigation should just
+	// render the page (ignore the action), not error out.
+	if ('POST' === (string) ($_SERVER['REQUEST_METHOD'] ?? '')) {
+		if ('dkc_plan_browse' === $planner_endpoint_action) {
+			dkc_plan_handle_browse_request();
+		} else {
+			dkc_plan_handle_route_request();
+		}
+	} elseif ('GET' !== (string) ($_SERVER['REQUEST_METHOD'] ?? '')) {
+		header('Allow: POST');
+		wp_send_json_error(
+			[
+				'message' => 'Planner endpoints require POST.',
+			],
+			405
+		);
+	}
 }
 
 if (!headers_sent()) {
