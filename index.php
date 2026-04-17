@@ -524,6 +524,133 @@ if (!function_exists('dkc_plan_current_url')) {
 	}
 }
 
+if (!function_exists('dkc_plan_get_client_ip')) {
+	/**
+	 * Return the client IP, consulting X-Forwarded-For only when the
+	 * direct peer is in DKC_PLAN_TRUSTED_PROXIES (array of CIDRs).
+	 *
+	 * The default (no constant defined) returns REMOTE_ADDR unchanged
+	 * so there is no behavior change out of the box. Only explicit
+	 * opt-in enables trust in proxy headers.
+	 *
+	 * Shared-tenant caveat: only list proxies you control. Listing a
+	 * shared CDN range (e.g., Cloudflare's published IPs) allows any
+	 * other tenant of that CDN to spoof the returned IP by prepending
+	 * an X-Forwarded-For entry. If you cannot limit the trusted list
+	 * to infrastructure you own, configure your proxy to REWRITE the
+	 * X-Forwarded-For header rather than append to it.
+	 *
+	 * @todo Wire into dkc_plan_validate_ajax_request() after PR #1 (H1)
+	 *       merges upstream. The wire-up replaces the raw
+	 *       $_SERVER['REMOTE_ADDR'] read in that function with a call
+	 *       to dkc_plan_get_client_ip().
+	 */
+	function dkc_plan_get_client_ip(): string
+	{
+		$remote = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+
+		if (!defined('DKC_PLAN_TRUSTED_PROXIES') || !is_array(DKC_PLAN_TRUSTED_PROXIES) || '' === $remote) {
+			return $remote;
+		}
+
+		$is_trusted = false;
+
+		foreach (DKC_PLAN_TRUSTED_PROXIES as $cidr) {
+			if (dkc_plan_ip_in_cidr($remote, (string) $cidr)) {
+				$is_trusted = true;
+				break;
+			}
+		}
+
+		if (!$is_trusted) {
+			return $remote;
+		}
+
+		$forwarded = (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? '');
+
+		if ('' === $forwarded) {
+			return $remote;
+		}
+
+		foreach (array_reverse(array_map('trim', explode(',', $forwarded))) as $candidate) {
+			if ('' === $candidate) {
+				continue;
+			}
+
+			if (false === @inet_pton($candidate)) {
+				continue;
+			}
+
+			$trusted = false;
+			foreach (DKC_PLAN_TRUSTED_PROXIES as $cidr) {
+				if (dkc_plan_ip_in_cidr($candidate, (string) $cidr)) {
+					$trusted = true;
+					break;
+				}
+			}
+
+			if (!$trusted) {
+				return $candidate;
+			}
+		}
+
+		return $remote;
+	}
+}
+
+if (!function_exists('dkc_plan_ip_in_cidr')) {
+	/**
+	 * Minimal IPv4/IPv6 CIDR containment check.
+	 *
+	 * @todo Helper currently used only by dkc_plan_get_client_ip().
+	 *       Do not remove as apparently-orphaned — the caller graph
+	 *       expands once PR #1 (H1) lands and the rate limiter wires
+	 *       in dkc_plan_get_client_ip().
+	 */
+	function dkc_plan_ip_in_cidr(string $ip, string $cidr): bool
+	{
+		if ('' === $cidr) {
+			return false;
+		}
+
+		$parts     = explode('/', $cidr, 2);
+		$subnet    = $parts[0];
+		$mask_bits = isset($parts[1]) ? (int) $parts[1] : -1;
+		$ip_bin    = @inet_pton($ip);
+		$sn_bin    = @inet_pton($subnet);
+
+		if (false === $ip_bin || false === $sn_bin || strlen($ip_bin) !== strlen($sn_bin)) {
+			return false;
+		}
+
+		if ($mask_bits < 0) {
+			return $ip_bin === $sn_bin;
+		}
+
+		$byte_len = strlen($ip_bin);
+		$max_bits = $byte_len * 8;
+
+		if ($mask_bits > $max_bits) {
+			return false;
+		}
+
+		$full_bytes = intdiv($mask_bits, 8);
+		$remaining  = $mask_bits % 8;
+
+		if ($full_bytes > 0 && 0 !== substr_compare($ip_bin, $sn_bin, 0, $full_bytes)) {
+			return false;
+		}
+
+		if (0 === $remaining) {
+			return true;
+		}
+
+		$mask = chr(0xFF << (8 - $remaining) & 0xFF);
+
+		return (ord($ip_bin[$full_bytes]) & ord($mask)) === (ord($sn_bin[$full_bytes]) & ord($mask));
+	}
+}
+
 if (!defined('DKC_PLAN_MAX_WAYPOINTS')) {
 	define('DKC_PLAN_MAX_WAYPOINTS', 8);
 }
