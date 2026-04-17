@@ -11,9 +11,10 @@ declare(strict_types=1);
  */
 
 /*
- * Never leak PHP errors to HTTP responses. Deployment-level
- * php.ini may override this, but the default for this planner
- * is to log only — any runtime notice or warning would otherwise
+ * Never leak PHP errors to HTTP responses. An operator who wants
+ * browser-visible errors back on for debugging can still enable
+ * them explicitly via php.ini or php_admin_value; the defaults
+ * here are log-only. Any runtime notice or warning would otherwise
  * corrupt JSON endpoint responses and expose local paths.
  */
 @ini_set('display_errors', '0');
