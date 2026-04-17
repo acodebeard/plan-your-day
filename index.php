@@ -46,6 +46,14 @@ if (!defined('DAY_IN_SECONDS')) {
  * use.
  */
 if (PHP_SESSION_NONE === session_status()) {
+	session_set_cookie_params([
+		'lifetime' => 0,
+		'path'     => '/',
+		'domain'   => '',
+		'secure'   => !empty($_SERVER['HTTPS']) && 'off' !== strtolower((string) $_SERVER['HTTPS']),
+		'httponly' => true,
+		'samesite' => 'Lax',
+	]);
 	session_start();
 }
 
@@ -1375,6 +1383,10 @@ if (!function_exists('dkc_plan_build_trip_state')) {
 		$requested_start        = sanitize_key((string) $args['start_mode']);
 		$start_mode             = isset($start_points[$requested_start]) ? $requested_start : 'pier';
 		$custom_start           = trim(sanitize_text_field((string) $args['custom_start']));
+		if (!empty($args['require_same_site']) && !dkc_plan_is_same_site_request()) {
+			$args['include_results']        = false;
+			$args['include_trip_waypoints'] = false;
+		}
 		$include_results        = !isset($args['include_results']) || (bool) $args['include_results'];
 		$include_trip_waypoints = !isset($args['include_trip_waypoints']) || (bool) $args['include_trip_waypoints'];
 		$messages               = [];
@@ -1646,12 +1658,50 @@ if (!function_exists('dkc_plan_get_runtime_defaults')) {
 	function dkc_plan_get_runtime_defaults(): array
 	{
 		return [
-			'category_catalog' => dkc_plan_get_category_catalog(),
-			'start_points'     => dkc_plan_get_start_points(),
-			'pier_address'     => 'Kailua Pier, Kailua-Kona, HI 96740',
-			'embed_api_key'    => dkc_plan_get_google_embed_api_key(),
-			'places_api_key'   => dkc_plan_get_google_places_api_key(),
+			'category_catalog'  => dkc_plan_get_category_catalog(),
+			'start_points'      => dkc_plan_get_start_points(),
+			'pier_address'      => 'Kailua Pier, Kailua-Kona, HI 96740',
+			'embed_api_key'     => dkc_plan_get_google_embed_api_key(),
+			'places_api_key'    => dkc_plan_get_google_places_api_key(),
+			'require_same_site' => true,
 		];
+	}
+}
+
+if (!function_exists('dkc_plan_is_same_site_request')) {
+	/**
+	 * Same-site heuristic for the full-page GET render.
+	 *
+	 * If no Origin or Referer is present, treat the request as user-typed
+	 * and allow it (browsers omit these for address-bar navigations, RSS
+	 * prefetches, etc). If either is present, require the host to match
+	 * the server. This blocks <img src>, <iframe src>, and <link rel=
+	 * prefetch> from third-party pages triggering paid Google requests
+	 * on the visitor's session.
+	 */
+	function dkc_plan_is_same_site_request(): bool
+	{
+		$expected_host = (string) ($_SERVER['HTTP_HOST'] ?? '');
+
+		if ('' === $expected_host) {
+			return true;
+		}
+
+		foreach (['HTTP_ORIGIN', 'HTTP_REFERER'] as $header) {
+			$value = (string) ($_SERVER[$header] ?? '');
+
+			if ('' === $value) {
+				continue;
+			}
+
+			$candidate = parse_url($value, PHP_URL_HOST);
+
+			if (!is_string($candidate) || 0 !== strcasecmp($candidate, $expected_host)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }
 
@@ -1818,6 +1868,7 @@ if (!function_exists('dkc_plan_handle_browse_request')) {
 			[
 				'include_results'        => true,
 				'include_trip_waypoints' => false,
+				'require_same_site'      => false,
 			]
 		);
 
@@ -1846,6 +1897,7 @@ if (!function_exists('dkc_plan_handle_route_request')) {
 			[
 				'include_results'        => false,
 				'include_trip_waypoints' => true,
+				'require_same_site'      => false,
 			]
 		);
 
