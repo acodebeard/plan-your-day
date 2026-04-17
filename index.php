@@ -1879,12 +1879,17 @@ if (!headers_sent()) {
 	header('X-Content-Type-Options: nosniff');
 	header('X-Frame-Options: SAMEORIGIN');
 	header('Referrer-Policy: strict-origin-when-cross-origin');
+	// style-src intentionally omits 'unsafe-inline' — planner styling
+	// is externalized in plan.css (same-origin) and runtime tweaks use
+	// element.style.* (CSSOM), neither of which requires inline-style
+	// permission. If inline <style> or style="..." is ever reintroduced,
+	// revisit this directive.
 	header(
 		"Content-Security-Policy: default-src 'self'; "
 		. "img-src 'self' data: https:; "
 		. "frame-src https://www.google.com; "
 		. "script-src 'self'; "
-		. "style-src 'self' 'unsafe-inline'; "
+		. "style-src 'self'; "
 		. "connect-src 'self'; "
 		. "base-uri 'none'; "
 		. "form-action 'self'"
