@@ -53,3 +53,13 @@ if (!defined('DKC_PLAN_GOOGLE_PLACES_API_KEY')) {
 if (!defined('DKC_PLAN_GOOGLE_API_KEY')) {
 	define('DKC_PLAN_GOOGLE_API_KEY', '');
 }
+
+/*
+ * Optional: pin the canonical base URL used for form actions and
+ * self-referential links. This hardens the planner against
+ * Host-header poisoning when the site sits behind a shared cache.
+ *
+ * if (!defined('DKC_PLAN_BASE_URL')) {
+ *     define('DKC_PLAN_BASE_URL', 'https://example.com/plan-your-day/');
+ * }
+ */
