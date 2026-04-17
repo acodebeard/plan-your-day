@@ -11,6 +11,16 @@ declare(strict_types=1);
  */
 
 /*
+ * Never leak PHP errors to HTTP responses. Deployment-level
+ * php.ini may override this, but the default for this planner
+ * is to log only — any runtime notice or warning would otherwise
+ * corrupt JSON endpoint responses and expose local paths.
+ */
+@ini_set('display_errors', '0');
+@ini_set('display_startup_errors', '0');
+error_reporting(E_ALL);
+
+/*
  * Load the standalone Google Maps API key from a separate local PHP config.
  *
  * A .php config file is safer than .inc on this Apache/PHP stack because it is
