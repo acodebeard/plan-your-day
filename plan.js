@@ -208,6 +208,13 @@
 
   const escapeAttr = (value) => escapeHtml(value);
 
+  // Belt-and-suspenders mirror of the PHP dkc_plan_safe_https_url() helper.
+  // The server already filters Google's googleMapsUri at parse time, so this
+  // check is redundant in normal operation. It defends against a future
+  // code path that renders an externally-sourced URL directly in JS without
+  // going through the server filter — if Google ever returned a non-https
+  // scheme (e.g. javascript:), escapeAttr() alone would not block it from
+  // landing in an href attribute.
   const safeHttpsUrl = (value) =>
     /^https:\/\/[^\s<>"']+$/i.test(String(value ?? '')) ? String(value) : '';
 
