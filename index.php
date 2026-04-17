@@ -1893,6 +1893,14 @@ if ('dkc_plan_browse' === $planner_endpoint_action || 'dkc_plan_route' === $plan
 		} else {
 			dkc_plan_handle_route_request();
 		}
+	} elseif ('GET' !== (string) ($_SERVER['REQUEST_METHOD'] ?? '')) {
+		header('Allow: POST');
+		wp_send_json_error(
+			[
+				'message' => 'Planner endpoints require POST.',
+			],
+			405
+		);
 	}
 }
 
