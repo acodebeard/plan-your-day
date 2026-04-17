@@ -552,10 +552,9 @@ if (!function_exists('dkc_plan_get_client_ip')) {
 	 * to infrastructure you own, configure your proxy to REWRITE the
 	 * X-Forwarded-For header rather than append to it.
 	 *
-	 * @todo Wire into dkc_plan_validate_ajax_request() after PR #1 (H1)
-	 *       merges upstream. The wire-up replaces the raw
-	 *       $_SERVER['REMOTE_ADDR'] read in that function with a call
-	 *       to dkc_plan_get_client_ip().
+	 * Used by dkc_plan_validate_ajax_request() so the rate limiter can
+	 * key on the real client IP when the deployment has explicitly
+	 * trusted its proxy chain.
 	 */
 	function dkc_plan_get_client_ip(): string
 	{
@@ -614,10 +613,8 @@ if (!function_exists('dkc_plan_ip_in_cidr')) {
 	/**
 	 * Minimal IPv4/IPv6 CIDR containment check.
 	 *
-	 * @todo Helper currently used only by dkc_plan_get_client_ip().
-	 *       Do not remove as apparently-orphaned — the caller graph
-	 *       expands once PR #1 (H1) lands and the rate limiter wires
-	 *       in dkc_plan_get_client_ip().
+	 * Used by dkc_plan_get_client_ip() to validate trusted proxy CIDRs
+	 * and to skip trusted hops while walking X-Forwarded-For.
 	 */
 	function dkc_plan_ip_in_cidr(string $ip, string $cidr): bool
 	{
@@ -2046,6 +2043,17 @@ if (!function_exists('dkc_plan_validate_ajax_request')) {
 	 * The nonce check is the actual CSRF defense: without it, any same-
 	 * origin page could form-POST to these endpoints. Do not remove the
 	 * nonce check on the assumption that POST-only is sufficient.
+	 *
+	 * The rate-limit counter is keyed on scope + client IP + minute
+	 * bucket and stored under sys_get_temp_dir() . '/dkc_plan_rate'.
+	 * Session state is deliberately NOT part of the key so cookie-less
+	 * clients cannot bypass the limit. Tunable via the
+	 * `dkc_plan_rate_limit_per_minute` filter (clamped to a minimum of 1).
+	 *
+	 * Fixed-window semantics: a client may send up to `limit` requests
+	 * in one bucket and another `limit` in the next, so burst allowance
+	 * at bucket boundaries is ~2x. That's acceptable for the threat
+	 * model; the goal is bounding sustained cost, not microsecond fairness.
 	 */
 	function dkc_plan_validate_ajax_request(string $scope): void
 	{
@@ -2070,20 +2078,66 @@ if (!function_exists('dkc_plan_validate_ajax_request')) {
 			);
 		}
 
-		$remote_address = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash((string) $_SERVER['REMOTE_ADDR'])) : 'unknown';
-		$rate_key       = 'dkc_plan_rate_' . md5($scope . '|' . $remote_address);
-		$request_count  = (int) get_transient($rate_key);
-
-		if ($request_count >= 60) {
-			wp_send_json_error(
-				[
-					'message' => 'Planner requests are temporarily limited. Please wait a minute and try again.',
-				],
-				429
-			);
+		$remote_address = dkc_plan_get_client_ip();
+		if ('' === $remote_address) {
+			$remote_address = 'unknown';
 		}
 
-		set_transient($rate_key, $request_count + 1, MINUTE_IN_SECONDS);
+		$window         = 60;
+		$limit          = (int) apply_filters('dkc_plan_rate_limit_per_minute', 60);
+		$limit          = max(1, $limit);
+		$bucket         = (int) floor(time() / $window);
+		$cache_dir      = sys_get_temp_dir() . '/dkc_plan_rate';
+
+		if (!is_dir($cache_dir) && !@mkdir($cache_dir, 0700, true) && !is_dir($cache_dir)) {
+			error_log(sprintf('[dkc_plan] rate limiter degraded: unable to create %s', $cache_dir));
+		}
+
+		$key       = hash('sha256', $scope . '|' . $remote_address . '|' . $bucket);
+		$file_path = $cache_dir . '/' . $key;
+		$count     = 0;
+		$handle    = @fopen($file_path, 'c+');
+
+		if ($handle) {
+			if (flock($handle, LOCK_EX)) {
+				$raw   = stream_get_contents($handle);
+				$count = (int) $raw;
+
+				if ($count >= $limit) {
+					flock($handle, LOCK_UN);
+					fclose($handle);
+					wp_send_json_error(
+						[
+							'message' => 'Planner requests are temporarily limited. Please wait a minute and try again.',
+						],
+						429
+					);
+					return;
+				}
+
+				$count++;
+				rewind($handle);
+				ftruncate($handle, 0);
+				fwrite($handle, (string) $count);
+				fflush($handle);
+				flock($handle, LOCK_UN);
+			} else {
+				error_log(sprintf('[dkc_plan] rate limiter degraded: unable to lock counter at %s', $file_path));
+			}
+
+			fclose($handle);
+		} else {
+			error_log(sprintf('[dkc_plan] rate limiter degraded: unable to open counter at %s', $file_path));
+		}
+
+		// Best-effort janitor: drop files from previous buckets occasionally.
+		if ($handle && $count > 0 && 0 === $count % 25) {
+			foreach ((array) @glob($cache_dir . '/*') as $old) {
+				if (is_string($old) && @filemtime($old) < time() - ($window * 5)) {
+					@unlink($old);
+				}
+			}
+		}
 	}
 }
 
