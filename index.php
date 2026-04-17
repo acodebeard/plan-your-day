@@ -470,6 +470,18 @@ if (!function_exists('dkc_plan_current_url')) {
 	 */
 	function dkc_plan_current_url(): string
 	{
+		$configured = '';
+
+		if (defined('DKC_PLAN_BASE_URL')) {
+			$configured = (string) DKC_PLAN_BASE_URL;
+		}
+
+		$configured = (string) apply_filters('dkc_plan_base_url', $configured);
+
+		if ('' !== $configured) {
+			return rtrim($configured, '/');
+		}
+
 		$is_https = !empty($_SERVER['HTTPS']) && 'off' !== strtolower((string) $_SERVER['HTTPS']);
 		$scheme = $is_https ? 'https' : 'http';
 		$host = (string) ($_SERVER['HTTP_HOST'] ?? 'localhost');
