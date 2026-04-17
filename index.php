@@ -508,19 +508,31 @@ if (!function_exists('dkc_plan_get_google_api_key')) {
 			$default_key = (string) DKC_PLAN_GOOGLE_API_KEY;
 		}
 
-		$default_key = (string) apply_filters('dkc_plan_google_embed_api_key', $default_key);
-
 		return (string) apply_filters('dkc_plan_google_api_key', $default_key);
 	}
 }
 
 if (!function_exists('dkc_plan_get_google_embed_api_key')) {
 	/**
-	 * Backwards-compatible embed key accessor.
+	 * Return the API key used for the browser-facing Maps Embed iframe.
+	 *
+	 * Prefers DKC_PLAN_GOOGLE_EMBED_API_KEY; falls back to the legacy
+	 * DKC_PLAN_GOOGLE_API_KEY when the dedicated constant is unset or
+	 * empty. The `dkc_plan_google_embed_api_key` filter is applied last.
 	 */
 	function dkc_plan_get_google_embed_api_key(): string
 	{
-		return dkc_plan_get_google_api_key();
+		$key = '';
+
+		if (defined('DKC_PLAN_GOOGLE_EMBED_API_KEY')) {
+			$key = (string) DKC_PLAN_GOOGLE_EMBED_API_KEY;
+		}
+
+		if ('' === $key) {
+			$key = dkc_plan_get_google_api_key();
+		}
+
+		return (string) apply_filters('dkc_plan_google_embed_api_key', $key);
 	}
 }
 
@@ -530,7 +542,17 @@ if (!function_exists('dkc_plan_get_google_places_api_key')) {
 	 */
 	function dkc_plan_get_google_places_api_key(): string
 	{
-		return (string) apply_filters('dkc_plan_google_places_api_key', dkc_plan_get_google_api_key());
+		$key = '';
+
+		if (defined('DKC_PLAN_GOOGLE_PLACES_API_KEY')) {
+			$key = (string) DKC_PLAN_GOOGLE_PLACES_API_KEY;
+		}
+
+		if ('' === $key) {
+			$key = dkc_plan_get_google_api_key();
+		}
+
+		return (string) apply_filters('dkc_plan_google_places_api_key', $key);
 	}
 }
 
