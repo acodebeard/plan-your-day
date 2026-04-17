@@ -1383,6 +1383,9 @@ if (!function_exists('dkc_plan_build_trip_state')) {
 		$requested_start        = sanitize_key((string) $args['start_mode']);
 		$start_mode             = isset($start_points[$requested_start]) ? $requested_start : 'pier';
 		$custom_start           = trim(sanitize_text_field((string) $args['custom_start']));
+		// Ordering matters: this must mutate $args BEFORE $include_results and
+		// $include_trip_waypoints are captured into locals below. A future refactor
+		// that regroups local extraction will silently turn this into a no-op.
 		if (!empty($args['require_same_site']) && !dkc_plan_is_same_site_request()) {
 			$args['include_results']        = false;
 			$args['include_trip_waypoints'] = false;
