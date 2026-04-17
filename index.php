@@ -86,14 +86,19 @@ if (!function_exists('wp_json_encode')) {
 	/**
 	 * Encode data for HTML script blocks, cache keys, and JSON responses.
 	 *
-	 * The flags match the behavior the planner needs most: readable URLs and
-	 * safe handling of invalid UTF-8 instead of failing silently.
+	 * JSON_HEX_TAG encodes `<` and `>` as `\u003C` / `\u003E` so values
+	 * sourced from third parties (Google place names) cannot terminate the
+	 * `<script type="application/json">` config blob. Dropping
+	 * JSON_UNESCAPED_SLASHES additionally escapes `/` to `\/` as defense in
+	 * depth. JSON_UNESCAPED_UNICODE keeps non-ASCII characters readable in
+	 * the rendered source. JSON_INVALID_UTF8_SUBSTITUTE tolerates bad bytes
+	 * instead of returning false.
 	 */
 	function wp_json_encode($value): string
 	{
 		$encoded = json_encode(
 			$value,
-			JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE
+			JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_HEX_TAG
 		);
 
 		return false === $encoded ? 'null' : $encoded;
