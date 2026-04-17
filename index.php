@@ -1771,10 +1771,17 @@ if (!function_exists('dkc_plan_validate_ajax_request')) {
 	 * The planner remains public, but these checks prevent routine cross-site
 	 * requests and keep one visitor from triggering unbounded Google API work
 	 * through the focused AJAX endpoints.
+	 *
+	 * The POST requirement is layered hygiene — it filters out browser
+	 * prefetches, link-preview bots, and <img src> drive-by requests.
+	 * The nonce check is the actual CSRF defense: without it, any same-
+	 * origin page could form-POST to these endpoints. Do not remove the
+	 * nonce check on the assumption that POST-only is sufficient.
 	 */
 	function dkc_plan_validate_ajax_request(string $scope): void
 	{
 		if ('POST' !== (string) ($_SERVER['REQUEST_METHOD'] ?? '')) {
+			header('Allow: POST');
 			wp_send_json_error(
 				[
 					'message' => 'Planner endpoints require POST.',
