@@ -1,0 +1,9 @@
+{
+    "name": "Plan Your Day",
+    "slug": "plan-your-day",
+    "version": "0.1.0",
+    "schemaVersion": 1,
+    "artifact": null,
+    "distribution": "undecided",
+    "notes": "Initial scaffold. Distribution channel (WP.org directory, self-hosted, or both) not yet decided."
+}

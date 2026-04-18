@@ -1,0 +1,14 @@
+{
+    "name": "acodebeard/plan-your-day",
+    "description": "A configurable day planning plugin for WordPress.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Acodebeard\\PlanYourDay\\": "src/"
+        }
+    }
+}
