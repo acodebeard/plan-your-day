@@ -1,0 +1,16 @@
+# Files excluded from the release zip build.
+# Release pipeline runs `composer install --no-dev --optimize-autoloader`
+# (and prefix-scoping, once introduced) before zipping.
+
+/.distignore
+/.git
+/.gitignore
+/.github
+/composer.json
+/composer.lock
+/node_modules
+/tests
+/phpunit.xml
+/phpunit.xml.dist
+/DECISIONS.md
+/*.log
