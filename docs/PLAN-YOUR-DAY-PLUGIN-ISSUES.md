@@ -7,11 +7,11 @@ Title: Create generic WordPress plugin scaffold
 Summary: Create the initial plugin directory structure, main bootstrap file, plugin headers, namespace, constants, activation/deactivation hooks, and release metadata. The scaffold must use generic Plan Your Day naming and avoid destination-specific references.
 
 Acceptance Criteria:
-- [ ] Plugin has a valid main plugin file with WordPress headers.
-- [ ] Plugin uses generic namespace, text domain, option prefix, and file names.
-- [ ] Activation and deactivation hooks are registered.
-- [ ] Version constant and stored schema/version option are added.
-- [ ] `readme.txt` and release metadata placeholders exist.
+- [x] Plugin has a valid main plugin file with WordPress headers.
+- [x] Plugin uses generic namespace, text domain, option prefix, and file names.
+- [x] Activation and deactivation hooks are registered.
+- [x] Version constant and stored schema/version option are added.
+- [x] `readme.txt` and release metadata placeholders exist.
 
 Dependencies: None
 

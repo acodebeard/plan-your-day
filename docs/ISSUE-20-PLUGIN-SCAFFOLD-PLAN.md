@@ -10,11 +10,11 @@ This issue is limited to scaffold work. The existing standalone planner files sh
 
 ## Acceptance Criteria
 
-- [ ] Plugin has a valid main plugin file with WordPress headers.
-- [ ] Plugin uses generic namespace, text domain, option prefix, and file names.
-- [ ] Activation and deactivation hooks are registered.
-- [ ] Version constant and stored schema/version option are added.
-- [ ] `readme.txt` and release metadata placeholders exist.
+- [x] Plugin has a valid main plugin file with WordPress headers.
+- [x] Plugin uses generic namespace, text domain, option prefix, and file names.
+- [x] Activation and deactivation hooks are registered.
+- [x] Version constant and stored schema/version option are added.
+- [x] `readme.txt` and release metadata placeholders exist.
 
 ## Scaffold Location
 
@@ -148,14 +148,14 @@ find plugin/plan-your-day -maxdepth 3 -type f | sort
 
 ## Definition Of Done
 
-- [ ] The plugin scaffold exists under `plugin/plan-your-day/`.
-- [ ] The main plugin file has valid headers and generic Plan Your Day metadata.
-- [ ] Constants are defined with the `PLAN_YOUR_DAY_` prefix.
-- [ ] Plugin PHP classes use the `PlanYourDay` namespace.
-- [ ] Activation stores version and schema version options.
-- [ ] Deactivation is registered and non-destructive.
-- [ ] `readme.txt` exists with metadata and changelog placeholders.
-- [ ] Release metadata placeholders exist.
-- [ ] The standalone app files remain unchanged.
-- [ ] PHP syntax checks pass.
-- [ ] Search confirms no new destination-specific strings exist in the plugin scaffold.
+- [x] The plugin scaffold exists under `plugin/plan-your-day/`.
+- [x] The main plugin file has valid headers and generic Plan Your Day metadata.
+- [x] Constants are defined with the `PLAN_YOUR_DAY_` prefix.
+- [x] Plugin PHP classes use the `PlanYourDay` namespace.
+- [x] Activation stores version and schema version options.
+- [x] Deactivation is registered and non-destructive.
+- [x] `readme.txt` exists with metadata and changelog placeholders.
+- [x] Release metadata placeholders exist.
+- [x] The standalone app files remain unchanged.
+- [x] PHP syntax checks pass.
+- [x] Search confirms no new destination-specific strings exist in the plugin scaffold.
