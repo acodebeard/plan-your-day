@@ -266,12 +266,12 @@ Title: Implement caching strategy
 Summary: Add WordPress-compatible caching for Google text search, place details, and geocoding responses using transients or object cache where appropriate.
 
 Acceptance Criteria:
-- [ ] Cache keys do not expose API keys.
-- [ ] Text search cache TTL is configurable.
-- [ ] Place details cache TTL is configurable.
-- [ ] Geocoding cache TTL is configurable.
-- [ ] Clear cache admin tool works.
-- [ ] Cache behavior is documented.
+- [x] Cache keys do not expose API keys.
+- [x] Text search cache TTL is configurable.
+- [x] Place details cache TTL is configurable.
+- [x] Geocoding cache TTL is configurable.
+- [x] Clear cache admin tool works.
+- [x] Cache behavior is documented.
 
 Dependencies: Issue 14
 

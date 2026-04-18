@@ -12,10 +12,13 @@ final class Settings {
 
 	public static function defaults(): array {
 		return [
-			'google_maps_embed_api_key' => '',
-			'google_places_api_key'     => '',
-			'google_geocoding_api_key'  => '',
-			'google_api_timeout'        => 15,
+			'google_maps_embed_api_key'       => '',
+			'google_places_api_key'           => '',
+			'google_geocoding_api_key'        => '',
+			'google_api_timeout'              => 15,
+			'google_text_search_cache_ttl'   => 21600,
+			'google_place_details_cache_ttl' => 86400,
+			'google_geocoding_cache_ttl'     => 86400,
 		];
 	}
 
@@ -42,10 +45,13 @@ final class Settings {
 		$raw_settings = is_array( $raw_settings ) ? wp_unslash( $raw_settings ) : [];
 
 		return [
-			'google_maps_embed_api_key' => self::sanitize_api_key( $raw_settings['google_maps_embed_api_key'] ?? '' ),
-			'google_places_api_key'     => self::sanitize_api_key( $raw_settings['google_places_api_key'] ?? '' ),
-			'google_geocoding_api_key'  => self::sanitize_api_key( $raw_settings['google_geocoding_api_key'] ?? '' ),
-			'google_api_timeout'        => self::sanitize_timeout( $raw_settings['google_api_timeout'] ?? 15 ),
+			'google_maps_embed_api_key'       => self::sanitize_api_key( $raw_settings['google_maps_embed_api_key'] ?? '' ),
+			'google_places_api_key'           => self::sanitize_api_key( $raw_settings['google_places_api_key'] ?? '' ),
+			'google_geocoding_api_key'        => self::sanitize_api_key( $raw_settings['google_geocoding_api_key'] ?? '' ),
+			'google_api_timeout'              => self::sanitize_timeout( $raw_settings['google_api_timeout'] ?? 15 ),
+			'google_text_search_cache_ttl'   => self::sanitize_cache_ttl( $raw_settings['google_text_search_cache_ttl'] ?? 21600 ),
+			'google_place_details_cache_ttl' => self::sanitize_cache_ttl( $raw_settings['google_place_details_cache_ttl'] ?? 86400 ),
+			'google_geocoding_cache_ttl'     => self::sanitize_cache_ttl( $raw_settings['google_geocoding_cache_ttl'] ?? 86400 ),
 		];
 	}
 
@@ -63,6 +69,10 @@ final class Settings {
 		}
 
 		return min( 30, $timeout );
+	}
+
+	public static function sanitize_cache_ttl( mixed $ttl ): int {
+		return min( WEEK_IN_SECONDS, absint( $ttl ) );
 	}
 
 	public function get_all(): array {
@@ -96,5 +106,23 @@ final class Settings {
 		$settings = $this->get_all();
 
 		return $settings['google_api_timeout'];
+	}
+
+	public function get_google_text_search_cache_ttl(): int {
+		$settings = $this->get_all();
+
+		return $settings['google_text_search_cache_ttl'];
+	}
+
+	public function get_google_place_details_cache_ttl(): int {
+		$settings = $this->get_all();
+
+		return $settings['google_place_details_cache_ttl'];
+	}
+
+	public function get_google_geocoding_cache_ttl(): int {
+		$settings = $this->get_all();
+
+		return $settings['google_geocoding_cache_ttl'];
 	}
 }

@@ -11,3 +11,21 @@ defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 delete_option( 'plan_your_day_version' );
 delete_option( 'plan_your_day_schema_version' );
 delete_option( 'plan_your_day_settings' );
+
+$plan_your_day_google_cache_keys = get_option( 'plan_your_day_google_cache_keys', [] );
+
+if ( is_array( $plan_your_day_google_cache_keys ) ) {
+	foreach ( $plan_your_day_google_cache_keys as $plan_your_day_google_cache_key ) {
+		if ( ! is_scalar( $plan_your_day_google_cache_key ) ) {
+			continue;
+		}
+
+		$plan_your_day_google_cache_key = (string) $plan_your_day_google_cache_key;
+
+		if ( str_starts_with( $plan_your_day_google_cache_key, 'pyd_google_' ) ) {
+			delete_transient( $plan_your_day_google_cache_key );
+		}
+	}
+}
+
+delete_option( 'plan_your_day_google_cache_keys' );
