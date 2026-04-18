@@ -247,13 +247,13 @@ Title: Implement Google API settings and client abstraction
 Summary: Build the Google API client layer using configured keys, cache TTLs, timeouts, field masks, and error handling.
 
 Acceptance Criteria:
-- [ ] Browser-facing Maps Embed key is separate from server-side keys.
-- [ ] Places API key is used only server-side.
-- [ ] Geocoding API key or fallback behavior is documented.
-- [ ] API timeout is configurable.
-- [ ] Field masks are explicit.
-- [ ] API errors return safe user-facing messages.
-- [ ] Server-side keys are never exposed in frontend config.
+- [x] Browser-facing Maps Embed key is separate from server-side keys.
+- [x] Places API key is used only server-side.
+- [x] Geocoding API key or fallback behavior is documented.
+- [x] API timeout is configurable.
+- [x] Field masks are explicit.
+- [x] API errors return safe user-facing messages.
+- [x] Server-side keys are never exposed in frontend config.
 
 Dependencies: Issue 5, Issue 11
 

@@ -1,0 +1,314 @@
+<?php
+declare( strict_types=1 );
+
+namespace Acodebeard\PlanYourDay\Google;
+
+use Acodebeard\PlanYourDay\Settings\Settings;
+
+defined( 'ABSPATH' ) || exit;
+
+final class GoogleApiClient implements GoogleApiClientInterface {
+	private const TEXT_SEARCH_ENDPOINT = 'https://places.googleapis.com/v1/places:searchText';
+	private const PLACE_DETAILS_ENDPOINT = 'https://places.googleapis.com/v1/places/';
+	private const GEOCODE_ENDPOINT = 'https://maps.googleapis.com/maps/api/geocode/json';
+	private const TEXT_SEARCH_FIELD_MASK = 'places.id,places.displayName,places.formattedAddress,places.googleMapsUri,places.location';
+	private const PLACE_DETAILS_FIELD_MASK = 'id,displayName,formattedAddress,googleMapsUri';
+
+	private Settings $settings;
+	private GoogleHttpTransportInterface $transport;
+
+	public function __construct( Settings $settings, ?GoogleHttpTransportInterface $transport = null ) {
+		$this->settings  = $settings;
+		$this->transport = $transport ?? new WordPressGoogleHttpTransport();
+	}
+
+	public function text_search( string $query, ?float $origin_latitude = null, ?float $origin_longitude = null ): GoogleApiResult {
+		$query = trim( sanitize_text_field( $query ) );
+
+		if ( '' === $query ) {
+			return GoogleApiResult::success(
+				[
+					'places' => [],
+				]
+			);
+		}
+
+		$api_key = $this->settings->get_google_places_api_key();
+
+		if ( '' === $api_key ) {
+			return GoogleApiResult::failure(
+				'missing_places_api_key',
+				__( 'Add a valid Google Places API key to load Google place results.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				0,
+				false
+			);
+		}
+
+		$request_body = [
+			'textQuery'      => $query,
+			'pageSize'       => 16,
+			'rankPreference' => 'DISTANCE',
+		];
+
+		if ( $this->is_valid_coordinate( $origin_latitude, -90, 90 ) && $this->is_valid_coordinate( $origin_longitude, -180, 180 ) ) {
+			$request_body['locationBias'] = [
+				'circle' => [
+					'center' => [
+						'latitude'  => $origin_latitude,
+						'longitude' => $origin_longitude,
+					],
+					'radius' => 15000.0,
+				],
+			];
+		}
+
+		$response = $this->transport->post(
+			self::TEXT_SEARCH_ENDPOINT,
+			[
+				'timeout' => $this->settings->get_google_api_timeout(),
+				'headers' => [
+					'Content-Type'      => 'application/json',
+					'X-Goog-Api-Key'    => $api_key,
+					'X-Goog-FieldMask'  => self::TEXT_SEARCH_FIELD_MASK,
+				],
+				'body'    => (string) wp_json_encode( $request_body ),
+			]
+		);
+		$decoded  = $this->decode_response(
+			$response,
+			'places_unavailable',
+			__( 'Google place results are unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+		);
+
+		if ( $decoded instanceof GoogleApiResult ) {
+			return $decoded;
+		}
+
+		$places = [];
+
+		foreach ( (array) ( $decoded['body']['places'] ?? [] ) as $place ) {
+			$parsed_place = $this->parse_place( (array) $place );
+
+			if ( ! $parsed_place['is_valid'] ) {
+				continue;
+			}
+
+			unset( $parsed_place['is_valid'] );
+			$places[] = $parsed_place;
+		}
+
+		return GoogleApiResult::success(
+			[
+				'places' => $places,
+			],
+			$decoded['status_code']
+		);
+	}
+
+	public function place_details( string $place_id ): GoogleApiResult {
+		$place_id = $this->sanitize_place_id( $place_id );
+
+		if ( '' === $place_id ) {
+			return GoogleApiResult::failure(
+				'invalid_place_id',
+				__( 'Google place details are unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				0,
+				false
+			);
+		}
+
+		$api_key = $this->settings->get_google_places_api_key();
+
+		if ( '' === $api_key ) {
+			return GoogleApiResult::failure(
+				'missing_places_api_key',
+				__( 'Add a valid Google Places API key to load exact Google place details.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				0,
+				false
+			);
+		}
+
+		$response = $this->transport->get(
+			self::PLACE_DETAILS_ENDPOINT . rawurlencode( $place_id ),
+			[
+				'timeout' => $this->settings->get_google_api_timeout(),
+				'headers' => [
+					'X-Goog-Api-Key'   => $api_key,
+					'X-Goog-FieldMask' => self::PLACE_DETAILS_FIELD_MASK,
+				],
+			]
+		);
+		$decoded  = $this->decode_response(
+			$response,
+			'place_details_unavailable',
+			__( 'Google place details are unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+		);
+
+		if ( $decoded instanceof GoogleApiResult ) {
+			return $decoded;
+		}
+
+		$place = $this->parse_place( (array) $decoded['body'] );
+
+		if ( ! $place['is_valid'] ) {
+			return GoogleApiResult::failure(
+				'place_details_unavailable',
+				__( 'Google place details are unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				$decoded['status_code'],
+				false
+			);
+		}
+
+		unset( $place['is_valid'] );
+
+		return GoogleApiResult::success(
+			[
+				'place' => $place,
+			],
+			$decoded['status_code']
+		);
+	}
+
+	public function geocode( string $address ): GoogleApiResult {
+		$address = trim( sanitize_text_field( $address ) );
+
+		if ( '' === $address ) {
+			return GoogleApiResult::failure(
+				'empty_geocode_address',
+				__( 'Google geocoding is unavailable for this address.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				0,
+				false
+			);
+		}
+
+		$api_key = $this->settings->get_google_geocoding_api_key();
+
+		if ( '' === $api_key ) {
+			return GoogleApiResult::failure(
+				'missing_geocoding_api_key',
+				__( 'Add a valid Google Geocoding API key or Places API key to geocode starting locations.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				0,
+				false
+			);
+		}
+
+		$response = $this->transport->get(
+			add_query_arg(
+				[
+					'address' => $address,
+					'key'     => $api_key,
+				],
+				self::GEOCODE_ENDPOINT
+			),
+			[
+				'timeout' => $this->settings->get_google_api_timeout(),
+			]
+		);
+		$decoded  = $this->decode_response(
+			$response,
+			'geocoding_unavailable',
+			__( 'Google geocoding is unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+		);
+
+		if ( $decoded instanceof GoogleApiResult ) {
+			return $decoded;
+		}
+
+		$body     = $decoded['body'];
+		$results  = is_array( $body['results'] ?? null ) ? $body['results'] : [];
+		$first    = is_array( $results[0] ?? null ) ? $results[0] : [];
+		$geometry = is_array( $first['geometry'] ?? null ) ? $first['geometry'] : [];
+		$location = is_array( $geometry['location'] ?? null ) ? $geometry['location'] : [];
+
+		if (
+			'OK' !== (string) ( $body['status'] ?? '' ) ||
+			! isset( $location['lat'], $location['lng'] ) ||
+			! is_numeric( $location['lat'] ) ||
+			! is_numeric( $location['lng'] )
+		) {
+			return GoogleApiResult::failure(
+				'geocoding_unavailable',
+				__( 'Google geocoding is unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				$decoded['status_code'],
+				$this->is_retryable_status( $decoded['status_code'] )
+			);
+		}
+
+		return GoogleApiResult::success(
+			[
+				'latitude'  => (float) $location['lat'],
+				'longitude' => (float) $location['lng'],
+			],
+			$decoded['status_code']
+		);
+	}
+
+	/**
+	 * @return array{body: array, status_code: int}|GoogleApiResult
+	 */
+	private function decode_response( mixed $response, string $error_code, string $message ): array|GoogleApiResult {
+		if ( is_wp_error( $response ) ) {
+			return GoogleApiResult::failure( $error_code, $message );
+		}
+
+		if ( ! is_array( $response ) ) {
+			return GoogleApiResult::failure( $error_code, $message );
+		}
+
+		$status_code = (int) wp_remote_retrieve_response_code( $response );
+		$body        = json_decode( (string) wp_remote_retrieve_body( $response ), true );
+
+		if ( $status_code < 200 || $status_code >= 300 || ! is_array( $body ) ) {
+			return GoogleApiResult::failure(
+				$error_code,
+				$message,
+				$status_code,
+				$this->is_retryable_status( $status_code )
+			);
+		}
+
+		return [
+			'body'        => $body,
+			'status_code' => $status_code,
+		];
+	}
+
+	private function parse_place( array $place ): array {
+		$display_name = is_array( $place['displayName'] ?? null ) ? $place['displayName'] : [];
+		$location     = is_array( $place['location'] ?? null ) ? $place['location'] : [];
+		$place_id     = $this->sanitize_place_id( (string) ( $place['id'] ?? '' ) );
+		$label        = trim( sanitize_text_field( (string) ( $display_name['text'] ?? '' ) ) );
+		$address      = trim( sanitize_text_field( (string) ( $place['formattedAddress'] ?? '' ) ) );
+		$maps_uri     = $this->safe_https_url( (string) ( $place['googleMapsUri'] ?? '' ) );
+		$latitude     = isset( $location['latitude'] ) && is_numeric( $location['latitude'] ) ? (float) $location['latitude'] : null;
+		$longitude    = isset( $location['longitude'] ) && is_numeric( $location['longitude'] ) ? (float) $location['longitude'] : null;
+
+		return [
+			'id'        => $place_id,
+			'label'     => '' !== $label ? $label : $address,
+			'address'   => $address,
+			'maps_uri'  => $maps_uri,
+			'latitude'  => $latitude,
+			'longitude' => $longitude,
+			'is_valid'  => '' !== $place_id && ( '' !== $label || '' !== $address ),
+		];
+	}
+
+	private function sanitize_place_id( string $place_id ): string {
+		return (string) preg_replace( '/[^A-Za-z0-9_-]/', '', trim( $place_id ) );
+	}
+
+	private function safe_https_url( string $url ): string {
+		$url = trim( $url );
+
+		return 1 === preg_match( '#\Ahttps://[^\s<>"\']+\z#i', $url ) ? $url : '';
+	}
+
+	private function is_valid_coordinate( ?float $coordinate, float $minimum, float $maximum ): bool {
+		return null !== $coordinate && $coordinate >= $minimum && $coordinate <= $maximum;
+	}
+
+	private function is_retryable_status( int $status_code ): bool {
+		return 0 === $status_code || 429 === $status_code || $status_code >= 500;
+	}
+}

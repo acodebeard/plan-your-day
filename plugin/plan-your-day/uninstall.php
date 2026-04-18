@@ -10,3 +10,4 @@ defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
 delete_option( 'plan_your_day_version' );
 delete_option( 'plan_your_day_schema_version' );
+delete_option( 'plan_your_day_settings' );
