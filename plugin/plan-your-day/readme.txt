@@ -16,7 +16,14 @@ Placeholder. Plugin scaffold only — functional features land in subsequent iss
 
 == Installation ==
 
-1. Upload the `plan-your-day` directory to `/wp-content/plugins/`.
+Release zip:
+
+1. Upload the built `plan-your-day` release zip through the Plugins screen in WordPress.
+2. Activate the plugin. Release zips include generated Composer autoload files.
+
+Source checkout:
+
+1. Copy the `plan-your-day` directory to `/wp-content/plugins/`.
 2. Run `composer install` inside the plugin directory to generate the autoloader.
 3. Activate the plugin through the Plugins screen in WordPress.
 

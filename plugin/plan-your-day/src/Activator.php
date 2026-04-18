@@ -1,7 +1,7 @@
 <?php
 declare( strict_types=1 );
 
-namespace PlanYourDay;
+namespace Acodebeard\PlanYourDay;
 
 defined( 'ABSPATH' ) || exit;
 

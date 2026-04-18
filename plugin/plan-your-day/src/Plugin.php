@@ -1,7 +1,7 @@
 <?php
 declare( strict_types=1 );
 
-namespace PlanYourDay;
+namespace Acodebeard\PlanYourDay;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -18,7 +18,7 @@ final class Plugin {
 	private function __construct() {}
 
 	public function init(): void {
-		add_action( 'plugins_loaded', [ $this, 'load_textdomain' ] );
+		add_action( 'init', [ $this, 'load_textdomain' ], 0 );
 	}
 
 	public function load_textdomain(): void {

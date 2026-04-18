@@ -11,19 +11,23 @@ repo). Each decision can be revisited when that milestone's recommendation
 
 ## 1. Autoloader — Composer PSR-4
 
-- `composer.json` declares `"psr-4": { "PlanYourDay\\": "src/" }`.
-- Main plugin file requires `vendor/autoload.php`; bails silently with a
-  comment if missing (dev clone hasn't run `composer install` yet).
+- `composer.json` declares `"psr-4": { "Acodebeard\\PlanYourDay\\": "src/" }`.
+- Main plugin file requires `vendor/autoload.php`; if missing, activation fails
+  visibly and active installs show an admin notice.
 - `vendor/` is gitignored at the source-repo root. Release pipeline runs
   `composer install --no-dev --optimize-autoloader` before zipping.
+- Built release zips include generated Composer autoload files and Composer
+  metadata; target sites should not need to run Composer.
 - Enables Strauss / PHP-Scoper dep prefix-scoping later without a rename
   migration (PITFALLS.md B2).
 
-## 2. Namespace shape — hybrid
+## 2. Namespace shape — vendor-prefixed hybrid
 
-- Root namespace `PlanYourDay\` holds `Activator`, `Deactivator`, `Plugin`.
+- Root namespace `Acodebeard\PlanYourDay\` holds `Activator`, `Deactivator`,
+  `Plugin`.
 - Subpackages (`\Http`, `\Google`, `\Rest`, `\Admin`, `\Core`) added as the
   first class of each domain lands — not reserved speculatively.
+- The vendor prefix reduces collision risk in WordPress' shared PHP runtime.
 - Matches research ARCHITECTURE.md layering without locking it in before we
   have second-class data.
 
@@ -35,12 +39,14 @@ repo). Each decision can be revisited when that milestone's recommendation
 - Closes PITFALLS.md B11 (deactivate vs uninstall bracket) while the state
   surface is still small enough to be obvious.
 
-## 4. i18n — `load_plugin_textdomain` on `plugins_loaded` priority 10
+## 4. i18n — `load_plugin_textdomain` on `init` priority 0
 
 - Registered by `Plugin::init()` via `add_action`.
-- Ensures `__()` / `_e()` work from `plugins_loaded`-or-later hooks.
-- Canonical WP pattern; prevents PITFALLS.md B8 (strings before textdomain
-  load return raw).
+- WordPress 6.7+ warns when translations are loaded too early. Manual textdomain
+  loading should happen at `init` or later, or be omitted for WordPress.org
+  plugins that rely on just-in-time translation loading.
+- Using `init` priority 0 keeps the scaffold ready for custom language files
+  without encouraging translation calls before WordPress knows the current user.
 
 ## 5. PHP / WordPress floors — PHP 8.2 / WP 6.8
 

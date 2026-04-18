@@ -1,13 +1,12 @@
 # Files excluded from the release zip build.
 # Release pipeline runs `composer install --no-dev --optimize-autoloader`
-# (and prefix-scoping, once introduced) before zipping.
+# (and prefix-scoping, once introduced) before zipping, then verifies
+# `vendor/autoload.php` exists in the artifact.
 
 /.distignore
 /.git
 /.gitignore
 /.github
-/composer.json
-/composer.lock
 /node_modules
 /tests
 /phpunit.xml
