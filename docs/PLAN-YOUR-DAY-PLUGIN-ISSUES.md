@@ -78,14 +78,14 @@ Title: Register plugin settings and options
 Summary: Build the Settings API registration layer for all configurable planner behavior, with sanitization callbacks and option defaults.
 
 Acceptance Criteria:
-- [ ] Settings group is registered.
-- [ ] Required default location settings are registered.
-- [ ] Google API key settings are registered.
-- [ ] Planner behavior settings are registered.
-- [ ] Cache and rate-limit settings are registered.
-- [ ] Trusted proxy settings are registered under Advanced.
-- [ ] Every setting has a sanitization callback.
-- [ ] Missing required settings trigger admin warnings.
+- [x] Settings group is registered.
+- [x] Required default location settings are registered.
+- [x] Google API key settings are registered.
+- [x] Planner behavior settings are registered.
+- [x] Cache and rate-limit settings are registered.
+- [x] Trusted proxy settings are registered under Advanced.
+- [x] Every setting has a sanitization callback.
+- [x] Missing required settings trigger admin warnings.
 
 Dependencies: Issue 1
 
