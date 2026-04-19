@@ -4,6 +4,8 @@ declare( strict_types=1 );
 namespace Acodebeard\PlanYourDay;
 
 use Acodebeard\PlanYourDay\Admin\SettingsPage;
+use Acodebeard\PlanYourDay\Frontend\PlannerRenderer;
+use Acodebeard\PlanYourDay\Frontend\PlannerShortcode;
 use Acodebeard\PlanYourDay\Google\CachedGoogleApiClient;
 use Acodebeard\PlanYourDay\Google\GoogleApiClient;
 use Acodebeard\PlanYourDay\Google\GoogleApiCache;
@@ -38,6 +40,8 @@ final class Plugin {
 	private DistanceFormatter $distance_formatter;
 	private RequestOriginValidator $request_origin_validator;
 	private PlannerPayloadBuilder $planner_payload_builder;
+	private PlannerRenderer $planner_renderer;
+	private PlannerShortcode $planner_shortcode;
 
 	public static function instance(): Plugin {
 		if ( null === self::$instance ) {
@@ -59,10 +63,19 @@ final class Plugin {
 		$this->distance_formatter       = new DistanceFormatter();
 		$this->request_origin_validator = new RequestOriginValidator();
 		$this->planner_payload_builder  = new PlannerPayloadBuilder();
+		$this->planner_renderer         = new PlannerRenderer(
+			$this->settings,
+			$this->category_catalog,
+			$this->request_state_parser,
+			$this->planner_state_builder(),
+			$this->planner_payload_builder
+		);
+		$this->planner_shortcode        = new PlannerShortcode( $this->planner_renderer );
 	}
 
 	public function init(): void {
 		add_action( 'init', [ $this, 'load_textdomain' ], 0 );
+		add_action( 'init', [ $this->planner_shortcode, 'register' ] );
 		add_action( 'admin_init', [ $this->settings, 'register' ] );
 		add_action( 'admin_menu', [ $this->settings_page, 'register' ] );
 		add_action( 'admin_notices', [ $this->settings_page, 'render_missing_required_settings_notice' ] );
