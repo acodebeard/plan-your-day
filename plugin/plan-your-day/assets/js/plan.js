@@ -89,6 +89,7 @@
 
       refs.startToggle.hidden = false;
       refs.startToggle.setAttribute('aria-expanded', String(isStartPanelOpen));
+      refs.startToggle.classList.toggle('is-collapsed', !isStartPanelOpen);
       refs.startPanel.hidden = !isStartPanelOpen;
 
       if (refs.startToggleLabel) {

@@ -5,15 +5,9 @@
   box-sizing: border-box;
 }
 
-html {
-  min-height: 100%;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-
-body {
-  min-height: 100%;
-  margin: 0;
+.dkc-plan {
+  --focus-ring-color: #1168d8;
+  --focus-ring-offset-color: #ffffff;
   font-family:
     system-ui,
     -apple-system,
@@ -21,36 +15,31 @@ body {
     "Segoe UI",
     sans-serif;
   line-height: 1.5;
-  color: #173038;
-  background: #eef6f2;
 }
 
-main {
-  display: block;
-}
-
-img,
-svg {
+.dkc-plan img,
+.dkc-plan svg {
   display: block;
   max-width: 100%;
 }
 
-button,
-input,
-select,
-textarea {
+.dkc-plan button,
+.dkc-plan input,
+.dkc-plan select,
+.dkc-plan textarea {
   font: inherit;
 }
 
-button {
+.dkc-plan button {
   cursor: pointer;
 }
 
-a {
+.dkc-plan a {
   color: inherit;
 }
 
-.sr-only {
+.dkc-plan .screen-reader-text,
+.dkc-plan .sr-only {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -449,16 +438,16 @@ a {
 }
 
 .dkc-plan__category-results-scroll[aria-busy="true"],
-[data-plan-trip-region][aria-busy="true"],
-[data-plan-preview-card][aria-busy="true"] .dkc-plan__map-wrap,
-[data-plan-preview-card][aria-busy="true"] .dkc-plan__summary {
+.dkc-plan [data-plan-trip-region][aria-busy="true"],
+.dkc-plan [data-plan-preview-card][aria-busy="true"] .dkc-plan__map-wrap,
+.dkc-plan [data-plan-preview-card][aria-busy="true"] .dkc-plan__summary {
   opacity: 0.72;
   filter: saturate(0.88);
 }
 
 .dkc-plan__category-results-scroll[aria-busy="true"],
-[data-plan-trip-region][aria-busy="true"],
-[data-plan-preview-card][aria-busy="true"] {
+.dkc-plan [data-plan-trip-region][aria-busy="true"],
+.dkc-plan [data-plan-preview-card][aria-busy="true"] {
   cursor: progress;
 }
 
