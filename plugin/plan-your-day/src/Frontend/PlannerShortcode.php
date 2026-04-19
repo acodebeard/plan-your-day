@@ -8,10 +8,12 @@ defined( 'ABSPATH' ) || exit;
 final class PlannerShortcode {
 	public const TAG = 'plan_your_day';
 
+	private FrontendAssets $assets;
 	private PlannerRenderer $renderer;
 
-	public function __construct( PlannerRenderer $renderer ) {
+	public function __construct( PlannerRenderer $renderer, FrontendAssets $assets ) {
 		$this->renderer = $renderer;
+		$this->assets   = $assets;
 	}
 
 	public function register(): void {
@@ -28,6 +30,8 @@ final class PlannerShortcode {
 		);
 
 		$action_url = esc_url_raw( (string) $attributes['action_url'] );
+
+		$this->assets->enqueue();
 
 		return $this->renderer->render( $_GET, $action_url );
 	}
