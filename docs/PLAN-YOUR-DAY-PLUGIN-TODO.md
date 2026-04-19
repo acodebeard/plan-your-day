@@ -32,13 +32,13 @@ The current standalone implementation in `index.php`, `plan.js`, `plan.css`, and
 
 ### Phase 1: Product And Architecture Decisions
 
-- [ ] Choose generic plugin name, slug, namespace, text domain, and option prefix.
-- [ ] Decide whether the plugin is private/internal, GitHub-distributed, or WordPress.org-distributed.
-- [ ] Define minimum supported WordPress version.
-- [ ] Define minimum supported PHP version.
-- [ ] Decide whether multisite support is required for v1.
-- [ ] Choose initial frontend entry points: shortcode first, block wrapper second.
-- [ ] Confirm REST API routes as the endpoint model.
+- [x] Choose generic plugin name, slug, namespace, text domain, and option prefix.
+- [x] Decide whether the plugin is private/internal, GitHub-distributed, or WordPress.org-distributed.
+- [x] Define minimum supported WordPress version.
+- [x] Define minimum supported PHP version.
+- [x] Decide whether multisite support is required for v1.
+- [x] Choose initial frontend entry points: shortcode first, block wrapper second.
+- [x] Confirm REST API routes as the endpoint model.
 
 ### Phase 2: Plugin Skeleton
 
