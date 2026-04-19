@@ -8,9 +8,12 @@ use Acodebeard\PlanYourDay\Google\CachedGoogleApiClient;
 use Acodebeard\PlanYourDay\Google\GoogleApiClient;
 use Acodebeard\PlanYourDay\Google\GoogleApiCache;
 use Acodebeard\PlanYourDay\Google\GoogleApiClientInterface;
+use Acodebeard\PlanYourDay\Planner\CategoryCatalog;
 use Acodebeard\PlanYourDay\Planner\DistanceFormatter;
 use Acodebeard\PlanYourDay\Planner\MapUrlBuilder;
 use Acodebeard\PlanYourDay\Planner\PlaceParser;
+use Acodebeard\PlanYourDay\Planner\PlannerPayloadBuilder;
+use Acodebeard\PlanYourDay\Planner\PlannerStateBuilder;
 use Acodebeard\PlanYourDay\Planner\RequestStateParser;
 use Acodebeard\PlanYourDay\Planner\StartContextResolver;
 use Acodebeard\PlanYourDay\Planner\WaypointList;
@@ -25,6 +28,8 @@ final class Plugin {
 	private SettingsPage $settings_page;
 	private GoogleApiCache $google_api_cache;
 	private ?GoogleApiClientInterface $google_api_client = null;
+	private ?PlannerStateBuilder $planner_state_builder = null;
+	private CategoryCatalog $category_catalog;
 	private PlaceParser $place_parser;
 	private WaypointList $waypoint_list;
 	private RequestStateParser $request_state_parser;
@@ -32,6 +37,7 @@ final class Plugin {
 	private MapUrlBuilder $map_url_builder;
 	private DistanceFormatter $distance_formatter;
 	private RequestOriginValidator $request_origin_validator;
+	private PlannerPayloadBuilder $planner_payload_builder;
 
 	public static function instance(): Plugin {
 		if ( null === self::$instance ) {
@@ -44,13 +50,15 @@ final class Plugin {
 		$this->settings         = new Settings();
 		$this->google_api_cache = new GoogleApiCache();
 		$this->settings_page    = new SettingsPage( $this->settings, $this->google_api_cache );
+		$this->category_catalog = new CategoryCatalog();
 		$this->place_parser     = new PlaceParser();
-		$this->waypoint_list    = new WaypointList( $this->settings );
+		$this->waypoint_list            = new WaypointList( $this->settings );
 		$this->request_state_parser     = new RequestStateParser( $this->waypoint_list );
 		$this->start_context_resolver   = new StartContextResolver( $this->settings );
 		$this->map_url_builder          = new MapUrlBuilder();
 		$this->distance_formatter       = new DistanceFormatter();
 		$this->request_origin_validator = new RequestOriginValidator();
+		$this->planner_payload_builder  = new PlannerPayloadBuilder();
 	}
 
 	public function init(): void {
@@ -89,6 +97,10 @@ final class Plugin {
 		return $this->google_api_cache;
 	}
 
+	public function category_catalog(): CategoryCatalog {
+		return $this->category_catalog;
+	}
+
 	public function place_parser(): PlaceParser {
 		return $this->place_parser;
 	}
@@ -115,5 +127,26 @@ final class Plugin {
 
 	public function request_origin_validator(): RequestOriginValidator {
 		return $this->request_origin_validator;
+	}
+
+	public function planner_state_builder(): PlannerStateBuilder {
+		if ( null === $this->planner_state_builder ) {
+			$this->planner_state_builder = new PlannerStateBuilder(
+				$this->settings,
+				$this->category_catalog,
+				$this->google_api_client(),
+				$this->waypoint_list,
+				$this->start_context_resolver,
+				$this->map_url_builder,
+				$this->distance_formatter,
+				$this->request_origin_validator
+			);
+		}
+
+		return $this->planner_state_builder;
+	}
+
+	public function planner_payload_builder(): PlannerPayloadBuilder {
+		return $this->planner_payload_builder;
 	}
 }

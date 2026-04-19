@@ -80,6 +80,8 @@ Maps Embed key is separate.
 
 Planner helpers extracted so far:
 
+- `CategoryCatalog`: provides generic seed categories until configurable
+  categories land.
 - `PlaceParser`: shapes Google place responses and sanitizes Place IDs / HTTPS
   map URLs.
 - `WaypointList`: normalizes, deduplicates, caps, and reorders waypoint IDs.
@@ -90,6 +92,9 @@ Planner helpers extracted so far:
   plugin settings instead of hardcoded destination defaults.
 - `RequestStateParser`: normalizes request-style category, start, and waypoint
   state.
+- `PlannerStateBuilder`: builds the plugin-native planner state shape used by
+  future renderers and REST endpoints.
+- `PlannerPayloadBuilder`: shapes browse and route payloads from planner state.
 
 These services are exposed from `Plugin` so future shortcode and REST work can
 share one implementation.
@@ -112,7 +117,6 @@ The root-level standalone implementation still contains:
 - Standalone WordPress compatibility shims.
 - Session-backed nonce/cache behavior.
 - Standalone request rate limiting.
-- Standalone frontend state assembly.
 
 Those pieces should move into plugin-native renderer, REST, security, and asset
 classes in later issue slices.
