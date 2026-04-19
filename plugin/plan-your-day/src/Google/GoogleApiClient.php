@@ -3,6 +3,7 @@ declare( strict_types=1 );
 
 namespace Acodebeard\PlanYourDay\Google;
 
+use Acodebeard\PlanYourDay\Planner\PlaceParser;
 use Acodebeard\PlanYourDay\Settings\Settings;
 
 defined( 'ABSPATH' ) || exit;
@@ -16,10 +17,12 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 
 	private Settings $settings;
 	private GoogleHttpTransportInterface $transport;
+	private PlaceParser $place_parser;
 
-	public function __construct( Settings $settings, ?GoogleHttpTransportInterface $transport = null ) {
-		$this->settings  = $settings;
-		$this->transport = $transport ?? new WordPressGoogleHttpTransport();
+	public function __construct( Settings $settings, ?GoogleHttpTransportInterface $transport = null, ?PlaceParser $place_parser = null ) {
+		$this->settings     = $settings;
+		$this->transport    = $transport ?? new WordPressGoogleHttpTransport();
+		$this->place_parser = $place_parser ?? new PlaceParser();
 	}
 
 	public function text_search( string $query, ?float $origin_latitude = null, ?float $origin_longitude = null ): GoogleApiResult {
@@ -87,7 +90,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		$places = [];
 
 		foreach ( (array) ( $decoded['body']['places'] ?? [] ) as $place ) {
-			$parsed_place = $this->parse_place( (array) $place );
+			$parsed_place = $this->place_parser->parse_google_place( (array) $place );
 
 			if ( ! $parsed_place['is_valid'] ) {
 				continue;
@@ -106,7 +109,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 	}
 
 	public function place_details( string $place_id ): GoogleApiResult {
-		$place_id = $this->sanitize_place_id( $place_id );
+		$place_id = PlaceParser::sanitize_place_id( $place_id );
 
 		if ( '' === $place_id ) {
 			return GoogleApiResult::failure(
@@ -148,7 +151,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 			return $decoded;
 		}
 
-		$place = $this->parse_place( (array) $decoded['body'] );
+		$place = $this->place_parser->parse_google_place( (array) $decoded['body'] );
 
 		if ( ! $place['is_valid'] ) {
 			return GoogleApiResult::failure(
@@ -271,37 +274,6 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 			'body'        => $body,
 			'status_code' => $status_code,
 		];
-	}
-
-	private function parse_place( array $place ): array {
-		$display_name = is_array( $place['displayName'] ?? null ) ? $place['displayName'] : [];
-		$location     = is_array( $place['location'] ?? null ) ? $place['location'] : [];
-		$place_id     = $this->sanitize_place_id( (string) ( $place['id'] ?? '' ) );
-		$label        = trim( sanitize_text_field( (string) ( $display_name['text'] ?? '' ) ) );
-		$address      = trim( sanitize_text_field( (string) ( $place['formattedAddress'] ?? '' ) ) );
-		$maps_uri     = $this->safe_https_url( (string) ( $place['googleMapsUri'] ?? '' ) );
-		$latitude     = isset( $location['latitude'] ) && is_numeric( $location['latitude'] ) ? (float) $location['latitude'] : null;
-		$longitude    = isset( $location['longitude'] ) && is_numeric( $location['longitude'] ) ? (float) $location['longitude'] : null;
-
-		return [
-			'id'        => $place_id,
-			'label'     => '' !== $label ? $label : $address,
-			'address'   => $address,
-			'maps_uri'  => $maps_uri,
-			'latitude'  => $latitude,
-			'longitude' => $longitude,
-			'is_valid'  => '' !== $place_id && ( '' !== $label || '' !== $address ),
-		];
-	}
-
-	private function sanitize_place_id( string $place_id ): string {
-		return (string) preg_replace( '/[^A-Za-z0-9_-]/', '', trim( $place_id ) );
-	}
-
-	private function safe_https_url( string $url ): string {
-		$url = trim( $url );
-
-		return 1 === preg_match( '#\Ahttps://[^\s<>"\']+\z#i', $url ) ? $url : '';
 	}
 
 	private function is_valid_coordinate( ?float $coordinate, float $minimum, float $maximum ): bool {

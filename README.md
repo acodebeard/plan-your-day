@@ -22,6 +22,8 @@ Completed foundation work includes:
 - Google API client abstraction with server-side key handling, explicit field
   masks, safe result objects, configurable timeouts, and transient-backed
   caching.
+- Extracted planner helper services for place parsing, waypoint state, distance
+  labels, map URLs, start context, request state, and request-origin checks.
 
 Frontend rendering, REST endpoints, anonymous visitor token protection, asset
 enqueueing, migration helpers, CI, and production documentation are still tracked
@@ -49,6 +51,12 @@ in GitHub issues.
   notes.
 - Root-level `index.php`, `plan.css`, `plan.js`, `icons/`, and private key
   examples are legacy standalone assets used as migration reference.
+
+## Documentation
+
+Start with [docs/README.md](docs/README.md). Current docs cover installation,
+architecture, settings, security, and troubleshooting for the work implemented
+so far.
 
 ## Local Source Installation
 

@@ -8,6 +8,13 @@ use Acodebeard\PlanYourDay\Google\CachedGoogleApiClient;
 use Acodebeard\PlanYourDay\Google\GoogleApiClient;
 use Acodebeard\PlanYourDay\Google\GoogleApiCache;
 use Acodebeard\PlanYourDay\Google\GoogleApiClientInterface;
+use Acodebeard\PlanYourDay\Planner\DistanceFormatter;
+use Acodebeard\PlanYourDay\Planner\MapUrlBuilder;
+use Acodebeard\PlanYourDay\Planner\PlaceParser;
+use Acodebeard\PlanYourDay\Planner\RequestStateParser;
+use Acodebeard\PlanYourDay\Planner\StartContextResolver;
+use Acodebeard\PlanYourDay\Planner\WaypointList;
+use Acodebeard\PlanYourDay\Security\RequestOriginValidator;
 use Acodebeard\PlanYourDay\Settings\Settings;
 
 defined( 'ABSPATH' ) || exit;
@@ -18,6 +25,13 @@ final class Plugin {
 	private SettingsPage $settings_page;
 	private GoogleApiCache $google_api_cache;
 	private ?GoogleApiClientInterface $google_api_client = null;
+	private PlaceParser $place_parser;
+	private WaypointList $waypoint_list;
+	private RequestStateParser $request_state_parser;
+	private StartContextResolver $start_context_resolver;
+	private MapUrlBuilder $map_url_builder;
+	private DistanceFormatter $distance_formatter;
+	private RequestOriginValidator $request_origin_validator;
 
 	public static function instance(): Plugin {
 		if ( null === self::$instance ) {
@@ -30,6 +44,13 @@ final class Plugin {
 		$this->settings         = new Settings();
 		$this->google_api_cache = new GoogleApiCache();
 		$this->settings_page    = new SettingsPage( $this->settings, $this->google_api_cache );
+		$this->place_parser     = new PlaceParser();
+		$this->waypoint_list    = new WaypointList( $this->settings );
+		$this->request_state_parser     = new RequestStateParser( $this->waypoint_list );
+		$this->start_context_resolver   = new StartContextResolver( $this->settings );
+		$this->map_url_builder          = new MapUrlBuilder();
+		$this->distance_formatter       = new DistanceFormatter();
+		$this->request_origin_validator = new RequestOriginValidator();
 	}
 
 	public function init(): void {
@@ -55,7 +76,7 @@ final class Plugin {
 	public function google_api_client(): GoogleApiClientInterface {
 		if ( null === $this->google_api_client ) {
 			$this->google_api_client = new CachedGoogleApiClient(
-				new GoogleApiClient( $this->settings ),
+				new GoogleApiClient( $this->settings, null, $this->place_parser ),
 				$this->settings,
 				$this->google_api_cache
 			);
@@ -66,5 +87,33 @@ final class Plugin {
 
 	public function google_api_cache(): GoogleApiCache {
 		return $this->google_api_cache;
+	}
+
+	public function place_parser(): PlaceParser {
+		return $this->place_parser;
+	}
+
+	public function waypoint_list(): WaypointList {
+		return $this->waypoint_list;
+	}
+
+	public function request_state_parser(): RequestStateParser {
+		return $this->request_state_parser;
+	}
+
+	public function start_context_resolver(): StartContextResolver {
+		return $this->start_context_resolver;
+	}
+
+	public function map_url_builder(): MapUrlBuilder {
+		return $this->map_url_builder;
+	}
+
+	public function distance_formatter(): DistanceFormatter {
+		return $this->distance_formatter;
+	}
+
+	public function request_origin_validator(): RequestOriginValidator {
+		return $this->request_origin_validator;
 	}
 }
