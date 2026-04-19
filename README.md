@@ -1,54 +1,113 @@
-# Destination Kona Coast Plan Your Day
+# Plan Your Day
 
-Standalone PHP version of the Destination Kona Coast trip planner. This copy does not load WordPress and is intended to run from this directory with `index.php`, `plan.css`, `plan.js`, and the local icon assets.
+Plan Your Day is a configurable WordPress plugin for building day-trip planners
+with Google Maps and Places data. The plugin source lives in
+`plugin/plan-your-day/`.
 
-## Repository Setup
+This repository is no longer the standalone Destination Kona Coast PHP runtime.
+The legacy root-level standalone files remain only as migration/source material
+until the plugin reaches feature parity.
 
-1. Create a new GitHub repository.
-2. Add this directory as the repository root.
-3. Keep the private API key file out of git. The active key file is `c88e3e98.php`, and `.gitignore` excludes it.
-4. Copy `c88e3e98.example.php` to `c88e3e98.php`.
-5. Open `c88e3e98.php` and add the Google Maps API key where the empty string is defined.
-6. In Google Cloud, make sure the key can use Maps Embed API, Places API (New), and Geocoding API.
-7. Restrict the key in Google Cloud before using it outside local development.
-8. Serve the directory through PHP/Apache, then open `/plan-your-day/` in a browser.
+## Status
 
-## Files
+The plugin is under active migration from the earlier standalone implementation.
+Completed foundation work includes:
 
-- `index.php` renders the page, handles focused JSON requests, and contains the standalone PHP runtime.
-- `c88e3e98.php` is the private local API key config and should not be committed.
-- `c88e3e98.example.php` is the safe template for creating the private config file.
-- `plan.css` contains the planner reset and component styles.
-- `plan.js` handles local UI state, focused data requests, trip selection, and reordering.
-- `icons/` contains local SVG assets used by the planner UI.
-- `.htaccess` blocks direct browser access to private key config files.
+- WordPress plugin scaffold, activation/deactivation hooks, uninstall routine,
+  release metadata, and Composer PSR-4 autoloading.
+- Settings API registration for default location, planner behavior, Google API
+  keys, cache TTLs, rate-limit settings, and trusted proxy configuration.
+- Admin settings screen with required-configuration notices and a Google API
+  cache clear tool.
+- Google API client abstraction with server-side key handling, explicit field
+  masks, safe result objects, configurable timeouts, and transient-backed
+  caching.
 
-## Creating A Trip
+Frontend rendering, REST endpoints, anonymous visitor token protection, asset
+enqueueing, migration helpers, CI, and production documentation are still tracked
+in GitHub issues.
 
-1. Choose a starting point.
-   Select Current location, Kailua Pier, or Custom starting point. Current location uses Kailua Pier for the on-page preview and lets Google Maps start from the visitor's location during handoff. Custom starting point lets the visitor enter a hotel, resort, vacation rental, or address.
+## Requirements
 
-2. Open a category.
-   Choose Coffee, Food, Shopping, Beaches, History / culture, Scenic spots, or Other tourist activities. The planner searches Google for real places near the selected starting area.
+- WordPress 6.8 or newer
+- PHP 8.2 or newer
+- Composer for source checkouts
+- Google Cloud keys for Maps Embed API, Places API (New), and optionally
+  Geocoding API
 
-3. Review the results.
-   Each result includes the place name, address, and a Google Maps link when Google provides one. Distance hints are approximate straight-line distances from the on-page starting area.
+## Repository Layout
 
-4. Add places to the trip.
-   Use Add to trip on any result. Added places become exact waypoints for the walking trip.
+- `plugin/plan-your-day/` contains the WordPress plugin source.
+- `plugin/plan-your-day/plan-your-day.php` is the main plugin file.
+- `plugin/plan-your-day/src/` contains namespaced plugin classes.
+- `plugin/plan-your-day/src/Settings/` contains option defaults and
+  sanitization.
+- `plugin/plan-your-day/src/Admin/` contains the settings UI.
+- `plugin/plan-your-day/src/Google/` contains Google API client and cache
+  classes.
+- `docs/` contains the migration plan, issue breakdown, and implementation
+  notes.
+- Root-level `index.php`, `plan.css`, `plan.js`, `icons/`, and private key
+  examples are legacy standalone assets used as migration reference.
 
-5. Reorder the waypoints.
-   Drag waypoints when JavaScript enhancement is active, or use Move up and Move down. The visible order becomes the walking route order.
+## Local Source Installation
 
-6. Remove anything unwanted.
-   Use Remove on a waypoint, or Clear trip to start over while keeping the page available.
+1. Copy or symlink `plugin/plan-your-day/` into a WordPress installation at
+   `wp-content/plugins/plan-your-day/`.
+2. From the plugin directory, install the Composer autoloader:
 
-7. Check the preview.
-   The preview starts as a category search map. After one or more waypoints are selected, it switches to walking directions when a valid Maps Embed API key is configured.
+   ```sh
+   composer install
+   ```
 
-8. Open the route in Google Maps.
-   Use Go! to hand the selected route to Google Maps. The link still works as a Google Maps search or route handoff even if the embedded preview is unavailable.
+3. Activate **Plan Your Day** from the WordPress Plugins screen.
+4. Open **Settings > Plan Your Day**.
+5. Configure the required default location and Google API keys.
 
-## Accessibility Notes
+Release zips should include generated Composer autoload files so production
+sites do not need to run Composer.
 
-The component uses semantic form controls, real buttons for actions, live status messaging, keyboard-accessible move controls, visible focus states from `plan.css`, and a no-JavaScript form fallback. Any future changes should preserve WCAG 2.1 or better.
+## Configuration
+
+Plugin settings are stored in the `plan_your_day_settings` option and are
+managed through the WordPress Settings API. Current settings include:
+
+- Default location label, address/search phrase, latitude, longitude, and Place
+  ID.
+- Allowed starting-point modes.
+- Maximum waypoints and result count.
+- Distance unit.
+- Map preview and Google Maps handoff toggles.
+- Browser-facing Maps Embed API key.
+- Server-side Places and Geocoding API keys.
+- Google API timeout and cache TTLs.
+- Rate-limit value and trusted proxy CIDRs for future endpoint protection.
+
+Server-side Google API keys must not be exposed to frontend runtime config.
+
+## Development Notes
+
+- Keep plugin code generic and location-agnostic. Destination-specific values
+  belong in settings or migration data.
+- Do not rely on PHP sessions in plugin code.
+- Use WordPress-native APIs for escaping, sanitization, options, REST,
+  transients/object cache, HTTP requests, and asset registration.
+- Keep the legacy standalone deployment untouched until the plugin MVP is ready.
+- Update `docs/PLAN-YOUR-DAY-PLUGIN-TODO.md` and GitHub issues as migration
+  work lands.
+
+## Useful Checks
+
+Run PHP syntax checks from the repository root:
+
+```sh
+find plugin/plan-your-day -name '*.php' -print -exec php -l {} \;
+```
+
+Search for destination-specific strings in plugin code:
+
+```sh
+rg "Kona|Destination Kona Coast|Kailua Pier|DKC|dkc" plugin/plan-your-day
+```
+
+No production test suite is wired yet; automated checks are tracked separately.
