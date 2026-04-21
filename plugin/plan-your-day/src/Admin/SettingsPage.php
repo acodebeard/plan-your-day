@@ -4,18 +4,30 @@ declare( strict_types=1 );
 namespace Acodebeard\PlanYourDay\Admin;
 
 use Acodebeard\PlanYourDay\Google\GoogleApiCache;
+use Acodebeard\PlanYourDay\Google\GoogleApiClientInterface;
 use Acodebeard\PlanYourDay\Planner\CategoryCatalog;
 use Acodebeard\PlanYourDay\Settings\Settings;
 
 defined( 'ABSPATH' ) || exit;
 
 final class SettingsPage {
+	private const GOOGLE_TEST_TRANSIENT_PREFIX = 'plan_your_day_google_test_';
+
 	private Settings $settings;
 	private GoogleApiCache $google_api_cache;
+	private GoogleApiClientInterface $google_api_client;
+	private CategoryCatalog $category_catalog;
 
-	public function __construct( Settings $settings, GoogleApiCache $google_api_cache ) {
-		$this->settings         = $settings;
-		$this->google_api_cache = $google_api_cache;
+	public function __construct(
+		Settings $settings,
+		GoogleApiCache $google_api_cache,
+		GoogleApiClientInterface $google_api_client,
+		CategoryCatalog $category_catalog
+	) {
+		$this->settings          = $settings;
+		$this->google_api_cache  = $google_api_cache;
+		$this->google_api_client = $google_api_client;
+		$this->category_catalog  = $category_catalog;
 	}
 
 	public function register(): void {
@@ -314,6 +326,8 @@ final class SettingsPage {
 		<div class="wrap">
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 			<?php $this->render_cache_notice(); ?>
+			<?php $this->render_google_test_notice(); ?>
+			<?php $this->render_setup_status_panel(); ?>
 			<form action="<?php echo esc_url( admin_url( 'options.php' ) ); ?>" method="post">
 				<?php
 				settings_fields( Settings::OPTION_GROUP );
@@ -329,8 +343,133 @@ final class SettingsPage {
 				<?php wp_nonce_field( 'plan_your_day_clear_google_cache' ); ?>
 				<?php submit_button( __( 'Clear Google API cache', PLAN_YOUR_DAY_TEXT_DOMAIN ), 'secondary', 'submit', false ); ?>
 			</form>
+			<hr />
+			<h2><?php esc_html_e( 'Google API Test', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h2>
+			<p><?php esc_html_e( 'Run a lightweight admin-only probe using the configured default location, categories, and server-side Google keys.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></p>
+			<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post">
+				<input type="hidden" name="action" value="plan_your_day_test_google_api" />
+				<?php wp_nonce_field( 'plan_your_day_test_google_api' ); ?>
+				<?php submit_button( __( 'Run Google API test', PLAN_YOUR_DAY_TEXT_DOMAIN ), 'secondary', 'submit', false ); ?>
+			</form>
+			<?php $this->render_google_test_results_panel(); ?>
 		</div>
 		<?php
+	}
+
+	private function render_setup_status_panel(): void {
+		$checks              = $this->build_setup_status_checks();
+		$ready_check_count   = 0;
+		$warning_check_count = 0;
+		$optional_check_count = 0;
+
+		foreach ( $checks as $check ) {
+			if ( 'success' === $check['type'] ) {
+				++$ready_check_count;
+			} elseif ( 'warning' === $check['type'] ) {
+				++$warning_check_count;
+			} else {
+				++$optional_check_count;
+			}
+		}
+		?>
+		<h2><?php esc_html_e( 'Setup Status', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h2>
+		<p>
+			<?php
+			echo esc_html(
+				sprintf(
+					/* translators: 1: number of passing checks, 2: number of warnings, 3: number of optional checks. */
+					__( '%1$d checks look ready, %2$d still need attention, and %3$d are optional.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+					$ready_check_count,
+					$warning_check_count,
+					$optional_check_count
+				)
+			);
+			?>
+		</p>
+		<table class="widefat striped" style="margin-bottom:1.5rem;">
+			<thead>
+				<tr>
+					<th><?php esc_html_e( 'Area', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
+					<th><?php esc_html_e( 'Status', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
+					<th><?php esc_html_e( 'Details', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach ( $checks as $check ) : ?>
+					<tr>
+						<td><strong><?php echo esc_html( $check['label'] ); ?></strong></td>
+						<td>
+							<strong><?php echo esc_html( $check['status'] ); ?></strong>
+						</td>
+						<td><?php echo esc_html( $check['detail'] ); ?></td>
+					</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
+		<?php
+	}
+
+	private function build_setup_status_checks(): array {
+		$custom_categories = $this->settings->get_categories();
+		$active_categories = $this->category_catalog->get_all();
+		$missing_required  = $this->settings->get_missing_required_settings();
+		$embed_key         = $this->settings->get_google_maps_embed_api_key();
+		$places_key        = $this->settings->get_google_places_api_key();
+		$geocoding_key     = $this->settings->get_google_geocoding_api_key();
+
+		return [
+			[
+				'label'  => __( 'Required location settings', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'status' => [] === $missing_required ? __( 'Ready', PLAN_YOUR_DAY_TEXT_DOMAIN ) : __( 'Needs setup', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'detail' => [] === $missing_required
+					? __( 'The planner has the required default location label and address.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+					: sprintf(
+						/* translators: %s is a comma-separated list of missing settings. */
+						__( 'Missing: %s.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+						implode( ', ', $missing_required )
+					),
+				'type'   => [] === $missing_required ? 'success' : 'warning',
+			],
+			[
+				'label'  => __( 'Places API key', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'status' => '' !== $places_key ? __( 'Ready', PLAN_YOUR_DAY_TEXT_DOMAIN ) : __( 'Missing', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'detail' => '' !== $places_key
+					? __( 'Server-side Places requests can run.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+					: __( 'Add a Places API key before trying browse or place-detail requests.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'type'   => '' !== $places_key ? 'success' : 'warning',
+			],
+			[
+				'label'  => __( 'Geocoding configuration', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'status' => '' !== $geocoding_key ? __( 'Ready', PLAN_YOUR_DAY_TEXT_DOMAIN ) : __( 'Missing', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'detail' => '' !== $geocoding_key
+					? ( $geocoding_key === $places_key
+						? __( 'Geocoding will use the Places API key fallback.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+						: __( 'A dedicated Geocoding API key is configured.', PLAN_YOUR_DAY_TEXT_DOMAIN ) )
+					: __( 'Add a Geocoding API key or a Places API key fallback before testing location resolution.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'type'   => '' !== $geocoding_key ? 'success' : 'warning',
+			],
+			[
+				'label'  => __( 'Maps Embed preview key', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'status' => '' !== $embed_key ? __( 'Ready', PLAN_YOUR_DAY_TEXT_DOMAIN ) : __( 'Optional', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'detail' => '' !== $embed_key
+					? __( 'On-page Google Maps embeds can render when preview mode is enabled.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+					: __( 'Missing this key only affects on-page embed previews; Google Maps handoff links can still work.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'type'   => '' !== $embed_key ? 'success' : 'optional',
+			],
+			[
+				'label'  => __( 'Planner categories', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'status' => [] !== $active_categories ? __( 'Ready', PLAN_YOUR_DAY_TEXT_DOMAIN ) : __( 'Needs setup', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'detail' => [] !== $active_categories
+					? sprintf(
+						/* translators: 1: active category count, 2: custom category count. */
+						__( '%1$d active categories are available. %2$d custom categories are saved.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+						count( $active_categories ),
+						count( $custom_categories )
+					)
+					: __( 'No active categories are available. Add at least one custom category or re-enable the preset fallback.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'type'   => [] !== $active_categories ? 'success' : 'warning',
+			],
+		];
 	}
 
 	public function render_google_api_section(): void {
@@ -416,6 +555,212 @@ final class SettingsPage {
 
 		wp_safe_redirect( $redirect_url );
 		exit;
+	}
+
+	public function handle_test_google_api(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to manage Plan Your Day settings.', PLAN_YOUR_DAY_TEXT_DOMAIN ) );
+		}
+
+		check_admin_referer( 'plan_your_day_test_google_api' );
+
+		$results      = $this->run_google_api_test();
+		$transient_key = $this->google_test_transient_key();
+
+		if ( '' !== $transient_key ) {
+			set_transient( $transient_key, $results, 10 * MINUTE_IN_SECONDS );
+		}
+
+		$redirect_url = add_query_arg(
+			[
+				'page'                        => Settings::PAGE_SLUG,
+				'plan_your_day_google_tested' => 1,
+			],
+			admin_url( 'options-general.php' )
+		);
+
+		wp_safe_redirect( $redirect_url );
+		exit;
+	}
+
+	private function run_google_api_test(): array {
+		$default_address = $this->settings->get_default_location_address();
+		$categories      = $this->category_catalog->get_all();
+		$first_category  = is_array( reset( $categories ) ) ? reset( $categories ) : [];
+		$probe_query     = $this->build_google_test_query( $default_address, $first_category );
+		$geocode_result  = $this->google_api_client->geocode( $default_address );
+		$origin_latitude = $this->settings->get_default_location_latitude();
+		$origin_longitude = $this->settings->get_default_location_longitude();
+
+		if ( $geocode_result->is_success() ) {
+			$origin_latitude  = isset( $geocode_result->data()['latitude'] ) ? (float) $geocode_result->data()['latitude'] : $origin_latitude;
+			$origin_longitude = isset( $geocode_result->data()['longitude'] ) ? (float) $geocode_result->data()['longitude'] : $origin_longitude;
+		}
+
+		$text_search_result = $this->google_api_client->text_search( $probe_query, $origin_latitude, $origin_longitude );
+		$places             = $text_search_result->is_success() ? (array) ( $text_search_result->data()['places'] ?? [] ) : [];
+		$first_place        = is_array( $places[0] ?? null ) ? $places[0] : [];
+		$place_id           = is_scalar( $first_place['id'] ?? null ) ? (string) $first_place['id'] : '';
+		$place_details_result = '' !== $place_id
+			? $this->google_api_client->place_details( $place_id )
+			: null;
+		$checks = [
+			[
+				'label'   => __( 'Geocoding probe', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'success' => $geocode_result->is_success(),
+				'detail'  => $geocode_result->is_success()
+					? sprintf(
+						/* translators: 1: latitude, 2: longitude. */
+						__( 'Resolved the default location to %1$s, %2$s.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+						(string) $origin_latitude,
+						(string) $origin_longitude
+					)
+					: $geocode_result->message(),
+			],
+			[
+				'label'   => __( 'Text search probe', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'success' => $text_search_result->is_success(),
+				'detail'  => $text_search_result->is_success()
+					? sprintf(
+						/* translators: 1: query text, 2: result count. */
+						__( 'Query "%1$s" returned %2$d place results.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+						$probe_query,
+						count( $places )
+					)
+					: $text_search_result->message(),
+			],
+			[
+				'label'   => __( 'Place details probe', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'success' => $place_details_result instanceof \Acodebeard\PlanYourDay\Google\GoogleApiResult && $place_details_result->is_success(),
+				'detail'  => null === $place_details_result
+					? __( 'Skipped because the text search probe did not return a place ID to inspect.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+					: ( $place_details_result->is_success()
+						? sprintf(
+							/* translators: %s is a place label. */
+							__( 'Loaded details for %s.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+							(string) ( $place_details_result->data()['place']['label'] ?? $place_id )
+						)
+						: $place_details_result->message() ),
+			],
+		];
+		$success_count = 0;
+
+		foreach ( $checks as $check ) {
+			if ( ! empty( $check['success'] ) ) {
+				++$success_count;
+			}
+		}
+
+		return [
+			'checked_at'     => current_time( 'mysql' ),
+			'probe_query'    => $probe_query,
+			'success_count'  => $success_count,
+			'total_count'    => count( $checks ),
+			'checks'         => $checks,
+		];
+	}
+
+	private function build_google_test_query( string $default_address, array $category ): string {
+		$text_query = trim( sanitize_text_field( (string) ( $category['text_query'] ?? '' ) ) );
+		$address    = trim( sanitize_text_field( $default_address ) );
+
+		if ( '' !== $text_query && '' !== $address ) {
+			return $text_query . ' near ' . $address;
+		}
+
+		if ( '' !== $address ) {
+			return 'points of interest near ' . $address;
+		}
+
+		return 'points of interest';
+	}
+
+	private function render_google_test_notice(): void {
+		if ( ! isset( $_GET['plan_your_day_google_tested'] ) || is_array( $_GET['plan_your_day_google_tested'] ) ) {
+			return;
+		}
+
+		$results = $this->get_google_test_results();
+
+		if ( null === $results ) {
+			return;
+		}
+
+		$is_success = (int) ( $results['success_count'] ?? 0 ) === (int) ( $results['total_count'] ?? 0 );
+
+		printf(
+			'<div class="notice %1$s is-dismissible"><p>%2$s</p></div>',
+			$is_success ? 'notice-success' : 'notice-warning',
+			esc_html(
+				sprintf(
+					/* translators: 1: passed checks, 2: total checks. */
+					__( 'Google API test completed: %1$d of %2$d probes passed.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+					(int) ( $results['success_count'] ?? 0 ),
+					(int) ( $results['total_count'] ?? 0 )
+				)
+			)
+		);
+	}
+
+	private function render_google_test_results_panel(): void {
+		$results = $this->get_google_test_results();
+
+		if ( null === $results ) {
+			return;
+		}
+		?>
+		<h3><?php esc_html_e( 'Latest Google API test results', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h3>
+		<p>
+			<?php
+			echo esc_html(
+				sprintf(
+					/* translators: 1: checked datetime, 2: probe query. */
+					__( 'Checked at %1$s using the probe query "%2$s".', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+					(string) ( $results['checked_at'] ?? '' ),
+					(string) ( $results['probe_query'] ?? '' )
+				)
+			);
+			?>
+		</p>
+		<table class="widefat striped" style="margin-top:0.75rem;">
+			<thead>
+				<tr>
+					<th><?php esc_html_e( 'Probe', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
+					<th><?php esc_html_e( 'Result', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
+					<th><?php esc_html_e( 'Details', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php foreach ( (array) ( $results['checks'] ?? [] ) as $check ) : ?>
+					<tr>
+						<td><strong><?php echo esc_html( (string) ( $check['label'] ?? '' ) ); ?></strong></td>
+						<td>
+							<strong><?php echo ! empty( $check['success'] ) ? esc_html__( 'Passed', PLAN_YOUR_DAY_TEXT_DOMAIN ) : esc_html__( 'Needs attention', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></strong>
+						</td>
+						<td><?php echo esc_html( (string) ( $check['detail'] ?? '' ) ); ?></td>
+					</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
+		<?php
+	}
+
+	private function get_google_test_results(): ?array {
+		$transient_key = $this->google_test_transient_key();
+
+		if ( '' === $transient_key ) {
+			return null;
+		}
+
+		$results = get_transient( $transient_key );
+
+		return is_array( $results ) ? $results : null;
+	}
+
+	private function google_test_transient_key(): string {
+		$user_id = get_current_user_id();
+
+		return $user_id > 0 ? self::GOOGLE_TEST_TRANSIENT_PREFIX . $user_id : '';
 	}
 
 	private function add_field(

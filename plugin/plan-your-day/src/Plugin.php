@@ -63,7 +63,6 @@ final class Plugin {
 	private function __construct() {
 		$this->settings         = new Settings();
 		$this->google_api_cache = new GoogleApiCache();
-		$this->settings_page    = new SettingsPage( $this->settings, $this->google_api_cache );
 		$this->category_catalog = new CategoryCatalog( $this->settings );
 		$this->place_parser     = new PlaceParser();
 		$this->waypoint_list            = new WaypointList( $this->settings );
@@ -76,6 +75,12 @@ final class Plugin {
 		$this->client_ip_resolver       = new ClientIpResolver( $this->settings );
 		$this->rate_limiter             = new RateLimiter( $this->settings, $this->client_ip_resolver );
 		$this->planner_payload_builder  = new PlannerPayloadBuilder();
+		$this->settings_page            = new SettingsPage(
+			$this->settings,
+			$this->google_api_cache,
+			$this->google_api_client(),
+			$this->category_catalog
+		);
 		$this->frontend_assets          = new FrontendAssets();
 		$this->planner_renderer         = new PlannerRenderer(
 			$this->settings,
@@ -105,6 +110,7 @@ final class Plugin {
 		add_action( 'admin_menu', [ $this->settings_page, 'register' ] );
 		add_action( 'admin_notices', [ $this->settings_page, 'render_missing_required_settings_notice' ] );
 		add_action( 'admin_post_plan_your_day_clear_google_cache', [ $this->settings_page, 'handle_clear_google_cache' ] );
+		add_action( 'admin_post_plan_your_day_test_google_api', [ $this->settings_page, 'handle_test_google_api' ] );
 	}
 
 	public function load_textdomain(): void {

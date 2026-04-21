@@ -43,11 +43,19 @@ The current local target test install is:
 /opt/lampp/htdocs/dkc
 ```
 
-The local plugin install is a symlink:
+The current local DKC test install now uses a copied plugin directory:
 
 ```text
 /opt/lampp/htdocs/dkc/wp-content/plugins/plan-your-day
-  -> /opt/lampp/htdocs/plan-your-day/plugin/plan-your-day
+```
+
+Refresh the DKC copy from the source checkout when you want to test new local
+changes:
+
+```sh
+rm -rf /opt/lampp/htdocs/dkc/wp-content/plugins/plan-your-day
+cp -a /opt/lampp/htdocs/plan-your-day/plugin/plan-your-day \
+  /opt/lampp/htdocs/dkc/wp-content/plugins/plan-your-day
 ```
 
 Useful local commands:
