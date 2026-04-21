@@ -262,6 +262,7 @@
 
 .dkc-plan__category-radio:focus-visible + .dkc-plan__category-option-body,
 .dkc-plan__category-trigger:focus-visible,
+.dkc-plan__category-search input:focus-visible,
 .dkc-plan__start-option input:focus-visible + .dkc-plan__start-option-body,
 .dkc-plan__start-toggle:focus-visible,
 .dkc-plan__custom-start input:focus-visible,
@@ -288,6 +289,24 @@
 .dkc-plan__category-accordion {
   display: grid;
   gap: 0.7rem;
+}
+
+.dkc-plan__category-search {
+  margin-bottom: 0.85rem;
+}
+
+.dkc-plan__category-search input {
+  width: 100%;
+  min-height: 2.85rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgba(23, 48, 56, 0.16);
+  border-radius: 0.5rem;
+  background: #fffefb;
+  color: #102027;
+}
+
+.dkc-plan__category-filter-empty {
+  margin-bottom: 0.85rem;
 }
 
 .dkc-plan__category-accordion-item {

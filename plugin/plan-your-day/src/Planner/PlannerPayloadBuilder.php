@@ -11,6 +11,7 @@ final class PlannerPayloadBuilder {
 			'categoryKey'        => $planner_state['category_key'],
 			'categoryLabel'      => $planner_state['has_category'] ? $planner_state['category']['label'] : __( 'Not selected', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 			'hasCategory'        => $planner_state['has_category'],
+			'hasCategories'      => $planner_state['has_categories'],
 			'searchResults'      => array_values( $planner_state['search_results'] ),
 			'searchResultsLabel' => $planner_state['search_results_label'],
 			'resultsEmptyState'  => $this->get_empty_results_state( $planner_state ),
@@ -47,6 +48,13 @@ final class PlannerPayloadBuilder {
 			];
 		}
 
+		if ( ! $planner_state['has_categories'] ) {
+			return [
+				'heading' => __( 'No categories available', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'body'    => __( 'Add custom categories in Plan Your Day settings or enable the preset category fallback.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			];
+		}
+
 		if ( ! $planner_state['has_category'] ) {
 			return [
 				'heading' => __( 'Pick a category to search Google', PLAN_YOUR_DAY_TEXT_DOMAIN ),
@@ -61,6 +69,13 @@ final class PlannerPayloadBuilder {
 	}
 
 	public function get_empty_preview_state( array $planner_state ): array {
+		if ( ! $planner_state['has_categories'] && ! $planner_state['has_trip'] ) {
+			return [
+				'heading' => __( 'No categories available', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'body'    => __( 'Add custom categories in settings or enable the preset category fallback before browsing places.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			];
+		}
+
 		if ( ! $planner_state['has_category'] && ! $planner_state['has_trip'] ) {
 			return [
 				'heading' => __( 'Start with a category search', PLAN_YOUR_DAY_TEXT_DOMAIN ),

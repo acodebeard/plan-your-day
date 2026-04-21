@@ -118,6 +118,7 @@ final class PlannerStateBuilder {
 		}
 
 		$has_category         = '' !== $category_key;
+		$has_categories       = [] !== $category_catalog;
 		$has_trip             = [] !== $trip_waypoints;
 		$search_results_count = count( $search_results );
 		$search_results_label = $has_category
@@ -126,7 +127,7 @@ final class PlannerStateBuilder {
 				_n( '%d Google result', '%d Google results', $search_results_count, PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				$search_results_count
 			)
-			: __( 'No Google results loaded', PLAN_YOUR_DAY_TEXT_DOMAIN );
+			: ( $has_categories ? __( 'No Google results loaded', PLAN_YOUR_DAY_TEXT_DOMAIN ) : __( 'No categories available', PLAN_YOUR_DAY_TEXT_DOMAIN ) );
 
 		if ( $has_trip ) {
 			$route_state = $this->build_trip_route_state( $trip_waypoints, $search_context );
@@ -163,6 +164,8 @@ final class PlannerStateBuilder {
 			if ( $this->settings->is_maps_handoff_enabled() ) {
 				$maps_url = $this->map_url_builder->build_search_handoff_url( $handoff_search_query );
 			}
+		} elseif ( ! $has_categories ) {
+			$overview = __( 'No planner categories are available right now. Add custom categories in settings or enable the preset category fallback.', PLAN_YOUR_DAY_TEXT_DOMAIN );
 		}
 
 		return [
@@ -170,6 +173,7 @@ final class PlannerStateBuilder {
 			'category'              => $category,
 			'category_catalog'      => $category_catalog,
 			'has_category'          => $has_category,
+			'has_categories'        => $has_categories,
 			'search_query'          => $search_query,
 			'handoff_search_query'  => $handoff_search_query,
 			'search_results'        => $search_results,

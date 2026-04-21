@@ -64,7 +64,7 @@ final class Plugin {
 		$this->settings         = new Settings();
 		$this->google_api_cache = new GoogleApiCache();
 		$this->settings_page    = new SettingsPage( $this->settings, $this->google_api_cache );
-		$this->category_catalog = new CategoryCatalog();
+		$this->category_catalog = new CategoryCatalog( $this->settings );
 		$this->place_parser     = new PlaceParser();
 		$this->waypoint_list            = new WaypointList( $this->settings );
 		$this->request_state_parser     = new RequestStateParser( $this->waypoint_list );

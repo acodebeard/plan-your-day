@@ -4,6 +4,7 @@ declare( strict_types=1 );
 namespace Acodebeard\PlanYourDay\Admin;
 
 use Acodebeard\PlanYourDay\Google\GoogleApiCache;
+use Acodebeard\PlanYourDay\Planner\CategoryCatalog;
 use Acodebeard\PlanYourDay\Settings\Settings;
 
 defined( 'ABSPATH' ) || exit;
@@ -157,6 +158,31 @@ final class SettingsPage {
 			'checkbox',
 			[],
 			'plan_your_day_planner_behavior'
+		);
+
+		add_settings_section(
+			'plan_your_day_categories',
+			__( 'Categories', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			[ $this, 'render_categories_section' ],
+			Settings::PAGE_SLUG
+		);
+
+		$this->add_field(
+			'use_preset_categories',
+			__( 'Preset category fallback', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'When no enabled custom categories are saved, show the built-in preset categories. Disable this to display no preset categories.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			'checkbox',
+			[],
+			'plan_your_day_categories'
+		);
+
+		$this->add_field(
+			'categories',
+			__( 'Custom categories', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Manage the category list shown to visitors. The Google search query is the phrase sent to Google Places.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			'categories',
+			[],
+			'plan_your_day_categories'
 		);
 
 		add_settings_section(
@@ -328,6 +354,13 @@ final class SettingsPage {
 		);
 	}
 
+	public function render_categories_section(): void {
+		printf(
+			'<p>%s</p>',
+			esc_html__( 'Use custom categories to replace the temporary built-in set. Disable the preset fallback if you want the public planner to show no preset categories until custom ones are saved.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+		);
+	}
+
 	public function render_google_cache_section(): void {
 		printf(
 			'<p>%s</p>',
@@ -448,6 +481,8 @@ final class SettingsPage {
 			$this->render_checkbox_group( $name, $id, is_array( $value ) ? $value : [], $attributes );
 		} elseif ( 'select' === $type ) {
 			$this->render_select( $name, $id, (string) $value, $attributes );
+		} elseif ( 'categories' === $type ) {
+			$this->render_categories_editor( $name );
 		} else {
 			printf(
 				'<input id="%1$s" name="%2$s" type="%3$s" value="%4$s" class="regular-text" autocomplete="off" spellcheck="false" />',
@@ -461,6 +496,149 @@ final class SettingsPage {
 		if ( '' !== $description ) {
 			printf( '<p class="description">%s</p>', esc_html( $description ) );
 		}
+	}
+
+	private function render_categories_editor( string $name ): void {
+		$categories  = $this->settings->get_categories();
+		$row_index   = 0;
+		$seed_rows   = CategoryCatalog::preset_rows();
+		$next_sort   = ( count( $categories ) + 1 ) * 10;
+		?>
+		<div class="plan-your-day-categories-editor" data-plan-category-editor>
+			<table class="widefat striped">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'Enabled', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
+						<th><?php esc_html_e( 'Label', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
+						<th><?php esc_html_e( 'Description', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
+						<th><?php esc_html_e( 'Google search query', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
+						<th><?php esc_html_e( 'Sort', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
+						<th><?php esc_html_e( 'Remove', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
+					</tr>
+				</thead>
+				<tbody data-plan-category-rows>
+					<?php foreach ( $categories as $category ) : ?>
+						<?php $this->render_category_editor_row( $name, $row_index++, is_array( $category ) ? $category : [] ); ?>
+					<?php endforeach; ?>
+					<?php
+					$this->render_category_editor_row(
+						$name,
+						$row_index++,
+						[
+							'slug'        => '',
+							'label'       => '',
+							'description' => '',
+							'text_query'  => '',
+							'enabled'     => true,
+							'sort_order'  => $next_sort,
+						]
+					);
+					?>
+				</tbody>
+			</table>
+			<p>
+				<button type="button" class="button" data-plan-add-category><?php esc_html_e( 'Add category', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></button>
+			</p>
+			<p class="description">
+				<?php esc_html_e( 'Leave a row empty to ignore it. Use the sort number to control the public order. Built-in presets remain available only through the fallback toggle above.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
+			</p>
+			<details>
+				<summary><?php esc_html_e( 'View built-in preset categories', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></summary>
+				<ul>
+					<?php foreach ( $seed_rows as $seed_row ) : ?>
+						<li>
+							<?php
+							echo esc_html(
+								sprintf(
+									/* translators: 1: preset category label, 2: Google query. */
+									__( '%1$s: %2$s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+									(string) $seed_row['label'],
+									(string) $seed_row['text_query']
+								)
+							);
+							?>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			</details>
+			<template data-plan-category-row-template>
+				<?php
+				ob_start();
+				$this->render_category_editor_row(
+					$name,
+					'__INDEX__',
+					[
+						'slug'        => '',
+						'label'       => '',
+						'description' => '',
+						'text_query'  => '',
+						'enabled'     => true,
+						'sort_order'  => $next_sort,
+					]
+				);
+				echo trim( (string) ob_get_clean() );
+				?>
+			</template>
+		</div>
+		<script>
+		(() => {
+			const editor = document.currentScript?.previousElementSibling;
+			if (!(editor instanceof HTMLElement)) {
+				return;
+			}
+
+			const rows = editor.querySelector('[data-plan-category-rows]');
+			const template = editor.querySelector('[data-plan-category-row-template]');
+			const addButton = editor.querySelector('[data-plan-add-category]');
+
+			if (!(rows instanceof HTMLElement) || !(template instanceof HTMLTemplateElement) || !(addButton instanceof HTMLButtonElement)) {
+				return;
+			}
+
+			let nextIndex = rows.querySelectorAll('tr').length;
+
+			addButton.addEventListener('click', () => {
+				const markup = template.innerHTML.replace(/__INDEX__/g, String(nextIndex));
+				rows.insertAdjacentHTML('beforeend', markup);
+				nextIndex += 1;
+			});
+		})();
+		</script>
+		<?php
+	}
+
+	private function render_category_editor_row( string $name, int|string $index, array $category ): void {
+		$row_name    = $name . '[' . $index . ']';
+		$slug        = sanitize_title( (string) ( $category['slug'] ?? '' ) );
+		$label       = (string) ( $category['label'] ?? '' );
+		$description = (string) ( $category['description'] ?? '' );
+		$text_query  = (string) ( $category['text_query'] ?? '' );
+		$enabled     = ! array_key_exists( 'enabled', $category ) || (bool) $category['enabled'];
+		$sort_order  = isset( $category['sort_order'] ) && is_numeric( $category['sort_order'] ) ? (int) $category['sort_order'] : 0;
+		?>
+		<tr>
+			<td>
+				<input type="hidden" name="<?php echo esc_attr( $row_name . '[enabled]' ); ?>" value="0" />
+				<input type="checkbox" name="<?php echo esc_attr( $row_name . '[enabled]' ); ?>" value="1" <?php checked( $enabled ); ?> />
+				<input type="hidden" name="<?php echo esc_attr( $row_name . '[slug]' ); ?>" value="<?php echo esc_attr( $slug ); ?>" />
+			</td>
+			<td>
+				<input type="text" name="<?php echo esc_attr( $row_name . '[label]' ); ?>" value="<?php echo esc_attr( $label ); ?>" class="regular-text" />
+			</td>
+			<td>
+				<textarea name="<?php echo esc_attr( $row_name . '[description]' ); ?>" rows="2" class="large-text"><?php echo esc_textarea( $description ); ?></textarea>
+			</td>
+			<td>
+				<input type="text" name="<?php echo esc_attr( $row_name . '[text_query]' ); ?>" value="<?php echo esc_attr( $text_query ); ?>" class="regular-text" />
+			</td>
+			<td>
+				<input type="number" name="<?php echo esc_attr( $row_name . '[sort_order]' ); ?>" value="<?php echo esc_attr( (string) $sort_order ); ?>" min="0" max="999" step="1" class="small-text" />
+			</td>
+			<td>
+				<input type="checkbox" name="<?php echo esc_attr( $row_name . '[remove]' ); ?>" value="1" />
+			</td>
+		</tr>
+		<?php
 	}
 
 	private function render_checkbox_group( string $name, string $id, array $values, array $attributes ): void {

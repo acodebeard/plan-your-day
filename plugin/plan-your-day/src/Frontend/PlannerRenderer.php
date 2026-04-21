@@ -207,8 +207,10 @@ final class PlannerRenderer {
 	}
 
 	private function render_category_card( string $instance_id, array $planner_state, array $category_catalog, array $results_empty_state ): void {
-		$category_help_id = $instance_id . '-category-help';
-		$heading_id       = $instance_id . '-categories-heading';
+		$category_help_id          = $instance_id . '-category-help';
+		$heading_id                = $instance_id . '-categories-heading';
+		$category_search_id        = $instance_id . '-category-search';
+		$category_filter_empty_id  = $instance_id . '-category-filter-empty';
 		?>
 		<section class="dkc-plan__card" aria-labelledby="<?php echo esc_attr( $heading_id ); ?>">
 			<div class="dkc-plan__card-header">
@@ -221,57 +223,94 @@ final class PlannerRenderer {
 				<span class="dkc-plan__count-pill" data-plan-results-count><?php echo esc_html( $planner_state['search_results_label'] ); ?></span>
 			</div>
 
-			<div class="dkc-plan__category-accordion" aria-describedby="<?php echo esc_attr( $category_help_id ); ?>">
-				<?php foreach ( $category_catalog as $category_key => $category ) : ?>
-					<?php
-					$is_active          = $planner_state['category_key'] === $category_key;
-					$trigger_id         = $instance_id . '-category-trigger-' . $category_key;
-					$panel_id           = $instance_id . '-category-panel-' . $category_key;
-					$search_result_list = $is_active ? (array) $planner_state['search_results'] : [];
-					?>
-					<div class="dkc-plan__category-accordion-item<?php echo $is_active ? ' is-expanded' : ''; ?>">
-						<h4 class="dkc-plan__category-accordion-heading">
-							<button
-								class="dkc-plan__category-trigger"
-								type="submit"
-								name="category"
-								value="<?php echo esc_attr( (string) $category_key ); ?>"
-								id="<?php echo esc_attr( $trigger_id ); ?>"
-								aria-expanded="<?php echo $is_active ? 'true' : 'false'; ?>"
-								aria-controls="<?php echo esc_attr( $panel_id ); ?>"
-								data-plan-category-button
-								data-category-key="<?php echo esc_attr( (string) $category_key ); ?>">
-								<span class="dkc-plan__category-trigger-copy">
-									<span class="dkc-plan__category-title"><?php echo esc_html( (string) $category['label'] ); ?></span>
-									<span class="dkc-plan__category-description"><?php echo esc_html( (string) $category['description'] ); ?></span>
-								</span>
-							</button>
-						</h4>
+			<?php if ( [] !== $category_catalog ) : ?>
+				<div class="dkc-plan__category-search">
+					<label for="<?php echo esc_attr( $category_search_id ); ?>" class="screen-reader-text"><?php esc_html_e( 'Search categories', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></label>
+					<input
+						id="<?php echo esc_attr( $category_search_id ); ?>"
+						type="search"
+						value=""
+						placeholder="<?php esc_attr_e( 'Search categories', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>"
+						autocomplete="off"
+						spellcheck="false"
+						data-plan-category-search>
+				</div>
 
-						<div
-							class="dkc-plan__category-panel"
-							id="<?php echo esc_attr( $panel_id ); ?>"
-							role="region"
-							aria-labelledby="<?php echo esc_attr( $trigger_id ); ?>"
-							<?php echo $is_active ? '' : 'hidden'; ?>>
-							<div class="dkc-plan__category-results-scroll" data-plan-category-results-panel data-category-key="<?php echo esc_attr( (string) $category_key ); ?>">
-								<?php if ( [] !== $search_result_list ) : ?>
-									<ul class="dkc-plan__results-list">
-										<?php foreach ( $search_result_list as $result ) : ?>
-											<?php $this->render_search_result( $result, (array) $planner_state['selected_waypoint_ids'] ); ?>
-										<?php endforeach; ?>
-									</ul>
-								<?php elseif ( $is_active ) : ?>
-									<div class="dkc-plan__results-empty">
-										<h4><?php echo esc_html( $results_empty_state['heading'] ); ?></h4>
-										<p><?php echo esc_html( $results_empty_state['body'] ); ?></p>
-									</div>
-								<?php endif; ?>
+				<div class="dkc-plan__category-filter-empty dkc-plan__results-empty" id="<?php echo esc_attr( $category_filter_empty_id ); ?>" data-plan-category-filter-empty hidden>
+					<h4><?php esc_html_e( 'No matching categories', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h4>
+					<p><?php esc_html_e( 'Try a different category search.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></p>
+				</div>
+
+				<div class="dkc-plan__category-accordion" aria-describedby="<?php echo esc_attr( $category_help_id ); ?>">
+					<?php foreach ( $category_catalog as $category_key => $category ) : ?>
+						<?php
+						$is_active              = $planner_state['category_key'] === $category_key;
+						$trigger_id             = $instance_id . '-category-trigger-' . $category_key;
+						$panel_id               = $instance_id . '-category-panel-' . $category_key;
+						$search_result_list     = $is_active ? (array) $planner_state['search_results'] : [];
+						$searchable_category    = strtolower(
+							implode(
+								' ',
+								array_filter(
+									[
+										(string) $category_key,
+										(string) $category['label'],
+										(string) $category['description'],
+										(string) $category['text_query'],
+									]
+								)
+							)
+						);
+						?>
+						<div class="dkc-plan__category-accordion-item<?php echo $is_active ? ' is-expanded' : ''; ?>" data-plan-category-item data-category-searchable="<?php echo esc_attr( $searchable_category ); ?>">
+							<h4 class="dkc-plan__category-accordion-heading">
+								<button
+									class="dkc-plan__category-trigger"
+									type="submit"
+									name="category"
+									value="<?php echo esc_attr( (string) $category_key ); ?>"
+									id="<?php echo esc_attr( $trigger_id ); ?>"
+									aria-expanded="<?php echo $is_active ? 'true' : 'false'; ?>"
+									aria-controls="<?php echo esc_attr( $panel_id ); ?>"
+									data-plan-category-button
+									data-category-key="<?php echo esc_attr( (string) $category_key ); ?>">
+									<span class="dkc-plan__category-trigger-copy">
+										<span class="dkc-plan__category-title"><?php echo esc_html( (string) $category['label'] ); ?></span>
+										<span class="dkc-plan__category-description"><?php echo esc_html( (string) $category['description'] ); ?></span>
+									</span>
+								</button>
+							</h4>
+
+							<div
+								class="dkc-plan__category-panel"
+								id="<?php echo esc_attr( $panel_id ); ?>"
+								role="region"
+								aria-labelledby="<?php echo esc_attr( $trigger_id ); ?>"
+								<?php echo $is_active ? '' : 'hidden'; ?>>
+								<div class="dkc-plan__category-results-scroll" data-plan-category-results-panel data-category-key="<?php echo esc_attr( (string) $category_key ); ?>">
+									<?php if ( [] !== $search_result_list ) : ?>
+										<ul class="dkc-plan__results-list">
+											<?php foreach ( $search_result_list as $result ) : ?>
+												<?php $this->render_search_result( $result, (array) $planner_state['selected_waypoint_ids'] ); ?>
+											<?php endforeach; ?>
+										</ul>
+									<?php elseif ( $is_active ) : ?>
+										<div class="dkc-plan__results-empty">
+											<h4><?php echo esc_html( $results_empty_state['heading'] ); ?></h4>
+											<p><?php echo esc_html( $results_empty_state['body'] ); ?></p>
+										</div>
+									<?php endif; ?>
+								</div>
 							</div>
 						</div>
-					</div>
-				<?php endforeach; ?>
-			</div>
+					<?php endforeach; ?>
+				</div>
+			<?php else : ?>
+				<div class="dkc-plan__results-empty">
+					<h4><?php echo esc_html( $results_empty_state['heading'] ); ?></h4>
+					<p><?php echo esc_html( $results_empty_state['body'] ); ?></p>
+				</div>
+			<?php endif; ?>
 		</section>
 		<?php
 	}

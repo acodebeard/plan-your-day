@@ -34,6 +34,12 @@
     return value.map((item) => String(item ?? '')).filter(Boolean);
   };
 
+  const normalizeFilterTerm = (value) =>
+    String(value ?? '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .trim();
+
   const announce = (liveRegion, message) => {
     if (!liveRegion || !message) {
       return;
@@ -270,6 +276,30 @@
     });
   };
 
+  const applyCategoryFilter = (refs) => {
+    if (!Array.isArray(refs.categoryItems) || refs.categoryItems.length === 0) {
+      return;
+    }
+
+    const searchTerm = normalizeFilterTerm(refs.categorySearchInput?.value || '');
+    let visibleCount = 0;
+
+    refs.categoryItems.forEach((item) => {
+      const searchableText = normalizeFilterTerm(item.getAttribute('data-category-searchable') || '');
+      const isVisible = searchTerm === '' || searchableText.includes(searchTerm);
+
+      item.hidden = !isVisible;
+
+      if (isVisible) {
+        visibleCount += 1;
+      }
+    });
+
+    if (refs.categoryFilterEmpty) {
+      refs.categoryFilterEmpty.hidden = visibleCount > 0;
+    }
+  };
+
   const renderTrip = (refs, state, strings) => {
     if (refs.tripHeaderActions) {
       refs.tripHeaderActions.innerHTML = renderTripHeaderMarkup(state.route, strings);
@@ -396,7 +426,10 @@
       categoryInput: root.querySelector('[data-plan-category-input]'),
       waypointInputs: root.querySelector('[data-plan-waypoint-inputs]'),
       categoryButtons: Array.from(root.querySelectorAll('[data-plan-category-button]')),
+      categoryItems: Array.from(root.querySelectorAll('[data-plan-category-item]')),
       categoryPanels: Array.from(root.querySelectorAll('[data-plan-category-results-panel]')),
+      categorySearchInput: root.querySelector('[data-plan-category-search]'),
+      categoryFilterEmpty: root.querySelector('[data-plan-category-filter-empty]'),
       startModeInputs: Array.from(root.querySelectorAll('input[name="start_mode"]')),
       customStartWrap: root.querySelector('[data-plan-custom-start-wrap]'),
       customStartInput: root.querySelector('[data-plan-custom-start]'),
@@ -445,6 +478,7 @@
 
     const renderAll = () => {
       renderCategoryPanels(refs, state, strings);
+      applyCategoryFilter(refs);
       renderTrip(refs, state, strings);
       renderPreview(refs, state);
       syncHiddenInputs(refs, state);
@@ -571,6 +605,12 @@
         }
 
         void sendRequest('browse', buildPayload(refs, state), strings.startingPointUpdated || '');
+      });
+    }
+
+    if (refs.categorySearchInput instanceof HTMLInputElement) {
+      refs.categorySearchInput.addEventListener('input', () => {
+        applyCategoryFilter(refs);
       });
     }
 
