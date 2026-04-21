@@ -7,6 +7,8 @@ use Acodebeard\PlanYourDay\Planner\CategoryCatalog;
 use Acodebeard\PlanYourDay\Planner\PlannerPayloadBuilder;
 use Acodebeard\PlanYourDay\Planner\PlannerStateBuilder;
 use Acodebeard\PlanYourDay\Planner\RequestStateParser;
+use Acodebeard\PlanYourDay\Rest\PlannerRoutes;
+use Acodebeard\PlanYourDay\Security\VisitorTokenManager;
 use Acodebeard\PlanYourDay\Settings\Settings;
 
 defined( 'ABSPATH' ) || exit;
@@ -17,19 +19,22 @@ final class PlannerRenderer {
 	private RequestStateParser $request_state_parser;
 	private PlannerStateBuilder $planner_state_builder;
 	private PlannerPayloadBuilder $planner_payload_builder;
+	private VisitorTokenManager $visitor_token_manager;
 
 	public function __construct(
 		Settings $settings,
 		CategoryCatalog $category_catalog,
 		RequestStateParser $request_state_parser,
 		PlannerStateBuilder $planner_state_builder,
-		PlannerPayloadBuilder $planner_payload_builder
+		PlannerPayloadBuilder $planner_payload_builder,
+		VisitorTokenManager $visitor_token_manager
 	) {
 		$this->settings                = $settings;
 		$this->category_catalog        = $category_catalog;
 		$this->request_state_parser    = $request_state_parser;
 		$this->planner_state_builder   = $planner_state_builder;
 		$this->planner_payload_builder = $planner_payload_builder;
+		$this->visitor_token_manager   = $visitor_token_manager;
 	}
 
 	public function render( array $request = [], string $action_url = '' ): string {
@@ -49,6 +54,7 @@ final class PlannerRenderer {
 		$action_url          = '' !== $action_url ? $action_url : $this->get_current_url();
 		$form_action         = $action_url . '#' . $instance_id;
 		$maps_link_enabled   = '' !== $planner_state['maps_url'];
+		$endpoint_token      = $this->visitor_token_manager->get_endpoint_token();
 
 		ob_start();
 		?>
@@ -89,7 +95,7 @@ final class PlannerRenderer {
 				</form>
 			</div>
 
-			<script type="application/json" data-plan-config><?php echo wp_json_encode( $this->build_config( $instance_id, $action_url, $planner_state, $start_points, $category_catalog ) ); ?></script>
+			<script type="application/json" data-plan-config><?php echo wp_json_encode( $this->build_config( $instance_id, $action_url, $planner_state, $start_points, $category_catalog, $endpoint_token ) ); ?></script>
 		</section>
 		<?php
 
@@ -500,12 +506,36 @@ final class PlannerRenderer {
 		return $start_points;
 	}
 
-	private function build_config( string $instance_id, string $action_url, array $planner_state, array $start_points, array $category_catalog ): array {
+	private function build_config( string $instance_id, string $action_url, array $planner_state, array $start_points, array $category_catalog, string $endpoint_token ): array {
 		return [
 			'actionUrl'       => $action_url,
 			'sectionId'       => $instance_id,
 			'startPoints'     => $start_points,
 			'categoryCatalog' => $category_catalog,
+			'rest'            => [
+				'browseUrl'      => rest_url( PlannerRoutes::REST_NAMESPACE . '/browse' ),
+				'routeUrl'       => rest_url( PlannerRoutes::REST_NAMESPACE . '/route' ),
+				'endpointToken'  => $endpoint_token,
+			],
+			'strings'         => [
+				'requestFailed'       => __( 'The planner request could not be completed. Refresh the page and try again.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'resultsUpdated'      => __( 'Results updated.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'tripUpdated'         => __( 'Trip updated.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'startingPointUpdated' => __( 'Starting point updated.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'startOptionsExpanded' => __( 'Starting point options expanded.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'startOptionsCollapsed' => __( 'Starting point options collapsed.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'openMapsDisabled'   => __( 'Add at least one waypoint before opening the trip in Google Maps.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'viewInGoogleMaps'   => __( 'View in Google Maps', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'addToTrip'          => __( 'Add to trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'inTrip'             => __( 'In trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'alreadyInTripAria'  => __( '%s is already in the trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'tripEmptyHeading'   => __( 'Start building the trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'tripEmptyBody'      => __( 'Search Google by category, then add the exact places you want as walking-trip waypoints.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'moveUp'             => __( 'Move up', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'moveDown'           => __( 'Move down', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'removeWaypointLabel' => __( 'Remove %s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'clearTrip'          => __( 'Clear trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			],
 			'initialState'    => [
 				'category'            => $planner_state['category_key'],
 				'selectedWaypointIds' => array_values( $planner_state['selected_waypoint_ids'] ),

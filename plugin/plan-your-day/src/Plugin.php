@@ -20,7 +20,11 @@ use Acodebeard\PlanYourDay\Planner\PlannerStateBuilder;
 use Acodebeard\PlanYourDay\Planner\RequestStateParser;
 use Acodebeard\PlanYourDay\Planner\StartContextResolver;
 use Acodebeard\PlanYourDay\Planner\WaypointList;
+use Acodebeard\PlanYourDay\Rest\PlannerRoutes;
+use Acodebeard\PlanYourDay\Security\ClientIpResolver;
+use Acodebeard\PlanYourDay\Security\RateLimiter;
 use Acodebeard\PlanYourDay\Security\RequestOriginValidator;
+use Acodebeard\PlanYourDay\Security\VisitorTokenManager;
 use Acodebeard\PlanYourDay\Settings\Settings;
 
 defined( 'ABSPATH' ) || exit;
@@ -40,10 +44,14 @@ final class Plugin {
 	private MapUrlBuilder $map_url_builder;
 	private DistanceFormatter $distance_formatter;
 	private RequestOriginValidator $request_origin_validator;
+	private VisitorTokenManager $visitor_token_manager;
+	private ClientIpResolver $client_ip_resolver;
+	private RateLimiter $rate_limiter;
 	private PlannerPayloadBuilder $planner_payload_builder;
 	private FrontendAssets $frontend_assets;
 	private PlannerRenderer $planner_renderer;
 	private PlannerShortcode $planner_shortcode;
+	private PlannerRoutes $planner_routes;
 
 	public static function instance(): Plugin {
 		if ( null === self::$instance ) {
@@ -64,6 +72,9 @@ final class Plugin {
 		$this->map_url_builder          = new MapUrlBuilder();
 		$this->distance_formatter       = new DistanceFormatter();
 		$this->request_origin_validator = new RequestOriginValidator();
+		$this->visitor_token_manager    = new VisitorTokenManager();
+		$this->client_ip_resolver       = new ClientIpResolver( $this->settings );
+		$this->rate_limiter             = new RateLimiter( $this->settings, $this->client_ip_resolver );
 		$this->planner_payload_builder  = new PlannerPayloadBuilder();
 		$this->frontend_assets          = new FrontendAssets();
 		$this->planner_renderer         = new PlannerRenderer(
@@ -71,14 +82,24 @@ final class Plugin {
 			$this->category_catalog,
 			$this->request_state_parser,
 			$this->planner_state_builder(),
-			$this->planner_payload_builder
+			$this->planner_payload_builder,
+			$this->visitor_token_manager
 		);
 		$this->planner_shortcode        = new PlannerShortcode( $this->planner_renderer, $this->frontend_assets );
+		$this->planner_routes           = new PlannerRoutes(
+			$this->request_state_parser,
+			$this->planner_state_builder(),
+			$this->planner_payload_builder,
+			$this->request_origin_validator,
+			$this->visitor_token_manager,
+			$this->rate_limiter
+		);
 	}
 
 	public function init(): void {
 		add_action( 'init', [ $this, 'load_textdomain' ], 0 );
 		add_action( 'init', [ $this->planner_shortcode, 'register' ] );
+		add_action( 'rest_api_init', [ $this->planner_routes, 'register' ] );
 		add_action( 'wp_enqueue_scripts', [ $this->frontend_assets, 'register' ] );
 		add_action( 'admin_init', [ $this->settings, 'register' ] );
 		add_action( 'admin_menu', [ $this->settings_page, 'register' ] );

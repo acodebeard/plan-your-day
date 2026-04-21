@@ -24,10 +24,16 @@ Completed foundation work includes:
   caching.
 - Extracted planner helper services for place parsing, waypoint state, distance
   labels, map URLs, start context, request state, and request-origin checks.
+- Shortcode-based frontend rendering with plugin-scoped assets and a shared
+  planner renderer.
+- WordPress REST browse/route endpoints with POST-only requests, guest-safe
+  visitor token validation, same-site request checks, trusted-proxy-aware client
+  IP resolution, and file-backed rate limiting.
+- Frontend JavaScript that updates browse and trip state through REST instead of
+  full-page planner reloads.
 
-Frontend rendering, REST endpoints, anonymous visitor token protection, asset
-enqueueing, migration helpers, CI, and production documentation are still tracked
-in GitHub issues.
+Migration helpers, CI, block-editor support, configurable categories/copy, and
+production documentation are still tracked in GitHub issues.
 
 ## Requirements
 
@@ -89,7 +95,7 @@ managed through the WordPress Settings API. Current settings include:
 - Browser-facing Maps Embed API key.
 - Server-side Places and Geocoding API keys.
 - Google API timeout and cache TTLs.
-- Rate-limit value and trusted proxy CIDRs for future endpoint protection.
+- Rate-limit value and trusted proxy CIDRs for public endpoint protection.
 
 Server-side Google API keys must not be exposed to frontend runtime config.
 

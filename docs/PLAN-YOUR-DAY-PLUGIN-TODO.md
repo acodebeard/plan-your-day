@@ -89,16 +89,16 @@ The current standalone implementation in `index.php`, `plan.js`, `plan.css`, and
 
 ### Phase 5: Security And REST Endpoints
 
-- [ ] Add guest-safe visitor token cookie strategy.
-- [ ] Add HMAC-based endpoint token generation.
-- [ ] Add endpoint token validation.
-- [ ] Register REST route for browse requests.
-- [ ] Register REST route for route preview requests.
-- [ ] Keep REST routes POST-only.
-- [ ] Sanitize all REST request fields.
-- [ ] Validate max waypoint limits before Google API work.
-- [ ] Port file-backed or object-cache-aware rate limiter.
-- [ ] Integrate trusted proxy client IP resolution.
+- [x] Add guest-safe visitor token cookie strategy.
+- [x] Add HMAC-based endpoint token generation.
+- [x] Add endpoint token validation.
+- [x] Register REST route for browse requests.
+- [x] Register REST route for route preview requests.
+- [x] Keep REST routes POST-only.
+- [x] Sanitize all REST request fields.
+- [x] Validate max waypoint limits before Google API work.
+- [x] Port file-backed or object-cache-aware rate limiter.
+- [x] Integrate trusted proxy client IP resolution.
 - [ ] Preserve `https://` allowlist for externally sourced URLs.
 - [ ] Preserve safe JSON encoding for config payloads.
 - [ ] Preserve cache-control behavior where needed.
@@ -106,15 +106,15 @@ The current standalone implementation in `index.php`, `plan.js`, `plan.css`, and
 
 ### Phase 6: Frontend Integration
 
-- [ ] Register frontend CSS with `wp_register_style()`.
-- [ ] Register frontend JS with `wp_register_script()`.
-- [ ] Enqueue assets only when the planner is rendered.
-- [ ] Pass runtime config safely to JavaScript.
-- [ ] Update `plan.js` to call WordPress REST endpoints.
-- [ ] Update `plan.js` to send POST bodies matching REST schema.
+- [x] Register frontend CSS with `wp_register_style()`.
+- [x] Register frontend JS with `wp_register_script()`.
+- [x] Enqueue assets only when the planner is rendered.
+- [x] Pass runtime config safely to JavaScript.
+- [x] Update `plan.js` to call WordPress REST endpoints.
+- [x] Update `plan.js` to send POST bodies matching REST schema.
 - [ ] Keep frontend markup scoped under a plugin wrapper class.
 - [ ] Confirm multiple planners on one site do not conflict, or explicitly document one instance per page for v1.
-- [ ] Add shortcode entry point.
+- [x] Add shortcode entry point.
 - [ ] Add block wrapper entry point.
 
 ### Phase 7: Admin UI And Tools
@@ -207,11 +207,11 @@ The current standalone implementation in `index.php`, `plan.js`, `plan.css`, and
 - [ ] Add block entry point.
 - [ ] Add API key/settings handling.
 - [ ] Add Google API client abstraction.
-- [ ] Add REST endpoints.
-- [ ] Add guest-safe token validation.
+- [x] Add REST endpoints.
+- [x] Add guest-safe token validation.
 - [ ] Add caching/transient strategy.
-- [ ] Add rate limiter strategy.
-- [ ] Add trusted proxy strategy.
+- [x] Add rate limiter strategy.
+- [x] Add trusted proxy strategy.
 - [ ] Add admin settings UI.
 - [ ] Add setup/status checks.
 - [ ] Add migration helper.
