@@ -6,9 +6,35 @@
     "require": {
         "php": ">=8.2"
     },
+    "require-dev": {
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "phpunit/phpunit": "^10.5",
+        "squizlabs/php_codesniffer": "^3.10",
+        "wp-coding-standards/wpcs": "^3.1"
+    },
     "autoload": {
         "psr-4": {
             "Acodebeard\\PlanYourDay\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Acodebeard\\PlanYourDay\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "lint": "@php tools/lint.php",
+        "phpcs": "@php vendor/bin/phpcs -n --standard=phpcs.xml.dist",
+        "phpunit": "@php vendor/bin/phpunit --configuration phpunit.xml.dist",
+        "test": [
+            "@lint",
+            "@phpcs",
+            "@phpunit"
+        ]
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
         }
     }
 }

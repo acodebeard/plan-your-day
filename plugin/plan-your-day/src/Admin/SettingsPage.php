@@ -1043,7 +1043,7 @@ final class SettingsPage {
 						'sort_order'  => $next_sort,
 					]
 				);
-				echo trim( (string) ob_get_clean() );
+					echo wp_kses_post( trim( (string) ob_get_clean() ) );
 				?>
 			</template>
 		</div>
