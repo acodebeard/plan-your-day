@@ -84,8 +84,11 @@
       .map((message) => {
         const type = String(message?.type || 'note');
         const text = String(message?.text || '');
+        const role = type === 'warning' ? 'alert' : '';
 
-        return `<li class="plan-your-day__message plan-your-day__message--${escapeHtml(type)}">${escapeHtml(text)}</li>`;
+        return `<li class="plan-your-day__message plan-your-day__message--${escapeHtml(type)}"${
+          role ? ` role="${escapeHtml(role)}"` : ''
+        }>${escapeHtml(text)}</li>`;
       })
       .join('');
   };
@@ -124,13 +127,17 @@
                 </div>
                 <div class="plan-your-day__result-tools">
                   ${mapsUri
-                    ? `<a class="plan-your-day__result-link" href="${escapeHtml(mapsUri)}" target="_blank" rel="noopener noreferrer">${escapeHtml(strings.viewInGoogleMaps || '')}</a>`
+                    ? `<a class="plan-your-day__result-link" href="${escapeHtml(mapsUri)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(
+                        formatString(strings.viewPlaceInGoogleMapsLabel || '', label)
+                      )}">${escapeHtml(strings.viewInGoogleMaps || '')}</a>`
                     : ''}
                   ${isInTrip
                     ? `<span class="plan-your-day__result-added" aria-label="${escapeHtml(formatString(strings.alreadyInTripAria, label))}">${escapeHtml(strings.inTrip || '')}</span>`
                     : `<button class="plan-your-day__result-add" type="submit" name="waypoints[]" value="${escapeHtml(
                         placeId
-                      )}" data-plan-action="add-waypoint" data-place-id="${escapeHtml(placeId)}">${escapeHtml(
+                      )}" data-plan-action="add-waypoint" data-place-id="${escapeHtml(placeId)}" aria-label="${escapeHtml(
+                        formatString(strings.addWaypointLabel || '', label)
+                      )}">${escapeHtml(
                         strings.addToTrip || ''
                       )}</button>`}
                 </div>
@@ -158,7 +165,7 @@
     `;
   };
 
-  const renderTripMarkup = (routeData, strings) => {
+  const renderTripMarkup = (routeData, strings, tripHelpId) => {
     const tripWaypoints = Array.isArray(routeData?.tripWaypoints) ? routeData.tripWaypoints : [];
 
     if (tripWaypoints.length === 0) {
@@ -171,7 +178,7 @@
     }
 
     return `
-      <ol class="plan-your-day__trip-list" data-plan-trip-list>
+      <ol class="plan-your-day__trip-list" data-plan-trip-list${tripHelpId ? ` aria-describedby="${escapeHtml(tripHelpId)}"` : ''}>
         ${tripWaypoints
           .map((waypoint, index) => {
             const placeId = String(waypoint?.id || '');
@@ -195,6 +202,7 @@
                     type="${canMoveUp ? 'submit' : 'button'}"
                     name="move_waypoint"
                     value="${escapeHtml(`${placeId}:up`)}"
+                    aria-label="${escapeHtml(formatString(strings.moveWaypointUpLabel || '', label))}"
                     ${canMoveUp ? '' : 'disabled'}>
                     ${escapeHtml(strings.moveUp || '')}
                   </button>
@@ -203,6 +211,7 @@
                     type="${canMoveDown ? 'submit' : 'button'}"
                     name="move_waypoint"
                     value="${escapeHtml(`${placeId}:down`)}"
+                    aria-label="${escapeHtml(formatString(strings.moveWaypointDownLabel || '', label))}"
                     ${canMoveDown ? '' : 'disabled'}>
                     ${escapeHtml(strings.moveDown || '')}
                   </button>
@@ -269,12 +278,16 @@
       }
     });
 
-    refs.categoryPanels.forEach((panel) => {
-      const categoryKey = panel.getAttribute('data-category-key') || '';
+    refs.categoryRegions.forEach((region) => {
+      const categoryKey = region.getAttribute('data-category-key') || '';
       const isActive = categoryKey === activeCategory;
+      const panel = region.querySelector('[data-plan-category-results-panel]');
 
-      panel.hidden = !isActive;
-      panel.innerHTML = isActive ? renderResultsMarkup(browseData, selectedWaypointIds, strings) : '';
+      region.hidden = !isActive;
+
+      if (panel instanceof HTMLElement) {
+        panel.innerHTML = isActive ? renderResultsMarkup(browseData, selectedWaypointIds, strings) : '';
+      }
     });
 
     if (refs.customResults) {
@@ -305,7 +318,11 @@
     }
 
     if (refs.tripRegion) {
-      refs.tripRegion.innerHTML = renderTripMarkup(state.route, strings);
+      refs.tripRegion.innerHTML = renderTripMarkup(
+        state.route,
+        strings,
+        refs.tripRegion.getAttribute('data-plan-trip-help-id') || ''
+      );
     }
   };
 
@@ -422,6 +439,31 @@
     root.setAttribute('aria-busy', String(isBusy));
   };
 
+  const setRegionBusyState = (refs, state, isBusy) => {
+    const activeCategory = state.category || '';
+
+    refs.categoryPanels.forEach((panel) => {
+      const categoryKey = panel.getAttribute('data-category-key') || '';
+      const shouldMarkBusy =
+        refs.categoryButtons.length === 0 || categoryKey === activeCategory || refs.customResults?.hidden === false;
+
+      panel.setAttribute('aria-busy', String(isBusy && shouldMarkBusy));
+    });
+
+    if (refs.customResultsPanel instanceof HTMLElement) {
+      const customResultsVisible = refs.customResults?.hidden === false;
+      refs.customResultsPanel.setAttribute('aria-busy', String(isBusy && customResultsVisible));
+    }
+
+    if (refs.tripRegion instanceof HTMLElement) {
+      refs.tripRegion.setAttribute('aria-busy', String(isBusy));
+    }
+
+    if (refs.previewCard instanceof HTMLElement) {
+      refs.previewCard.setAttribute('aria-busy', String(isBusy));
+    }
+  };
+
   const initRoot = (root) => {
     if (!(root instanceof HTMLElement) || root.dataset[ENHANCED_FLAG] === 'true') {
       return;
@@ -438,6 +480,7 @@
       waypointInputs: root.querySelector('[data-plan-waypoint-inputs]'),
       categoryButtons: Array.from(root.querySelectorAll('[data-plan-category-button]')),
       categoryItems: Array.from(root.querySelectorAll('[data-plan-category-item]')),
+      categoryRegions: Array.from(root.querySelectorAll('[data-plan-category-region]')),
       categoryPanels: Array.from(root.querySelectorAll('[data-plan-category-results-panel]')),
       categorySearchInput: root.querySelector('[data-plan-category-search]'),
       customResults: root.querySelector('[data-plan-custom-results]'),
@@ -454,6 +497,7 @@
       tripHeaderActions: root.querySelector('[data-plan-trip-header-actions]'),
       tripRegion: root.querySelector('[data-plan-trip-region]'),
       messages: root.querySelector('[data-plan-messages]'),
+      previewCard: root.querySelector('[data-plan-preview-card]'),
       mapWrap: root.querySelector('[data-plan-map-wrap]'),
       iframe: root.querySelector('[data-plan-iframe]'),
       previewEmpty: root.querySelector('[data-plan-preview-empty]'),
@@ -506,7 +550,6 @@
           text: message || strings.requestFailed || '',
         },
       ]);
-      announce(refs.liveRegion, message || strings.requestFailed || '');
     };
 
     const updateStartPanelState = () => {
@@ -538,6 +581,7 @@
 
       activeRequestController = new AbortController();
       setBusyState(root, true);
+      setRegionBusyState(refs, state, true);
 
       try {
         const response = await fetch(config.rest[endpointKey === 'browse' ? 'browseUrl' : 'routeUrl'], {
@@ -592,6 +636,7 @@
       } finally {
         if (requestId === activeRequestId) {
           setBusyState(root, false);
+          setRegionBusyState(refs, state, false);
         }
       }
     };

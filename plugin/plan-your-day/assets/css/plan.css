@@ -639,10 +639,6 @@
   pointer-events: none;
 }
 
-.plan-your-day.is-enhanced .plan-your-day__trip-item {
-  cursor: grab;
-}
-
 .plan-your-day.is-enhanced .plan-your-day__trip-item:hover {
   border-color: rgba(138, 79, 15, 0.4);
   box-shadow: 0 0.85rem 1.8rem rgba(23, 48, 56, 0.08);

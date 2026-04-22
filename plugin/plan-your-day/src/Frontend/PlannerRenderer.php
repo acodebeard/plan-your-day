@@ -302,6 +302,9 @@ final class PlannerRenderer {
 										<span class="plan-your-day__category-title"><?php echo esc_html( (string) $category['label'] ); ?></span>
 										<span class="plan-your-day__category-description"><?php echo esc_html( (string) $category['description'] ); ?></span>
 									</span>
+									<span class="plan-your-day__category-trigger-side" aria-hidden="true">
+										<span class="plan-your-day__category-trigger-icon"></span>
+									</span>
 								</button>
 							</h4>
 
@@ -310,6 +313,8 @@ final class PlannerRenderer {
 								id="<?php echo esc_attr( $panel_id ); ?>"
 								role="region"
 								aria-labelledby="<?php echo esc_attr( $trigger_id ); ?>"
+								data-plan-category-region
+								data-category-key="<?php echo esc_attr( (string) $category_key ); ?>"
 								<?php echo $is_active ? '' : 'hidden'; ?>>
 								<div class="plan-your-day__category-results-scroll" data-plan-category-results-panel data-category-key="<?php echo esc_attr( (string) $category_key ); ?>">
 									<?php if ( [] !== $search_result_list ) : ?>
@@ -349,7 +354,12 @@ final class PlannerRenderer {
 			</div>
 			<div class="plan-your-day__result-tools">
 				<?php if ( ! empty( $result['maps_uri'] ) ) : ?>
-					<a class="plan-your-day__result-link" href="<?php echo esc_url( (string) $result['maps_uri'] ); ?>" target="_blank" rel="noopener noreferrer">
+					<a
+						class="plan-your-day__result-link"
+						href="<?php echo esc_url( (string) $result['maps_uri'] ); ?>"
+						target="_blank"
+						rel="noopener noreferrer"
+						aria-label="<?php echo esc_attr( sprintf( __( 'View %s in Google Maps', PLAN_YOUR_DAY_TEXT_DOMAIN ), $label ) ); ?>">
 						<?php esc_html_e( 'View in Google Maps', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
 					</a>
 				<?php endif; ?>
@@ -365,7 +375,8 @@ final class PlannerRenderer {
 						name="waypoints[]"
 						value="<?php echo esc_attr( $place_id ); ?>"
 						data-plan-action="add-waypoint"
-						data-place-id="<?php echo esc_attr( $place_id ); ?>">
+						data-place-id="<?php echo esc_attr( $place_id ); ?>"
+						aria-label="<?php echo esc_attr( sprintf( __( 'Add %s to trip', PLAN_YOUR_DAY_TEXT_DOMAIN ), $label ) ); ?>">
 						<?php esc_html_e( 'Add to trip', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
 					</button>
 				<?php endif; ?>
@@ -395,7 +406,7 @@ final class PlannerRenderer {
 				</div>
 			</div>
 
-			<div data-plan-trip-region>
+			<div data-plan-trip-region data-plan-trip-help-id="<?php echo esc_attr( $help_id ); ?>">
 				<?php if ( [] !== $waypoints ) : ?>
 					<ol class="plan-your-day__trip-list" aria-describedby="<?php echo esc_attr( $help_id ); ?>" data-plan-trip-list>
 						<?php foreach ( $waypoints as $index => $waypoint ) : ?>
@@ -431,6 +442,7 @@ final class PlannerRenderer {
 					type="<?php echo $index > 0 ? 'submit' : 'button'; ?>"
 					name="move_waypoint"
 					value="<?php echo esc_attr( $place_id . ':up' ); ?>"
+					aria-label="<?php echo esc_attr( sprintf( __( 'Move %s up in the trip', PLAN_YOUR_DAY_TEXT_DOMAIN ), $label ) ); ?>"
 					<?php disabled( 0 === $index ); ?>>
 					<?php esc_html_e( 'Move up', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
 				</button>
@@ -439,6 +451,7 @@ final class PlannerRenderer {
 					type="<?php echo $index < $waypoint_count - 1 ? 'submit' : 'button'; ?>"
 					name="move_waypoint"
 					value="<?php echo esc_attr( $place_id . ':down' ); ?>"
+					aria-label="<?php echo esc_attr( sprintf( __( 'Move %s down in the trip', PLAN_YOUR_DAY_TEXT_DOMAIN ), $label ) ); ?>"
 					<?php disabled( $index >= $waypoint_count - 1 ); ?>>
 					<?php esc_html_e( 'Move down', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
 				</button>
@@ -463,7 +476,7 @@ final class PlannerRenderer {
 				</div>
 			</div>
 
-			<div class="screen-reader-text" aria-live="polite" data-plan-live-region></div>
+			<div class="screen-reader-text" role="status" aria-live="polite" aria-atomic="true" data-plan-live-region></div>
 			<?php $this->render_messages( (array) $planner_state['messages'] ); ?>
 
 			<div class="plan-your-day__map-wrap" data-plan-map-wrap <?php echo '' !== $planner_state['iframe_src'] ? '' : 'hidden'; ?>>
@@ -528,7 +541,9 @@ final class PlannerRenderer {
 		?>
 		<ul class="plan-your-day__messages" data-plan-messages <?php echo [] === $messages ? 'hidden' : ''; ?>>
 			<?php foreach ( $messages as $message ) : ?>
-				<li class="plan-your-day__message plan-your-day__message--<?php echo esc_attr( (string) ( $message['type'] ?? 'note' ) ); ?>">
+				<li
+					class="plan-your-day__message plan-your-day__message--<?php echo esc_attr( (string) ( $message['type'] ?? 'note' ) ); ?>"
+					<?php echo 'warning' === ( $message['type'] ?? 'note' ) ? 'role="alert"' : ''; ?>>
 					<?php echo esc_html( (string) ( $message['text'] ?? '' ) ); ?>
 				</li>
 			<?php endforeach; ?>
@@ -585,13 +600,17 @@ final class PlannerRenderer {
 				'startOptionsCollapsed' => __( 'Starting point options collapsed.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'openMapsDisabled'   => __( 'Add at least one waypoint before opening the trip in Google Maps.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'viewInGoogleMaps'   => __( 'View in Google Maps', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'viewPlaceInGoogleMapsLabel' => __( 'View %s in Google Maps', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'addToTrip'          => __( 'Add to trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'addWaypointLabel'   => __( 'Add %s to trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'inTrip'             => __( 'In trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'alreadyInTripAria'  => __( '%s is already in the trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'tripEmptyHeading'   => __( 'Start building the trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'tripEmptyBody'      => __( 'Search Google by category, then add the exact places you want as walking-trip waypoints.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'moveUp'             => __( 'Move up', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'moveDown'           => __( 'Move down', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'moveWaypointUpLabel' => __( 'Move %s up in the trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'moveWaypointDownLabel' => __( 'Move %s down in the trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'removeWaypointLabel' => __( 'Remove %s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'clearTrip'          => __( 'Clear trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 			],
