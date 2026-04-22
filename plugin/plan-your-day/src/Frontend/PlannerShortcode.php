@@ -31,6 +31,7 @@ final class PlannerShortcode {
 
 		$action_url = esc_url_raw( (string) $attributes['action_url'] );
 
+		$this->assets->dequeue_conflicting_assets();
 		$this->assets->enqueue();
 
 		return $this->renderer->render( $_GET, $action_url );

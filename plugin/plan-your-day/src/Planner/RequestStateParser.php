@@ -46,6 +46,7 @@ final class RequestStateParser {
 
 		return [
 			'category_key'          => isset( $request['category'] ) ? sanitize_key( wp_unslash( (string) $request['category'] ) ) : '',
+			'category_search'       => isset( $request['category_search'] ) ? trim( sanitize_text_field( wp_unslash( (string) $request['category_search'] ) ) ) : '',
 			'selected_waypoint_ids' => $selected_waypoint_ids,
 			'start_mode'            => isset( $request['start_mode'] ) ? sanitize_key( wp_unslash( (string) $request['start_mode'] ) ) : Settings::START_MODE_DEFAULT,
 			'custom_start'          => isset( $request['custom_start'] ) ? trim( sanitize_text_field( wp_unslash( (string) $request['custom_start'] ) ) ) : '',

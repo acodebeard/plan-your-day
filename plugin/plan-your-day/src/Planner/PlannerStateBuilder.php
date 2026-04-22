@@ -40,14 +40,15 @@ final class PlannerStateBuilder {
 	}
 
 	public function build( array $request_state, array $options = [] ): array {
-		$category_catalog       = $this->category_catalog->get_all();
-		$requested_category     = sanitize_key( (string) ( $request_state['category_key'] ?? '' ) );
-		$category_key           = isset( $category_catalog[ $requested_category ] ) ? $requested_category : '';
-		$selected_waypoint_ids  = $this->waypoint_list->normalize_ids( (array) ( $request_state['selected_waypoint_ids'] ?? [] ) );
-		$start_mode             = sanitize_key( (string) ( $request_state['start_mode'] ?? Settings::START_MODE_DEFAULT ) );
-		$custom_start           = trim( sanitize_text_field( (string) ( $request_state['custom_start'] ?? '' ) ) );
-		$include_results        = ! isset( $options['include_results'] ) || (bool) $options['include_results'];
-		$include_trip_waypoints = ! isset( $options['include_trip_waypoints'] ) || (bool) $options['include_trip_waypoints'];
+		$category_catalog          = $this->category_catalog->get_all();
+		$requested_category        = sanitize_key( (string) ( $request_state['category_key'] ?? '' ) );
+		$requested_category_search = trim( sanitize_text_field( (string) ( $request_state['category_search'] ?? '' ) ) );
+		$category_key              = '' === $requested_category_search && isset( $category_catalog[ $requested_category ] ) ? $requested_category : '';
+		$selected_waypoint_ids     = $this->waypoint_list->normalize_ids( (array) ( $request_state['selected_waypoint_ids'] ?? [] ) );
+		$start_mode                = sanitize_key( (string) ( $request_state['start_mode'] ?? Settings::START_MODE_DEFAULT ) );
+		$custom_start              = trim( sanitize_text_field( (string) ( $request_state['custom_start'] ?? '' ) ) );
+		$include_results           = ! isset( $options['include_results'] ) || (bool) $options['include_results'];
+		$include_trip_waypoints    = ! isset( $options['include_trip_waypoints'] ) || (bool) $options['include_trip_waypoints'];
 
 		if (
 			! empty( $options['require_same_site'] ) &&
@@ -61,11 +62,17 @@ final class PlannerStateBuilder {
 		$category       = '' !== $category_key ? $category_catalog[ $category_key ] : [];
 		$search_context = $this->start_context_resolver->resolve( $start_mode, $custom_start );
 		$messages       = array_merge( $messages, $search_context['messages'] );
-		$search_query   = '' !== $category_key
-			? $this->map_url_builder->build_category_query( $category, $search_context['search_area'] )
+		$active_search_term  = '' !== $requested_category_search
+			? $requested_category_search
+			: trim( sanitize_text_field( (string) ( $category['text_query'] ?? $category['label'] ?? '' ) ) );
+		$active_search_label = '' !== $requested_category_search
+			? $requested_category_search
+			: trim( sanitize_text_field( (string) ( $category['label'] ?? '' ) ) );
+		$search_query        = '' !== $active_search_term
+			? $this->map_url_builder->build_search_query( $active_search_term, $search_context['search_area'] )
 			: '';
-		$handoff_search_query = '' !== $category_key
-			? $this->map_url_builder->build_category_query( $category, $search_context['search_area'], $search_context['use_current_handoff'] )
+		$handoff_search_query = '' !== $active_search_term
+			? $this->map_url_builder->build_search_query( $active_search_term, $search_context['search_area'], $search_context['use_current_handoff'] )
 			: '';
 		$search_origin_coordinates = [
 			'latitude'  => null,
@@ -78,10 +85,10 @@ final class PlannerStateBuilder {
 		$maps_url             = '';
 		$maps_link_label      = __( 'Explore in Google Maps', PLAN_YOUR_DAY_TEXT_DOMAIN );
 		$preview_mode_label   = __( 'Google place search', PLAN_YOUR_DAY_TEXT_DOMAIN );
-		$overview             = __( 'Choose a category to load Google results, then add exact places to your trip.', PLAN_YOUR_DAY_TEXT_DOMAIN );
+		$overview             = __( 'Search for any category or pick one below to load Google results, then add exact places to your trip.', PLAN_YOUR_DAY_TEXT_DOMAIN );
 		$trip_count_label     = __( 'Trip not started', PLAN_YOUR_DAY_TEXT_DOMAIN );
 
-		if ( $include_results && '' !== $category_key ) {
+		if ( $include_results && '' !== $search_query ) {
 			$search_origin_coordinates = $this->geocode_search_area( $search_context['search_area'] );
 			$text_search_response      = $this->google_api_client->text_search(
 				$search_query,
@@ -119,15 +126,17 @@ final class PlannerStateBuilder {
 
 		$has_category         = '' !== $category_key;
 		$has_categories       = [] !== $category_catalog;
+		$has_search           = '' !== $search_query;
+		$is_custom_search     = '' !== $requested_category_search;
 		$has_trip             = [] !== $trip_waypoints;
 		$search_results_count = count( $search_results );
-		$search_results_label = $has_category
+		$search_results_label = $has_search
 			? sprintf(
 				/* translators: %d is the number of Google results. */
 				_n( '%d Google result', '%d Google results', $search_results_count, PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				$search_results_count
 			)
-			: ( $has_categories ? __( 'No Google results loaded', PLAN_YOUR_DAY_TEXT_DOMAIN ) : __( 'No categories available', PLAN_YOUR_DAY_TEXT_DOMAIN ) );
+			: __( 'No Google results loaded', PLAN_YOUR_DAY_TEXT_DOMAIN );
 
 		if ( $has_trip ) {
 			$route_state = $this->build_trip_route_state( $trip_waypoints, $search_context );
@@ -139,11 +148,11 @@ final class PlannerStateBuilder {
 			$overview           = $route_state['overview'];
 			$iframe_src         = $route_state['iframe_src'];
 			$maps_url           = $route_state['maps_url'];
-		} elseif ( $has_category ) {
+		} elseif ( $has_search ) {
 			$overview = sprintf(
-				/* translators: 1: category label, 2: start summary. */
+				/* translators: 1: search label, 2: start summary. */
 				__( 'Browsing Google results for %1$s near %2$s. Add any result to start building a walking trip.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				$category['label'],
+				$active_search_label,
 				$search_context['handoff_summary']
 			);
 
@@ -165,15 +174,19 @@ final class PlannerStateBuilder {
 				$maps_url = $this->map_url_builder->build_search_handoff_url( $handoff_search_query );
 			}
 		} elseif ( ! $has_categories ) {
-			$overview = __( 'No planner categories are available right now. Add custom categories in settings or enable the preset category fallback.', PLAN_YOUR_DAY_TEXT_DOMAIN );
+			$overview = __( 'Search for any category to load Google results, then add exact places to your trip.', PLAN_YOUR_DAY_TEXT_DOMAIN );
 		}
 
 		return [
 			'category_key'          => $category_key,
+			'category_search'       => $is_custom_search ? $requested_category_search : '',
 			'category'              => $category,
 			'category_catalog'      => $category_catalog,
 			'has_category'          => $has_category,
 			'has_categories'        => $has_categories,
+			'has_search'            => $has_search,
+			'is_custom_search'      => $is_custom_search,
+			'active_search_label'   => $active_search_label,
 			'search_query'          => $search_query,
 			'handoff_search_query'  => $handoff_search_query,
 			'search_results'        => $search_results,

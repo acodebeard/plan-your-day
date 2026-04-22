@@ -263,6 +263,7 @@
 .dkc-plan__category-radio:focus-visible + .dkc-plan__category-option-body,
 .dkc-plan__category-trigger:focus-visible,
 .dkc-plan__category-search input:focus-visible,
+.dkc-plan__category-search-button:focus-visible,
 .dkc-plan__start-option input:focus-visible + .dkc-plan__start-option-body,
 .dkc-plan__start-toggle:focus-visible,
 .dkc-plan__custom-start input:focus-visible,
@@ -295,6 +296,11 @@
   margin-bottom: 0.85rem;
 }
 
+.dkc-plan__category-search-controls {
+  display: grid;
+  gap: 0.65rem;
+}
+
 .dkc-plan__category-search input {
   width: 100%;
   min-height: 2.85rem;
@@ -305,7 +311,11 @@
   color: #102027;
 }
 
-.dkc-plan__category-filter-empty {
+.dkc-plan__category-search-button {
+  justify-self: start;
+}
+
+.dkc-plan__custom-search-results {
   margin-bottom: 0.85rem;
 }
 
@@ -383,6 +393,14 @@
 
 .dkc-plan__category-panel {
   padding: 0 1rem 1rem;
+}
+
+.dkc-plan__custom-search-header {
+  margin-bottom: 0.75rem;
+}
+
+.dkc-plan__custom-search-header h4 {
+  margin: 0;
 }
 
 .dkc-plan__category-results-scroll {
@@ -526,7 +544,8 @@
 .dkc-plan__reorder-disabled,
 .dkc-plan__submit,
 .dkc-plan__maps-link,
-.dkc-plan__clear-link {
+.dkc-plan__clear-link,
+.dkc-plan__category-search-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -573,13 +592,16 @@
 }
 
 .dkc-plan__result-add,
-.dkc-plan__submit {
+.dkc-plan__submit,
+.dkc-plan__category-search-button {
   background: #173038;
   color: #fffdf7;
 }
 
 .dkc-plan__result-add:hover,
 .dkc-plan__result-add:active,
+.dkc-plan__category-search-button:hover,
+.dkc-plan__category-search-button:active,
 .dkc-plan__submit:hover,
 .dkc-plan__submit:active {
   transform: translateY(-1px);
@@ -950,7 +972,8 @@
   .dkc-plan__reorder-disabled,
   .dkc-plan__submit,
   .dkc-plan__maps-link,
-  .dkc-plan__clear-link {
+  .dkc-plan__clear-link,
+  .dkc-plan__category-search-button {
     width: 100%;
   }
 
@@ -960,5 +983,22 @@
 
   .dkc-plan__map-frame {
     min-height: 20rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .dkc-plan__category-description {
+    display: block;
+  }
+
+  .dkc-plan__category-search-controls {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+}
+
+@media (max-width: 767px) {
+  .dkc-plan__category-description {
+    display: none;
   }
 }

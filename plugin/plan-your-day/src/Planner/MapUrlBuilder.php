@@ -9,6 +9,12 @@ final class MapUrlBuilder {
 	public function build_category_query( array $category, string $search_area, bool $use_current_location = false ): string {
 		$text_query = trim( sanitize_text_field( (string) ( $category['text_query'] ?? $category['label'] ?? '' ) ) );
 
+		return $this->build_search_query( $text_query, $search_area, $use_current_location );
+	}
+
+	public function build_search_query( string $search_term, string $search_area, bool $use_current_location = false ): string {
+		$text_query = trim( sanitize_text_field( $search_term ) );
+
 		if ( '' === $text_query ) {
 			return '';
 		}

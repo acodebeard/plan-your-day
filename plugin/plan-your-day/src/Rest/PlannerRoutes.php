@@ -144,6 +144,11 @@ final class PlannerRoutes {
 				'sanitize_callback' => 'sanitize_key',
 				'default'           => '',
 			],
+			'category_search' => [
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'default'           => '',
+			],
 			'waypoints'      => [
 				'type'              => 'array',
 				'sanitize_callback' => [ $this, 'sanitize_waypoints' ],
@@ -182,7 +187,7 @@ final class PlannerRoutes {
 		];
 	}
 
-	private function sanitize_waypoints( mixed $waypoints ): array {
+	public function sanitize_waypoints( mixed $waypoints ): array {
 		if ( ! is_array( $waypoints ) ) {
 			return [];
 		}
@@ -197,16 +202,17 @@ final class PlannerRoutes {
 		);
 	}
 
-	private function sanitize_boolean( mixed $value ): bool {
+	public function sanitize_boolean( mixed $value ): bool {
 		return true === $value || 1 === $value || '1' === (string) $value;
 	}
 
 	private function request_params_from_request( WP_REST_Request $request ): array {
 		$params = [
-			'category'     => (string) $request->get_param( 'category' ),
-			'waypoints'    => (array) $request->get_param( 'waypoints' ),
-			'start_mode'   => (string) $request->get_param( 'start_mode' ),
-			'custom_start' => (string) $request->get_param( 'custom_start' ),
+			'category'        => (string) $request->get_param( 'category' ),
+			'category_search' => (string) $request->get_param( 'category_search' ),
+			'waypoints'       => (array) $request->get_param( 'waypoints' ),
+			'start_mode'      => (string) $request->get_param( 'start_mode' ),
+			'custom_start'    => (string) $request->get_param( 'custom_start' ),
 		];
 
 		if ( true === $request->get_param( 'clear_trip' ) ) {

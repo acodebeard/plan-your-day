@@ -210,59 +210,83 @@ final class PlannerRenderer {
 		$category_help_id          = $instance_id . '-category-help';
 		$heading_id                = $instance_id . '-categories-heading';
 		$category_search_id        = $instance_id . '-category-search';
-		$category_filter_empty_id  = $instance_id . '-category-filter-empty';
+		$custom_results_heading_id = $instance_id . '-custom-results-heading';
 		?>
 		<section class="dkc-plan__card" aria-labelledby="<?php echo esc_attr( $heading_id ); ?>">
 			<div class="dkc-plan__card-header">
 				<div>
 					<h3 id="<?php echo esc_attr( $heading_id ); ?>" data-plan-results-heading><?php esc_html_e( 'What are you looking for?', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h3>
 					<p id="<?php echo esc_attr( $category_help_id ); ?>">
-						<?php esc_html_e( 'Open a category to search Google for real places.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
+						<?php esc_html_e( 'Search for any category or use a preset shortcut to load Google results.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
 					</p>
 				</div>
 				<span class="dkc-plan__count-pill" data-plan-results-count><?php echo esc_html( $planner_state['search_results_label'] ); ?></span>
 			</div>
 
-			<?php if ( [] !== $category_catalog ) : ?>
-				<div class="dkc-plan__category-search">
-					<label for="<?php echo esc_attr( $category_search_id ); ?>" class="screen-reader-text"><?php esc_html_e( 'Search categories', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></label>
+			<div class="dkc-plan__category-search">
+				<label for="<?php echo esc_attr( $category_search_id ); ?>" class="screen-reader-text"><?php esc_html_e( 'Search categories', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></label>
+				<div class="dkc-plan__category-search-controls">
 					<input
 						id="<?php echo esc_attr( $category_search_id ); ?>"
 						type="search"
-						value=""
+						name="category_search"
+						value="<?php echo esc_attr( (string) $planner_state['category_search'] ); ?>"
 						placeholder="<?php esc_attr_e( 'Search categories', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>"
 						autocomplete="off"
 						spellcheck="false"
 						data-plan-category-search>
+					<button class="dkc-plan__category-search-button" type="submit" data-plan-action="search-category-query">
+						<?php esc_html_e( 'Search', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
+					</button>
 				</div>
+			</div>
 
-				<div class="dkc-plan__category-filter-empty dkc-plan__results-empty" id="<?php echo esc_attr( $category_filter_empty_id ); ?>" data-plan-category-filter-empty hidden>
-					<h4><?php esc_html_e( 'No matching categories', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h4>
-					<p><?php esc_html_e( 'Try a different category search.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></p>
+			<div
+				class="dkc-plan__custom-search-results"
+				data-plan-custom-results
+				aria-labelledby="<?php echo esc_attr( $custom_results_heading_id ); ?>"
+				<?php echo ( $planner_state['is_custom_search'] || [] === $category_catalog ) ? '' : 'hidden'; ?>>
+				<div class="dkc-plan__custom-search-header">
+					<h4 id="<?php echo esc_attr( $custom_results_heading_id ); ?>" data-plan-custom-results-heading>
+						<?php
+						echo esc_html(
+							$planner_state['is_custom_search']
+								? sprintf(
+									/* translators: %s is the active search label. */
+									__( 'Results for %s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+									$planner_state['active_search_label']
+								)
+								: $results_empty_state['heading']
+						);
+						?>
+					</h4>
 				</div>
+				<div class="dkc-plan__category-results-scroll" data-plan-custom-results-panel>
+					<?php if ( $planner_state['is_custom_search'] && [] !== (array) $planner_state['search_results'] ) : ?>
+						<ul class="dkc-plan__results-list">
+							<?php foreach ( (array) $planner_state['search_results'] as $result ) : ?>
+								<?php $this->render_search_result( $result, (array) $planner_state['selected_waypoint_ids'] ); ?>
+							<?php endforeach; ?>
+						</ul>
+					<?php else : ?>
+						<div class="dkc-plan__results-empty">
+							<h4><?php echo esc_html( $results_empty_state['heading'] ); ?></h4>
+							<p><?php echo esc_html( $results_empty_state['body'] ); ?></p>
+						</div>
+					<?php endif; ?>
+				</div>
+			</div>
 
+			<?php if ( [] !== $category_catalog ) : ?>
 				<div class="dkc-plan__category-accordion" aria-describedby="<?php echo esc_attr( $category_help_id ); ?>">
 					<?php foreach ( $category_catalog as $category_key => $category ) : ?>
 						<?php
-						$is_active              = $planner_state['category_key'] === $category_key;
-						$trigger_id             = $instance_id . '-category-trigger-' . $category_key;
-						$panel_id               = $instance_id . '-category-panel-' . $category_key;
-						$search_result_list     = $is_active ? (array) $planner_state['search_results'] : [];
-						$searchable_category    = strtolower(
-							implode(
-								' ',
-								array_filter(
-									[
-										(string) $category_key,
-										(string) $category['label'],
-										(string) $category['description'],
-										(string) $category['text_query'],
-									]
-								)
-							)
-						);
+						$is_active          = $planner_state['category_key'] === $category_key;
+						$trigger_id         = $instance_id . '-category-trigger-' . $category_key;
+						$panel_id           = $instance_id . '-category-panel-' . $category_key;
+						$search_result_list = $is_active ? (array) $planner_state['search_results'] : [];
 						?>
-						<div class="dkc-plan__category-accordion-item<?php echo $is_active ? ' is-expanded' : ''; ?>" data-plan-category-item data-category-searchable="<?php echo esc_attr( $searchable_category ); ?>">
+						<div class="dkc-plan__category-accordion-item<?php echo $is_active ? ' is-expanded' : ''; ?>" data-plan-category-item>
 							<h4 class="dkc-plan__category-accordion-heading">
 								<button
 									class="dkc-plan__category-trigger"
@@ -304,11 +328,6 @@ final class PlannerRenderer {
 							</div>
 						</div>
 					<?php endforeach; ?>
-				</div>
-			<?php else : ?>
-				<div class="dkc-plan__results-empty">
-					<h4><?php echo esc_html( $results_empty_state['heading'] ); ?></h4>
-					<p><?php echo esc_html( $results_empty_state['body'] ); ?></p>
 				</div>
 			<?php endif; ?>
 		</section>
@@ -434,7 +453,7 @@ final class PlannerRenderer {
 	private function render_preview_card( string $instance_id, array $planner_state, array $preview_empty_state, bool $maps_link_enabled ): void {
 		$heading_id     = $instance_id . '-preview-heading';
 		$maps_label_id  = $instance_id . '-maps-label';
-		$category_label = $planner_state['has_category'] ? (string) $planner_state['category']['label'] : __( 'Not selected', PLAN_YOUR_DAY_TEXT_DOMAIN );
+		$category_label = $planner_state['has_search'] ? (string) $planner_state['active_search_label'] : __( 'Not selected', PLAN_YOUR_DAY_TEXT_DOMAIN );
 		?>
 		<section class="dkc-plan__card dkc-plan__preview-card" aria-labelledby="<?php echo esc_attr( $heading_id ); ?>" data-plan-preview-card>
 			<div class="dkc-plan__card-header">
@@ -471,7 +490,7 @@ final class PlannerRenderer {
 				<p class="dkc-plan__summary-overview" data-plan-summary-overview><?php echo esc_html( $planner_state['overview'] ); ?></p>
 				<dl class="dkc-plan__summary-grid">
 					<div>
-						<dt><?php esc_html_e( 'Active category', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></dt>
+						<dt><?php esc_html_e( 'Active search', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></dt>
 						<dd data-plan-summary-category><?php echo esc_html( $category_label ); ?></dd>
 					</div>
 					<div>
@@ -559,6 +578,7 @@ final class PlannerRenderer {
 			'strings'         => [
 				'requestFailed'       => __( 'The planner request could not be completed. Refresh the page and try again.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'resultsUpdated'      => __( 'Results updated.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'searchResultsFor'    => __( 'Results for %s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'tripUpdated'         => __( 'Trip updated.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'startingPointUpdated' => __( 'Starting point updated.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'startOptionsExpanded' => __( 'Starting point options expanded.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
@@ -577,6 +597,7 @@ final class PlannerRenderer {
 			],
 			'initialState'    => [
 				'category'            => $planner_state['category_key'],
+				'categorySearch'      => $planner_state['category_search'],
 				'selectedWaypointIds' => array_values( $planner_state['selected_waypoint_ids'] ),
 				'startMode'           => $planner_state['start_mode'],
 				'customStart'         => $planner_state['custom_start'],

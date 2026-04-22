@@ -70,6 +70,7 @@
 
     return {
       category: String(formData.get('category') || state.category || ''),
+      category_search: String(formData.get('category_search') || state.categorySearch || ''),
       waypoints: formData.getAll('waypoints[]').map((waypoint) => String(waypoint || '')).filter(Boolean),
       start_mode: String(formData.get('start_mode') || state.startMode || 'default'),
       custom_start: String(formData.get('custom_start') || ''),
@@ -250,6 +251,7 @@
     const activeCategory = state.category || '';
     const selectedWaypointIds = toStringArray(state.route?.selectedWaypointIds);
     const browseData = state.browse || {};
+    const hasCustomSearch = Boolean(browseData.hasSearch) && !activeCategory;
 
     if (refs.resultsCount) {
       refs.resultsCount.textContent = String(browseData.searchResultsLabel || '');
@@ -274,29 +276,26 @@
       panel.hidden = !isActive;
       panel.innerHTML = isActive ? renderResultsMarkup(browseData, selectedWaypointIds, strings) : '';
     });
-  };
 
-  const applyCategoryFilter = (refs) => {
-    if (!Array.isArray(refs.categoryItems) || refs.categoryItems.length === 0) {
-      return;
+    if (refs.customResults) {
+      refs.customResults.hidden = !hasCustomSearch && refs.categoryButtons.length > 0;
     }
 
-    const searchTerm = normalizeFilterTerm(refs.categorySearchInput?.value || '');
-    let visibleCount = 0;
+    if (refs.customResultsHeading) {
+      refs.customResultsHeading.textContent = hasCustomSearch
+        ? formatString(strings.searchResultsFor || '', browseData.categoryLabel || '')
+        : String(browseData?.resultsEmptyState?.heading || '');
+    }
 
-    refs.categoryItems.forEach((item) => {
-      const searchableText = normalizeFilterTerm(item.getAttribute('data-category-searchable') || '');
-      const isVisible = searchTerm === '' || searchableText.includes(searchTerm);
-
-      item.hidden = !isVisible;
-
-      if (isVisible) {
-        visibleCount += 1;
-      }
-    });
-
-    if (refs.categoryFilterEmpty) {
-      refs.categoryFilterEmpty.hidden = visibleCount > 0;
+    if (refs.customResultsPanel) {
+      refs.customResultsPanel.innerHTML = hasCustomSearch
+        ? renderResultsMarkup(browseData, selectedWaypointIds, strings)
+        : `
+            <div class="dkc-plan__results-empty">
+              <h4>${escapeHtml(browseData?.resultsEmptyState?.heading || '')}</h4>
+              <p>${escapeHtml(browseData?.resultsEmptyState?.body || '')}</p>
+            </div>
+          `;
     }
   };
 
@@ -406,6 +405,18 @@
     }
   };
 
+  const syncCategorySearchUi = (refs, state) => {
+    if (!(refs.categorySearchInput instanceof HTMLInputElement)) {
+      return;
+    }
+
+    const nextValue = String(state.categorySearch || '');
+
+    if (refs.categorySearchInput.value !== nextValue) {
+      refs.categorySearchInput.value = nextValue;
+    }
+  };
+
   const setBusyState = (root, isBusy) => {
     root.classList.toggle('is-submitting', isBusy);
     root.setAttribute('aria-busy', String(isBusy));
@@ -429,7 +440,9 @@
       categoryItems: Array.from(root.querySelectorAll('[data-plan-category-item]')),
       categoryPanels: Array.from(root.querySelectorAll('[data-plan-category-results-panel]')),
       categorySearchInput: root.querySelector('[data-plan-category-search]'),
-      categoryFilterEmpty: root.querySelector('[data-plan-category-filter-empty]'),
+      customResults: root.querySelector('[data-plan-custom-results]'),
+      customResultsHeading: root.querySelector('[data-plan-custom-results-heading]'),
+      customResultsPanel: root.querySelector('[data-plan-custom-results-panel]'),
       startModeInputs: Array.from(root.querySelectorAll('input[name="start_mode"]')),
       customStartWrap: root.querySelector('[data-plan-custom-start-wrap]'),
       customStartInput: root.querySelector('[data-plan-custom-start]'),
@@ -458,6 +471,7 @@
 
     const state = {
       category: String(config.initialState?.category || ''),
+      categorySearch: String(config.initialState?.categorySearch || ''),
       startMode: String(config.initialState?.startMode || 'default'),
       customStart: String(config.initialState?.customStart || ''),
       browse: config.initialData?.browse || {},
@@ -478,11 +492,11 @@
 
     const renderAll = () => {
       renderCategoryPanels(refs, state, strings);
-      applyCategoryFilter(refs);
       renderTrip(refs, state, strings);
       renderPreview(refs, state);
       syncHiddenInputs(refs, state);
       syncStartUi(refs, config, state);
+      syncCategorySearchUi(refs, state);
     };
 
     const showRequestError = (message) => {
@@ -553,9 +567,11 @@
           state.browse = responseBody?.browse || {};
           state.route = responseBody?.route || {};
           state.category = String(state.browse.categoryKey || payload.category || '');
+          state.categorySearch = String(state.browse.categorySearch || payload.category_search || '');
         } else {
           state.route = responseBody?.route || {};
           state.category = String(state.route.categoryKey || state.category || '');
+          state.categorySearch = String(state.route.categorySearch || payload.category_search || '');
         }
 
         state.startMode = String(payload.start_mode || state.startMode || 'default');
@@ -610,7 +626,21 @@
 
     if (refs.categorySearchInput instanceof HTMLInputElement) {
       refs.categorySearchInput.addEventListener('input', () => {
-        applyCategoryFilter(refs);
+        state.categorySearch = refs.categorySearchInput.value || '';
+      });
+
+      refs.categorySearchInput.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' || !hasRestConfig) {
+          return;
+        }
+
+        event.preventDefault();
+
+        const payload = buildPayload(refs, state);
+        payload.category = '';
+        payload.category_search = refs.categorySearchInput.value || '';
+
+        void sendRequest('browse', payload, strings.resultsUpdated || '');
       });
     }
 
@@ -628,6 +658,10 @@
 
         if (submitter.matches('[data-plan-category-button]')) {
           payload.category = submitter.getAttribute('data-category-key') || '';
+          payload.category_search = '';
+        } else if (submitter.matches('[data-plan-action="search-category-query"]')) {
+          payload.category = '';
+          payload.category_search = refs.categorySearchInput instanceof HTMLInputElement ? refs.categorySearchInput.value || '' : '';
         } else if (submitter.matches('[data-plan-action="add-waypoint"]')) {
           payload.waypoints = [...payload.waypoints, submitter.getAttribute('data-place-id') || submitter.value || ''];
           endpointKey = 'route';
