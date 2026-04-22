@@ -8,8 +8,8 @@ defined( 'ABSPATH' ) || exit;
 final class FrontendAssets {
 	public const STYLE_HANDLE = 'plan-your-day';
 	public const SCRIPT_HANDLE = 'plan-your-day';
-	private const LEGACY_THEME_STYLE_HANDLE = 'dkc-plan';
-	private const LEGACY_THEME_SCRIPT_HANDLE = 'dkc-plan';
+	private const LEGACY_INTEGRATION_STYLE_HANDLE = 'dkc-plan';
+	private const LEGACY_INTEGRATION_SCRIPT_HANDLE = 'dkc-plan';
 
 	public function register(): void {
 		wp_register_style(
@@ -37,18 +37,19 @@ final class FrontendAssets {
 	}
 
 	public function dequeue_conflicting_assets(): void {
-		if ( wp_script_is( self::LEGACY_THEME_SCRIPT_HANDLE, 'enqueued' ) || wp_script_is( self::LEGACY_THEME_SCRIPT_HANDLE, 'registered' ) ) {
-			wp_dequeue_script( self::LEGACY_THEME_SCRIPT_HANDLE );
-			wp_deregister_script( self::LEGACY_THEME_SCRIPT_HANDLE );
+		if ( wp_script_is( self::LEGACY_INTEGRATION_SCRIPT_HANDLE, 'enqueued' ) || wp_script_is( self::LEGACY_INTEGRATION_SCRIPT_HANDLE, 'registered' ) ) {
+			wp_dequeue_script( self::LEGACY_INTEGRATION_SCRIPT_HANDLE );
+			wp_deregister_script( self::LEGACY_INTEGRATION_SCRIPT_HANDLE );
 		}
 
 		/*
-		 * The theme stylesheet can still be printed in <head> before the shortcode
-		 * renders, so this primarily prevents any later re-enqueue on the same request.
+		 * A legacy integration stylesheet can still be printed in <head> before the
+		 * shortcode renders, so this primarily prevents any later re-enqueue on the
+		 * same request.
 		 */
-		if ( wp_style_is( self::LEGACY_THEME_STYLE_HANDLE, 'enqueued' ) || wp_style_is( self::LEGACY_THEME_STYLE_HANDLE, 'registered' ) ) {
-			wp_dequeue_style( self::LEGACY_THEME_STYLE_HANDLE );
-			wp_deregister_style( self::LEGACY_THEME_STYLE_HANDLE );
+		if ( wp_style_is( self::LEGACY_INTEGRATION_STYLE_HANDLE, 'enqueued' ) || wp_style_is( self::LEGACY_INTEGRATION_STYLE_HANDLE, 'registered' ) ) {
+			wp_dequeue_style( self::LEGACY_INTEGRATION_STYLE_HANDLE );
+			wp_deregister_style( self::LEGACY_INTEGRATION_STYLE_HANDLE );
 		}
 	}
 }

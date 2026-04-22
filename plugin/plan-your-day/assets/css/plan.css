@@ -1,11 +1,11 @@
-.dkc-plan,
-.dkc-plan *,
-.dkc-plan *::before,
-.dkc-plan *::after {
+.plan-your-day,
+.plan-your-day *,
+.plan-your-day *::before,
+.plan-your-day *::after {
   box-sizing: border-box;
 }
 
-.dkc-plan {
+.plan-your-day {
   --focus-ring-color: #1168d8;
   --focus-ring-offset-color: #ffffff;
   font-family:
@@ -17,29 +17,29 @@
   line-height: 1.5;
 }
 
-.dkc-plan img,
-.dkc-plan svg {
+.plan-your-day img,
+.plan-your-day svg {
   display: block;
   max-width: 100%;
 }
 
-.dkc-plan button,
-.dkc-plan input,
-.dkc-plan select,
-.dkc-plan textarea {
+.plan-your-day button,
+.plan-your-day input,
+.plan-your-day select,
+.plan-your-day textarea {
   font: inherit;
 }
 
-.dkc-plan button {
+.plan-your-day button {
   cursor: pointer;
 }
 
-.dkc-plan a {
+.plan-your-day a {
   color: inherit;
 }
 
-.dkc-plan .screen-reader-text,
-.dkc-plan .sr-only {
+.plan-your-day .screen-reader-text,
+.plan-your-day .sr-only {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -51,17 +51,17 @@
   border: 0;
 }
 
-.dkc-plan {
+.plan-your-day {
   width: min(100% - 2rem, 1180px);
   margin: clamp(1rem, 4vw, 3rem) auto;
   color: #173038;
 }
 
-.dkc-plan [hidden] {
+.plan-your-day [hidden] {
   display: none !important;
 }
 
-.dkc-plan__surface {
+.plan-your-day__surface {
   padding: clamp(1rem, 1.6vw, 1.5rem);
   border: 1px solid rgba(23, 48, 56, 0.12);
   border-radius: 1.5rem;
@@ -71,7 +71,7 @@
   box-shadow: 0 0.85rem 2rem rgba(23, 48, 56, 0.12);
 }
 
-.dkc-plan__hero {
+.plan-your-day__hero {
   display: grid;
   gap: 0.8rem;
   margin-bottom: 1.2rem;
@@ -79,9 +79,9 @@
   border-bottom: 1px solid rgba(23, 48, 56, 0.12);
 }
 
-.dkc-plan__eyebrow,
-.dkc-plan__summary-eyebrow,
-.dkc-plan__trip-kicker {
+.plan-your-day__eyebrow,
+.plan-your-day__summary-eyebrow,
+.plan-your-day__trip-kicker {
   margin: 0;
   font-size: 0.78rem;
   font-weight: 700;
@@ -90,33 +90,33 @@
   color: #8a4f0f;
 }
 
-.dkc-plan__hero h2 {
+.plan-your-day__hero h2 {
   font-size: clamp(1.8rem, 3.3vw, 2.45rem);
   line-height: 1;
   color: #112127;
 }
 
-.dkc-plan__intro,
-.dkc-plan__hero-note,
-.dkc-plan__card-header p,
-.dkc-plan__category-description,
-.dkc-plan__result-meta,
-.dkc-plan__trip-meta,
-.dkc-plan__start-description,
-.dkc-plan__summary-overview,
-.dkc-plan__preview-empty p,
-.dkc-plan__results-empty p,
-.dkc-plan__trip-empty p,
-.dkc-plan__input-help,
-.dkc-plan__auto-note,
-.dkc-plan__noscript-note {
+.plan-your-day__intro,
+.plan-your-day__hero-note,
+.plan-your-day__card-header p,
+.plan-your-day__category-description,
+.plan-your-day__result-meta,
+.plan-your-day__trip-meta,
+.plan-your-day__start-description,
+.plan-your-day__summary-overview,
+.plan-your-day__preview-empty p,
+.plan-your-day__results-empty p,
+.plan-your-day__trip-empty p,
+.plan-your-day__input-help,
+.plan-your-day__auto-note,
+.plan-your-day__noscript-note {
   margin: 0;
   font-size: 0.95rem;
   line-height: 1.5;
   color: #35545d;
 }
 
-.dkc-plan__hero-note {
+.plan-your-day__hero-note {
   max-width: 33rem;
   padding: 0.75rem 0.9rem;
   border-radius: 1rem;
@@ -124,19 +124,19 @@
   border: 1px solid rgba(23, 48, 56, 0.08);
 }
 
-.dkc-plan__layout {
+.plan-your-day__layout {
   display: grid;
   gap: 1.2rem;
   align-items: start;
 }
 
-.dkc-plan__controls,
-.dkc-plan__preview-panel {
+.plan-your-day__controls,
+.plan-your-day__preview-panel {
   display: grid;
   gap: 0.85rem;
 }
 
-.dkc-plan__card {
+.plan-your-day__card {
   padding: 1rem;
   border: 1px solid rgba(23, 48, 56, 0.12);
   border-radius: 1.2rem;
@@ -144,8 +144,8 @@
   box-shadow: 0 0.65rem 1.45rem rgba(23, 48, 56, 0.06);
 }
 
-.dkc-plan__card-header,
-.dkc-plan__summary-top {
+.plan-your-day__card-header,
+.plan-your-day__summary-top {
   display: flex;
   align-items: start;
   justify-content: space-between;
@@ -153,7 +153,7 @@
   margin-bottom: 0.8rem;
 }
 
-.dkc-plan__trip-header-actions {
+.plan-your-day__trip-header-actions {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
@@ -161,24 +161,24 @@
   flex-wrap: wrap;
 }
 
-.dkc-plan__card h3,
-.dkc-plan__card h4 {
+.plan-your-day__card h3,
+.plan-your-day__card h4 {
   color: #102027;
 }
 
-.dkc-plan__card h3 {
+.plan-your-day__card h3 {
   font-size: 1.2rem;
   margin-bottom: 0.25rem;
 }
 
-.dkc-plan__fieldset {
+.plan-your-day__fieldset {
   border: 0;
   padding: 0;
   margin: 0;
 }
 
-.dkc-plan__count-pill,
-.dkc-plan__summary-count {
+.plan-your-day__count-pill,
+.plan-your-day__summary-count {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -192,30 +192,30 @@
   white-space: nowrap;
 }
 
-.dkc-plan__category-grid,
-.dkc-plan__start-options,
-.dkc-plan__results-list,
-.dkc-plan__trip-list,
-.dkc-plan__summary-grid {
+.plan-your-day__category-grid,
+.plan-your-day__start-options,
+.plan-your-day__results-list,
+.plan-your-day__trip-list,
+.plan-your-day__summary-grid {
   display: grid;
   gap: 0.7rem;
 }
 
-.dkc-plan__category-option,
-.dkc-plan__start-option {
+.plan-your-day__category-option,
+.plan-your-day__start-option {
   display: block;
   cursor: pointer;
 }
 
-.dkc-plan__category-option input,
-.dkc-plan__start-option input {
+.plan-your-day__category-option input,
+.plan-your-day__start-option input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
 }
 
-.dkc-plan__category-option-body,
-.dkc-plan__start-option-body {
+.plan-your-day__category-option-body,
+.plan-your-day__start-option-body {
   display: grid;
   gap: 0.35rem;
   min-height: 100%;
@@ -231,8 +231,8 @@
     background-color 0.2s ease;
 }
 
-.dkc-plan__category-option-body::before,
-.dkc-plan__start-option-body::before {
+.plan-your-day__category-option-body::before,
+.plan-your-day__start-option-body::before {
   content: "";
   position: absolute;
   top: 0.92rem;
@@ -244,64 +244,64 @@
   background: #fff;
 }
 
-.dkc-plan__category-option input:checked + .dkc-plan__category-option-body,
-.dkc-plan__start-option input:checked + .dkc-plan__start-option-body {
+.plan-your-day__category-option input:checked + .plan-your-day__category-option-body,
+.plan-your-day__start-option input:checked + .plan-your-day__start-option-body {
   border-color: rgba(138, 79, 15, 0.45);
   background: linear-gradient(180deg, #fffaf0 0%, #f7ecd6 100%);
   box-shadow: 0 0.85rem 1.8rem rgba(138, 79, 15, 0.12);
   transform: translateY(-1px);
 }
 
-.dkc-plan__category-option input:checked + .dkc-plan__category-option-body::before,
-.dkc-plan__start-option input:checked + .dkc-plan__start-option-body::before {
+.plan-your-day__category-option input:checked + .plan-your-day__category-option-body::before,
+.plan-your-day__start-option input:checked + .plan-your-day__start-option-body::before {
   border-color: #8a4f0f;
   background:
     radial-gradient(circle at center, #8a4f0f 0 45%, transparent 48% 100%),
     #fff7e9;
 }
 
-.dkc-plan__category-radio:focus-visible + .dkc-plan__category-option-body,
-.dkc-plan__category-trigger:focus-visible,
-.dkc-plan__category-search input:focus-visible,
-.dkc-plan__category-search-button:focus-visible,
-.dkc-plan__start-option input:focus-visible + .dkc-plan__start-option-body,
-.dkc-plan__start-toggle:focus-visible,
-.dkc-plan__custom-start input:focus-visible,
-.dkc-plan__submit:focus-visible,
-.dkc-plan__maps-link:focus-visible,
-.dkc-plan__clear-link:focus-visible,
-.dkc-plan__result-add:focus-visible,
-.dkc-plan__result-link:focus-visible,
-.dkc-plan__trip-tools a:focus-visible,
-.dkc-plan__trip-tools button:focus-visible {
+.plan-your-day__category-radio:focus-visible + .plan-your-day__category-option-body,
+.plan-your-day__category-trigger:focus-visible,
+.plan-your-day__category-search input:focus-visible,
+.plan-your-day__category-search-button:focus-visible,
+.plan-your-day__start-option input:focus-visible + .plan-your-day__start-option-body,
+.plan-your-day__start-toggle:focus-visible,
+.plan-your-day__custom-start input:focus-visible,
+.plan-your-day__submit:focus-visible,
+.plan-your-day__maps-link:focus-visible,
+.plan-your-day__clear-link:focus-visible,
+.plan-your-day__result-add:focus-visible,
+.plan-your-day__result-link:focus-visible,
+.plan-your-day__trip-tools a:focus-visible,
+.plan-your-day__trip-tools button:focus-visible {
   outline: 3px solid var(--focus-ring-color);
   outline-offset: 3px;
   box-shadow: 0 0 0 3px var(--focus-ring-offset-color);
 }
 
-.dkc-plan__category-title,
-.dkc-plan__start-title {
+.plan-your-day__category-title,
+.plan-your-day__start-title {
   display: block;
   color: #102027;
   font-size: 1rem;
   font-weight: 700;
 }
 
-.dkc-plan__category-accordion {
+.plan-your-day__category-accordion {
   display: grid;
   gap: 0.7rem;
 }
 
-.dkc-plan__category-search {
+.plan-your-day__category-search {
   margin-bottom: 0.85rem;
 }
 
-.dkc-plan__category-search-controls {
+.plan-your-day__category-search-controls {
   display: grid;
   gap: 0.65rem;
 }
 
-.dkc-plan__category-search input {
+.plan-your-day__category-search input {
   width: 100%;
   min-height: 2.85rem;
   padding: 0.75rem 0.9rem;
@@ -311,15 +311,15 @@
   color: #102027;
 }
 
-.dkc-plan__category-search-button {
+.plan-your-day__category-search-button {
   justify-self: start;
 }
 
-.dkc-plan__custom-search-results {
+.plan-your-day__custom-search-results {
   margin-bottom: 0.85rem;
 }
 
-.dkc-plan__category-accordion-item {
+.plan-your-day__category-accordion-item {
   border: 1px solid rgba(23, 48, 56, 0.14);
   border-radius: 1rem;
   background: linear-gradient(180deg, #fffefb 0%, #f6efde 100%);
@@ -329,16 +329,16 @@
     background-color 0.18s ease;
 }
 
-.dkc-plan__category-accordion-item.is-expanded {
+.plan-your-day__category-accordion-item.is-expanded {
   border-color: rgba(138, 79, 15, 0.32);
   box-shadow: 0 0.85rem 1.7rem rgba(23, 48, 56, 0.08);
 }
 
-.dkc-plan__category-accordion-heading {
+.plan-your-day__category-accordion-heading {
   margin: 0;
 }
 
-.dkc-plan__category-trigger {
+.plan-your-day__category-trigger {
   appearance: none;
   display: flex;
   align-items: center;
@@ -358,27 +358,27 @@
     color 0.18s ease;
 }
 
-.dkc-plan__category-trigger:hover,
-.dkc-plan__category-trigger:active {
+.plan-your-day__category-trigger:hover,
+.plan-your-day__category-trigger:active {
   transform: translateY(-1px);
   background: rgba(255, 255, 255, 0.38);
 }
 
-.dkc-plan__category-trigger-copy {
+.plan-your-day__category-trigger-copy {
   display: grid;
   gap: 0.18rem;
   min-width: 0;
   flex: 1 1 auto;
 }
 
-.dkc-plan__category-trigger-side {
+.plan-your-day__category-trigger-side {
   display: inline-flex;
   align-items: center;
   gap: 0.7rem;
   flex-shrink: 0;
 }
 
-.dkc-plan__category-trigger-icon {
+.plan-your-day__category-trigger-icon {
   width: 0.72rem;
   height: 0.72rem;
   border-right: 2px solid currentColor;
@@ -387,23 +387,23 @@
   transition: transform 0.18s ease;
 }
 
-.dkc-plan__category-trigger[aria-expanded="true"] .dkc-plan__category-trigger-icon {
+.plan-your-day__category-trigger[aria-expanded="true"] .plan-your-day__category-trigger-icon {
   transform: rotate(-135deg);
 }
 
-.dkc-plan__category-panel {
+.plan-your-day__category-panel {
   padding: 0 1rem 1rem;
 }
 
-.dkc-plan__custom-search-header {
+.plan-your-day__custom-search-header {
   margin-bottom: 0.75rem;
 }
 
-.dkc-plan__custom-search-header h4 {
+.plan-your-day__custom-search-header h4 {
   margin: 0;
 }
 
-.dkc-plan__category-results-scroll {
+.plan-your-day__category-results-scroll {
   max-height: min(28rem, 65vh);
   overflow-y: auto;
   padding-right: 0.35rem;
@@ -412,22 +412,22 @@
   transition: opacity 0.18s ease, filter 0.18s ease;
 }
 
-.dkc-plan__category-results-scroll::-webkit-scrollbar {
+.plan-your-day__category-results-scroll::-webkit-scrollbar {
   width: 0.65rem;
 }
 
-.dkc-plan__category-results-scroll::-webkit-scrollbar-track {
+.plan-your-day__category-results-scroll::-webkit-scrollbar-track {
   background: rgba(23, 48, 56, 0.08);
   border-radius: 999px;
 }
 
-.dkc-plan__category-results-scroll::-webkit-scrollbar-thumb {
+.plan-your-day__category-results-scroll::-webkit-scrollbar-thumb {
   background: rgba(138, 79, 15, 0.55);
   border-radius: 999px;
   border: 2px solid rgba(255, 255, 255, 0.65);
 }
 
-.dkc-plan__start-toggle {
+.plan-your-day__start-toggle {
   appearance: none;
   display: inline-flex;
   align-items: center;
@@ -450,14 +450,14 @@
     color 0.18s ease;
 }
 
-.dkc-plan__start-toggle:hover,
-.dkc-plan__start-toggle:active {
+.plan-your-day__start-toggle:hover,
+.plan-your-day__start-toggle:active {
   transform: translateY(-1px);
   border-color: rgba(138, 79, 15, 0.42);
   background: #f6eddb;
 }
 
-.dkc-plan__start-toggle-icon {
+.plan-your-day__start-toggle-icon {
   width: 0.6rem;
   height: 0.6rem;
   border-right: 2px solid currentColor;
@@ -466,44 +466,44 @@
   transition: transform 0.18s ease;
 }
 
-.dkc-plan__start-toggle.is-collapsed .dkc-plan__start-toggle-icon {
+.plan-your-day__start-toggle.is-collapsed .plan-your-day__start-toggle-icon {
   transform: rotate(45deg);
 }
 
-.dkc-plan__start-panel {
+.plan-your-day__start-panel {
   will-change: height;
 }
 
-.dkc-plan__category-results-scroll[aria-busy="true"],
-.dkc-plan [data-plan-trip-region][aria-busy="true"],
-.dkc-plan [data-plan-preview-card][aria-busy="true"] .dkc-plan__map-wrap,
-.dkc-plan [data-plan-preview-card][aria-busy="true"] .dkc-plan__summary {
+.plan-your-day__category-results-scroll[aria-busy="true"],
+.plan-your-day [data-plan-trip-region][aria-busy="true"],
+.plan-your-day [data-plan-preview-card][aria-busy="true"] .plan-your-day__map-wrap,
+.plan-your-day [data-plan-preview-card][aria-busy="true"] .plan-your-day__summary {
   opacity: 0.72;
   filter: saturate(0.88);
 }
 
-.dkc-plan__category-results-scroll[aria-busy="true"],
-.dkc-plan [data-plan-trip-region][aria-busy="true"],
-.dkc-plan [data-plan-preview-card][aria-busy="true"] {
+.plan-your-day__category-results-scroll[aria-busy="true"],
+.plan-your-day [data-plan-trip-region][aria-busy="true"],
+.plan-your-day [data-plan-preview-card][aria-busy="true"] {
   cursor: progress;
 }
 
-.dkc-plan__result-distance {
+.plan-your-day__result-distance {
   margin: 0;
   font-size: 0.88rem;
   font-weight: 700;
   color: #8a4f0f;
 }
 
-.dkc-plan__results-list,
-.dkc-plan__trip-list {
+.plan-your-day__results-list,
+.plan-your-day__trip-list {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.dkc-plan__result-item,
-.dkc-plan__trip-item {
+.plan-your-day__result-item,
+.plan-your-day__trip-item {
   display:flex;
   flex-wrap: wrap;
   gap: 0.8rem;
@@ -518,34 +518,34 @@
     border-color 0.18s ease;
 }
 
-.dkc-plan__result-copy,
-.dkc-plan__trip-copy {
+.plan-your-day__result-copy,
+.plan-your-day__trip-copy {
   display: grid;
   gap: 0.15rem;
 }
 
-.dkc-plan__result-copy h4,
-.dkc-plan__trip-copy h4 {
+.plan-your-day__result-copy h4,
+.plan-your-day__trip-copy h4 {
   font-size: 1rem;
 }
 
-.dkc-plan__result-tools,
-.dkc-plan__trip-tools {
+.plan-your-day__result-tools,
+.plan-your-day__trip-tools {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
 
-.dkc-plan__result-link,
-.dkc-plan__result-add,
-.dkc-plan__trip-tools a,
-.dkc-plan__trip-tools button,
-.dkc-plan__reorder-disabled,
-.dkc-plan__submit,
-.dkc-plan__maps-link,
-.dkc-plan__clear-link,
-.dkc-plan__category-search-button {
+.plan-your-day__result-link,
+.plan-your-day__result-add,
+.plan-your-day__trip-tools a,
+.plan-your-day__trip-tools button,
+.plan-your-day__reorder-disabled,
+.plan-your-day__submit,
+.plan-your-day__maps-link,
+.plan-your-day__clear-link,
+.plan-your-day__category-search-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -569,46 +569,46 @@
     box-shadow 0.18s ease;
 }
 
-.dkc-plan__result-link,
-.dkc-plan__trip-tools a,
-.dkc-plan__trip-tools button,
-.dkc-plan__maps-link {
+.plan-your-day__result-link,
+.plan-your-day__trip-tools a,
+.plan-your-day__trip-tools button,
+.plan-your-day__maps-link {
   border-color: rgba(23, 48, 56, 0.16);
   background: #fffefb;
   color: #173038;
 }
 
-.dkc-plan__result-link:hover,
-.dkc-plan__result-link:active,
-.dkc-plan__trip-tools a:hover,
-.dkc-plan__trip-tools a:active,
-.dkc-plan__trip-tools button:hover:not(:disabled),
-.dkc-plan__trip-tools button:active:not(:disabled),
-.dkc-plan__maps-link:hover:not(.is-disabled),
-.dkc-plan__maps-link:active:not(.is-disabled) {
+.plan-your-day__result-link:hover,
+.plan-your-day__result-link:active,
+.plan-your-day__trip-tools a:hover,
+.plan-your-day__trip-tools a:active,
+.plan-your-day__trip-tools button:hover:not(:disabled),
+.plan-your-day__trip-tools button:active:not(:disabled),
+.plan-your-day__maps-link:hover:not(.is-disabled),
+.plan-your-day__maps-link:active:not(.is-disabled) {
   transform: translateY(-1px);
   border-color: rgba(138, 79, 15, 0.42);
   background: #f6eddb;
 }
 
-.dkc-plan__result-add,
-.dkc-plan__submit,
-.dkc-plan__category-search-button {
+.plan-your-day__result-add,
+.plan-your-day__submit,
+.plan-your-day__category-search-button {
   background: #173038;
   color: #fffdf7;
 }
 
-.dkc-plan__result-add:hover,
-.dkc-plan__result-add:active,
-.dkc-plan__category-search-button:hover,
-.dkc-plan__category-search-button:active,
-.dkc-plan__submit:hover,
-.dkc-plan__submit:active {
+.plan-your-day__result-add:hover,
+.plan-your-day__result-add:active,
+.plan-your-day__category-search-button:hover,
+.plan-your-day__category-search-button:active,
+.plan-your-day__submit:hover,
+.plan-your-day__submit:active {
   transform: translateY(-1px);
   background: #0f2228;
 }
 
-.dkc-plan__result-added {
+.plan-your-day__result-added {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -621,7 +621,7 @@
   font-weight: 700;
 }
 
-.dkc-plan__waypoint-feedback {
+.plan-your-day__waypoint-feedback {
   position: absolute;
   top: 0.65rem;
   right: 0.65rem;
@@ -639,36 +639,36 @@
   pointer-events: none;
 }
 
-.dkc-plan.is-enhanced .dkc-plan__trip-item {
+.plan-your-day.is-enhanced .plan-your-day__trip-item {
   cursor: grab;
 }
 
-.dkc-plan.is-enhanced .dkc-plan__trip-item:hover {
+.plan-your-day.is-enhanced .plan-your-day__trip-item:hover {
   border-color: rgba(138, 79, 15, 0.4);
   box-shadow: 0 0.85rem 1.8rem rgba(23, 48, 56, 0.08);
 }
 
-.dkc-plan__trip-item.is-dragging {
+.plan-your-day__trip-item.is-dragging {
   opacity: 0.7;
   transform: scale(0.985);
   box-shadow: 0 1.1rem 2rem rgba(23, 48, 56, 0.14);
 }
 
-.dkc-plan__trip-item.is-drop-before {
+.plan-your-day__trip-item.is-drop-before {
   box-shadow: inset 0 4px 0 #8a4f0f;
 }
 
-.dkc-plan__trip-item.is-drop-after {
+.plan-your-day__trip-item.is-drop-after {
   box-shadow: inset 0 -4px 0 #8a4f0f;
 }
 
-.dkc-plan__trip-main {
+.plan-your-day__trip-main {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 0.75rem;
 }
 
-.dkc-plan__trip-number {
+.plan-your-day__trip-number {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -681,7 +681,7 @@
   font-weight: 700;
 }
 
-.dkc-plan__drag-handle {
+.plan-your-day__drag-handle {
   display: none;
   align-items: center;
   justify-content: center;
@@ -697,7 +697,7 @@
   position: relative;
   height: 42px;
 }
-.dkc-plan__drag-handle:before {
+.plan-your-day__drag-handle:before {
   content: '';
   display: inline-block;
   aspect-ratio: 94/150;
@@ -709,17 +709,17 @@
   bottom:5px;
   margin: auto 0;
 }
-.dkc-plan.is-enhanced .dkc-plan__drag-handle {
+.plan-your-day.is-enhanced .plan-your-day__drag-handle {
   display: inline-flex;
 }
 
-.dkc-plan__reorder-links {
+.plan-your-day__reorder-links {
   display: inline-flex;
   gap: 0.4rem;
   flex-wrap: wrap;
 }
 
-.dkc-plan__reorder-disabled {
+.plan-your-day__reorder-disabled {
   opacity: 0.45;
   cursor: not-allowed;
   border-color: rgba(23, 48, 56, 0.12);
@@ -727,9 +727,9 @@
   color: #5c737a;
 }
 
-.dkc-plan__results-empty,
-.dkc-plan__trip-empty,
-.dkc-plan__preview-empty {
+.plan-your-day__results-empty,
+.plan-your-day__trip-empty,
+.plan-your-day__preview-empty {
   display: grid;
   gap: 0.55rem;
   place-items: start;
@@ -739,24 +739,24 @@
   background: rgba(255, 255, 255, 0.62);
 }
 
-.dkc-plan__results-empty h4,
-.dkc-plan__trip-empty h4,
-.dkc-plan__preview-empty h4 {
+.plan-your-day__results-empty h4,
+.plan-your-day__trip-empty h4,
+.plan-your-day__preview-empty h4 {
   font-size: 1.15rem;
 }
 
-.dkc-plan__custom-start {
+.plan-your-day__custom-start {
   margin-top: 0.85rem;
 }
 
-.dkc-plan__custom-start label {
+.plan-your-day__custom-start label {
   display: inline-block;
   margin-bottom: 0.45rem;
   font-weight: 700;
   color: #102027;
 }
 
-.dkc-plan__custom-start input {
+.plan-your-day__custom-start input {
   width: 100%;
   min-height: 2.85rem;
   padding: 0.75rem 0.9rem;
@@ -766,46 +766,46 @@
   color: #102027;
 }
 
-.dkc-plan__input-help,
-.dkc-plan__auto-note,
-.dkc-plan__noscript-note {
+.plan-your-day__input-help,
+.plan-your-day__auto-note,
+.plan-your-day__noscript-note {
   margin-top: 0.55rem;
 }
 
-.dkc-plan__actions {
+.plan-your-day__actions {
   display: flex;
   gap: 0.75rem;
   flex-wrap: wrap;
   margin-top: 0.85rem;
 }
 
-.dkc-plan__clear-link {
+.plan-your-day__clear-link {
   border-color: rgba(23, 48, 56, 0.12);
   background: transparent;
   color: #173038;
 }
 
-.dkc-plan__clear-link:hover,
-.dkc-plan__clear-link:active {
+.plan-your-day__clear-link:hover,
+.plan-your-day__clear-link:active {
   transform: translateY(-1px);
   border-color: rgba(23, 48, 56, 0.22);
   background: rgba(255, 255, 255, 0.7);
 }
 
-.dkc-plan__maps-link.is-disabled,
-.dkc-plan__maps-link[aria-disabled="true"] {
+.plan-your-day__maps-link.is-disabled,
+.plan-your-day__maps-link[aria-disabled="true"] {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
 }
 
-.dkc-plan__messages {
+.plan-your-day__messages {
   display: grid;
   gap: 0.7rem;
   margin-bottom: 1rem;
 }
 
-.dkc-plan__message {
+.plan-your-day__message {
   padding: 0.75rem 0.85rem;
   border-radius: .5rem;
   border: 1px solid transparent;
@@ -813,19 +813,19 @@
   line-height: 1.45;
 }
 
-.dkc-plan__message--note {
+.plan-your-day__message--note {
   border-color: rgba(23, 48, 56, 0.12);
   background: rgba(223, 236, 241, 0.75);
   color: #163038;
 }
 
-.dkc-plan__message--warning {
+.plan-your-day__message--warning {
   border-color: rgba(138, 79, 15, 0.2);
   background: rgba(255, 243, 225, 0.9);
   color: #6e410d;
 }
 
-.dkc-plan__summary {
+.plan-your-day__summary {
   margin-top: 1rem;
   margin-bottom: 0;
   padding: 0.9rem;
@@ -834,14 +834,14 @@
   border: 1px solid rgba(23, 48, 56, 0.1);
 }
 
-.dkc-plan__summary-handoff {
+.plan-your-day__summary-handoff {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
   margin-top: 1rem;
 }
 
-.dkc-plan__summary-handoff-label {
+.plan-your-day__summary-handoff-label {
   margin: 0;
   font-size: 0.84rem;
   font-weight: 700;
@@ -850,20 +850,20 @@
   color: #8a4f0f;
 }
 
-.dkc-plan__maps-link--summary {
+.plan-your-day__maps-link--summary {
   width: 100%;
   min-height: 3.35rem;
   padding: 0.9rem 1.2rem;
   font-size: 1.15rem;
 }
 
-.dkc-plan__summary-grid div {
+.plan-your-day__summary-grid div {
   padding: 0.7rem 0.8rem;
   border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.7);
 }
 
-.dkc-plan__summary-grid dt {
+.plan-your-day__summary-grid dt {
   margin-bottom: 0.35rem;
   font-size: 0.84rem;
   font-weight: 700;
@@ -872,20 +872,20 @@
   color: #8a4f0f;
 }
 
-.dkc-plan__summary-grid dd {
+.plan-your-day__summary-grid dd {
   margin: 0;
   font-size: 0.95rem;
   color: #102027;
 }
 
-.dkc-plan__map-wrap {
+.plan-your-day__map-wrap {
   overflow: hidden;
   border-radius: 1rem;
   border: 1px solid rgba(23, 48, 56, 0.12);
   background: #f3ede0;
 }
 
-.dkc-plan__map-frame {
+.plan-your-day__map-frame {
   display: block;
   width: 100%;
   min-height: 24rem;
@@ -894,111 +894,111 @@
 }
 
 @media (min-width: 980px) {
-  .dkc-plan__hero {
+  .plan-your-day__hero {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: end;
   }
 
-  .dkc-plan__layout {
+  .plan-your-day__layout {
     grid-template-columns: minmax(18rem, 30rem) minmax(0, 1fr);
   }
 
-  .dkc-plan__preview-card {
+  .plan-your-day__preview-card {
     position: sticky;
     top: 7.75rem;
   }
 
-  .dkc-plan__summary-grid {
+  .plan-your-day__summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .dkc-plan__result-item,
-  .dkc-plan__trip-item {
+  .plan-your-day__result-item,
+  .plan-your-day__trip-item {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  .dkc-plan__trip-tools {
+  .plan-your-day__trip-tools {
     align-self: center;
     justify-content: end;
   }
 }
 
 @media (max-width: 979px) {
-  .dkc-plan__card-header,
-  .dkc-plan__summary-top {
+  .plan-your-day__card-header,
+  .plan-your-day__summary-top {
     flex-direction: column;
     align-items: start;
   }
 }
 
 @media (max-width: 639px) {
-  .dkc-plan__surface,
-  .dkc-plan__card {
+  .plan-your-day__surface,
+  .plan-your-day__card {
     border-radius: 1rem;
   }
 
-  .dkc-plan__surface {
+  .plan-your-day__surface {
     padding: 1rem;
   }
 
-  .dkc-plan__category-option-body,
-  .dkc-plan__start-option-body {
+  .plan-your-day__category-option-body,
+  .plan-your-day__start-option-body {
     padding-left: 2.75rem;
   }
 
-  .dkc-plan__category-trigger {
+  .plan-your-day__category-trigger {
     align-items: start;
   }
 
-  .dkc-plan__category-trigger-side {
+  .plan-your-day__category-trigger-side {
     gap: 0.55rem;
   }
 
-  .dkc-plan__category-results-scroll {
+  .plan-your-day__category-results-scroll {
     max-height: min(22rem, 55vh);
   }
 
-  .dkc-plan__actions,
-  .dkc-plan__result-tools,
-  .dkc-plan__trip-tools,
-  .dkc-plan__reorder-links {
+  .plan-your-day__actions,
+  .plan-your-day__result-tools,
+  .plan-your-day__trip-tools,
+  .plan-your-day__reorder-links {
     width: 100%;
   }
 
-  .dkc-plan__result-link,
-  .dkc-plan__result-add,
-  .dkc-plan__trip-tools a,
-  .dkc-plan__trip-tools button,
-  .dkc-plan__reorder-disabled,
-  .dkc-plan__submit,
-  .dkc-plan__maps-link,
-  .dkc-plan__clear-link,
-  .dkc-plan__category-search-button {
+  .plan-your-day__result-link,
+  .plan-your-day__result-add,
+  .plan-your-day__trip-tools a,
+  .plan-your-day__trip-tools button,
+  .plan-your-day__reorder-disabled,
+  .plan-your-day__submit,
+  .plan-your-day__maps-link,
+  .plan-your-day__clear-link,
+  .plan-your-day__category-search-button {
     width: 100%;
   }
 
-  .dkc-plan__summary-grid {
+  .plan-your-day__summary-grid {
     grid-template-columns: 1fr;
   }
 
-  .dkc-plan__map-frame {
+  .plan-your-day__map-frame {
     min-height: 20rem;
   }
 }
 
 @media (min-width: 768px) {
-  .dkc-plan__category-description {
+  .plan-your-day__category-description {
     display: block;
   }
 
-  .dkc-plan__category-search-controls {
+  .plan-your-day__category-search-controls {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
   }
 }
 
 @media (max-width: 767px) {
-  .dkc-plan__category-description {
+  .plan-your-day__category-description {
     display: none;
   }
 }

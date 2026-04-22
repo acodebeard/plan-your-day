@@ -4,9 +4,9 @@ Plan Your Day is a configurable WordPress plugin for building day-trip planners
 with Google Maps and Places data. The plugin source lives in
 `plugin/plan-your-day/`.
 
-This repository is no longer the standalone Destination Kona Coast PHP runtime.
-The legacy root-level standalone files remain only as migration/source material
-until the plugin reaches feature parity.
+This repository is no longer the earlier standalone PHP runtime. The legacy
+root-level files remain only as migration/source material until the plugin
+reaches feature parity.
 
 ## Status
 
@@ -118,10 +118,10 @@ Run PHP syntax checks from the repository root:
 find plugin/plan-your-day -name '*.php' -print -exec php -l {} \;
 ```
 
-Search for destination-specific strings in plugin code:
+Search for legacy integration-specific strings in plugin code:
 
 ```sh
-rg "Kona|Destination Kona Coast|Kailua Pier|DKC|dkc" plugin/plan-your-day
+rg "localhost/dkc|DKC|dkc|pier" plugin/plan-your-day
 ```
 
 No production test suite is wired yet; automated checks are tracked separately.

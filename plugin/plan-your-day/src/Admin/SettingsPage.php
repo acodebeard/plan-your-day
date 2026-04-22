@@ -792,7 +792,7 @@ final class SettingsPage {
 		?>
 		<h2><?php esc_html_e( 'Legacy Migration', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h2>
 		<p>
-			<?php esc_html_e( 'Import legacy standalone DKC planner values into plugin settings. This tool only copies configuration into the plugin and does not modify legacy files automatically.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
+			<?php esc_html_e( 'Import legacy standalone planner values into plugin settings. This tool only copies configuration into the plugin and does not modify legacy files automatically.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
 		</p>
 		<ul style="list-style:disc; padding-left:1.5rem; margin-bottom:1rem;">
 			<?php if ( $legacy_summary['has_default_location'] ) : ?>

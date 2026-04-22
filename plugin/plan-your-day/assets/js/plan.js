@@ -85,7 +85,7 @@
         const type = String(message?.type || 'note');
         const text = String(message?.text || '');
 
-        return `<li class="dkc-plan__message dkc-plan__message--${escapeHtml(type)}">${escapeHtml(text)}</li>`;
+        return `<li class="plan-your-day__message plan-your-day__message--${escapeHtml(type)}">${escapeHtml(text)}</li>`;
       })
       .join('');
   };
@@ -97,7 +97,7 @@
       const emptyState = browseData?.resultsEmptyState || {};
 
       return `
-        <div class="dkc-plan__results-empty">
+        <div class="plan-your-day__results-empty">
           <h4>${escapeHtml(emptyState.heading || '')}</h4>
           <p>${escapeHtml(emptyState.body || '')}</p>
         </div>
@@ -105,7 +105,7 @@
     }
 
     return `
-      <ul class="dkc-plan__results-list">
+      <ul class="plan-your-day__results-list">
         ${searchResults
           .map((result) => {
             const placeId = String(result?.id || '');
@@ -116,19 +116,19 @@
             const isInTrip = selectedWaypointIds.includes(placeId);
 
             return `
-              <li class="dkc-plan__result-item">
-                <div class="dkc-plan__result-copy">
+              <li class="plan-your-day__result-item">
+                <div class="plan-your-day__result-copy">
                   <h4>${escapeHtml(label)}</h4>
-                  ${distanceLabel ? `<p class="dkc-plan__result-distance">${escapeHtml(distanceLabel)}</p>` : ''}
-                  <p class="dkc-plan__result-meta">${escapeHtml(address)}</p>
+                  ${distanceLabel ? `<p class="plan-your-day__result-distance">${escapeHtml(distanceLabel)}</p>` : ''}
+                  <p class="plan-your-day__result-meta">${escapeHtml(address)}</p>
                 </div>
-                <div class="dkc-plan__result-tools">
+                <div class="plan-your-day__result-tools">
                   ${mapsUri
-                    ? `<a class="dkc-plan__result-link" href="${escapeHtml(mapsUri)}" target="_blank" rel="noopener noreferrer">${escapeHtml(strings.viewInGoogleMaps || '')}</a>`
+                    ? `<a class="plan-your-day__result-link" href="${escapeHtml(mapsUri)}" target="_blank" rel="noopener noreferrer">${escapeHtml(strings.viewInGoogleMaps || '')}</a>`
                     : ''}
                   ${isInTrip
-                    ? `<span class="dkc-plan__result-added" aria-label="${escapeHtml(formatString(strings.alreadyInTripAria, label))}">${escapeHtml(strings.inTrip || '')}</span>`
-                    : `<button class="dkc-plan__result-add" type="submit" name="waypoints[]" value="${escapeHtml(
+                    ? `<span class="plan-your-day__result-added" aria-label="${escapeHtml(formatString(strings.alreadyInTripAria, label))}">${escapeHtml(strings.inTrip || '')}</span>`
+                    : `<button class="plan-your-day__result-add" type="submit" name="waypoints[]" value="${escapeHtml(
                         placeId
                       )}" data-plan-action="add-waypoint" data-place-id="${escapeHtml(placeId)}">${escapeHtml(
                         strings.addToTrip || ''
@@ -147,10 +147,10 @@
     const tripCountLabel = String(routeData?.tripCountLabel || '');
 
     return `
-      <span class="dkc-plan__count-pill" data-plan-trip-count>${escapeHtml(tripCountLabel)}</span>
+      <span class="plan-your-day__count-pill" data-plan-trip-count>${escapeHtml(tripCountLabel)}</span>
       ${
         selectedWaypointIds.length > 0
-          ? `<button class="dkc-plan__clear-link" type="submit" name="clear_trip" value="1" data-plan-clear-trip data-plan-action="clear-trip">${escapeHtml(
+          ? `<button class="plan-your-day__clear-link" type="submit" name="clear_trip" value="1" data-plan-clear-trip data-plan-action="clear-trip">${escapeHtml(
               strings.clearTrip || ''
             )}</button>`
           : ''
@@ -163,7 +163,7 @@
 
     if (tripWaypoints.length === 0) {
       return `
-        <div class="dkc-plan__trip-empty" data-plan-trip-empty>
+        <div class="plan-your-day__trip-empty" data-plan-trip-empty>
           <h4>${escapeHtml(strings.tripEmptyHeading || '')}</h4>
           <p>${escapeHtml(strings.tripEmptyBody || '')}</p>
         </div>
@@ -171,7 +171,7 @@
     }
 
     return `
-      <ol class="dkc-plan__trip-list" data-plan-trip-list>
+      <ol class="plan-your-day__trip-list" data-plan-trip-list>
         ${tripWaypoints
           .map((waypoint, index) => {
             const placeId = String(waypoint?.id || '');
@@ -181,17 +181,17 @@
             const canMoveDown = index < tripWaypoints.length - 1;
 
             return `
-              <li class="dkc-plan__trip-item" data-waypoint-id="${escapeHtml(placeId)}">
-                <div class="dkc-plan__trip-main">
-                  <span class="dkc-plan__trip-number" aria-hidden="true">${escapeHtml(String(index + 1))}</span>
-                  <div class="dkc-plan__trip-copy">
+              <li class="plan-your-day__trip-item" data-waypoint-id="${escapeHtml(placeId)}">
+                <div class="plan-your-day__trip-main">
+                  <span class="plan-your-day__trip-number" aria-hidden="true">${escapeHtml(String(index + 1))}</span>
+                  <div class="plan-your-day__trip-copy">
                     <h4>${escapeHtml(label)}</h4>
-                    <p class="dkc-plan__trip-meta">${escapeHtml(address)}</p>
+                    <p class="plan-your-day__trip-meta">${escapeHtml(address)}</p>
                   </div>
                 </div>
-                <div class="dkc-plan__trip-tools">
+                <div class="plan-your-day__trip-tools">
                   <button
-                    class="dkc-plan__reorder-button dkc-plan__reorder-button--up"
+                    class="plan-your-day__reorder-button plan-your-day__reorder-button--up"
                     type="${canMoveUp ? 'submit' : 'button'}"
                     name="move_waypoint"
                     value="${escapeHtml(`${placeId}:up`)}"
@@ -199,7 +199,7 @@
                     ${escapeHtml(strings.moveUp || '')}
                   </button>
                   <button
-                    class="dkc-plan__reorder-button dkc-plan__reorder-button--down"
+                    class="plan-your-day__reorder-button plan-your-day__reorder-button--down"
                     type="${canMoveDown ? 'submit' : 'button'}"
                     name="move_waypoint"
                     value="${escapeHtml(`${placeId}:down`)}"
@@ -260,7 +260,7 @@
     refs.categoryButtons.forEach((button) => {
       const categoryKey = button.getAttribute('data-category-key') || '';
       const isActive = categoryKey === activeCategory;
-      const accordionItem = button.closest('.dkc-plan__category-accordion-item');
+      const accordionItem = button.closest('.plan-your-day__category-accordion-item');
 
       button.setAttribute('aria-expanded', String(isActive));
 
@@ -291,7 +291,7 @@
       refs.customResultsPanel.innerHTML = hasCustomSearch
         ? renderResultsMarkup(browseData, selectedWaypointIds, strings)
         : `
-            <div class="dkc-plan__results-empty">
+            <div class="plan-your-day__results-empty">
               <h4>${escapeHtml(browseData?.resultsEmptyState?.heading || '')}</h4>
               <p>${escapeHtml(browseData?.resultsEmptyState?.body || '')}</p>
             </div>
