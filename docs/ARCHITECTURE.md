@@ -31,7 +31,9 @@ Implemented layers:
 - `Admin`: owns the settings screen, setup notices, and cache tools.
 - `Google`: owns provider HTTP calls, field masks, result objects, and caching.
 - `Planner`: owns extracted planner helpers from the standalone runtime.
-- `Security`: owns request/security helpers extracted from standalone behavior.
+- `Security`: owns request/security helpers, visitor-token protection,
+  trusted-proxy-aware IP resolution, and rate limiting.
+- `Rest`: owns the public browse and route endpoints.
 
 ## Settings And Admin
 
@@ -80,6 +82,8 @@ Maps Embed key is separate.
 
 Planner helpers extracted so far:
 
+- `CategoryCatalog`: provides generic seed categories until configurable
+  categories land.
 - `PlaceParser`: shapes Google place responses and sanitizes Place IDs / HTTPS
   map URLs.
 - `WaypointList`: normalizes, deduplicates, caps, and reorders waypoint IDs.
@@ -90,9 +94,12 @@ Planner helpers extracted so far:
   plugin settings instead of hardcoded destination defaults.
 - `RequestStateParser`: normalizes request-style category, start, and waypoint
   state.
+- `PlannerStateBuilder`: builds the plugin-native planner state shape used by
+  shared renderers and REST endpoints.
+- `PlannerPayloadBuilder`: shapes browse and route payloads from planner state.
 
-These services are exposed from `Plugin` so future shortcode and REST work can
-share one implementation.
+These services are exposed from `Plugin` so the shortcode renderer and REST
+routes share one implementation.
 
 ## Security Helpers
 
@@ -100,8 +107,18 @@ share one implementation.
 the standalone runtime. It checks Fetch Metadata headers when available and
 falls back to `Origin` / `Referer` host matching.
 
-Anonymous visitor token validation and rate limiter enforcement for WordPress
-REST endpoints are still planned.
+`VisitorTokenManager` issues the guest-safe planner cookie and derives the HMAC
+endpoint token embedded in frontend runtime config.
+
+`ClientIpResolver` resolves the client IP, consulting `X-Forwarded-For` only
+when the direct peer is in the configured trusted-proxy CIDR list.
+
+`RateLimiter` applies a file-backed fixed-window request budget keyed by route
+scope, client IP, and minute bucket.
+
+`PlannerRoutes` registers the public WordPress REST browse and route endpoints.
+Those callbacks reuse `RequestStateParser`, `PlannerStateBuilder`, and
+`PlannerPayloadBuilder` before returning structured route/browse payloads.
 
 ## Still In The Standalone Runtime
 
@@ -112,7 +129,6 @@ The root-level standalone implementation still contains:
 - Standalone WordPress compatibility shims.
 - Session-backed nonce/cache behavior.
 - Standalone request rate limiting.
-- Standalone frontend state assembly.
 
 Those pieces should move into plugin-native renderer, REST, security, and asset
 classes in later issue slices.

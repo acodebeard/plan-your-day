@@ -31,6 +31,8 @@ final class Settings {
 			'distance_unit'                   => self::DISTANCE_UNIT_MILES,
 			'map_preview_enabled'             => true,
 			'maps_handoff_enabled'            => true,
+			'use_preset_categories'           => true,
+			'categories'                      => [],
 			'google_maps_embed_api_key'       => '',
 			'google_places_api_key'           => '',
 			'google_geocoding_api_key'        => '',
@@ -93,6 +95,8 @@ final class Settings {
 			'distance_unit'                   => self::sanitize_distance_unit( $raw_settings['distance_unit'] ?? $defaults['distance_unit'] ),
 			'map_preview_enabled'             => self::sanitize_boolean( $raw_settings['map_preview_enabled'] ?? $defaults['map_preview_enabled'] ),
 			'maps_handoff_enabled'            => self::sanitize_boolean( $raw_settings['maps_handoff_enabled'] ?? $defaults['maps_handoff_enabled'] ),
+			'use_preset_categories'           => self::sanitize_boolean( $raw_settings['use_preset_categories'] ?? $defaults['use_preset_categories'] ),
+			'categories'                      => self::sanitize_categories( $raw_settings['categories'] ?? $defaults['categories'] ),
 			'google_maps_embed_api_key'       => self::sanitize_api_key( $raw_settings['google_maps_embed_api_key'] ?? '' ),
 			'google_places_api_key'           => self::sanitize_api_key( $raw_settings['google_places_api_key'] ?? '' ),
 			'google_geocoding_api_key'        => self::sanitize_api_key( $raw_settings['google_geocoding_api_key'] ?? '' ),
@@ -195,6 +199,99 @@ final class Settings {
 		return array_key_exists( $distance_unit, self::distance_unit_choices() )
 			? $distance_unit
 			: self::DISTANCE_UNIT_MILES;
+	}
+
+	public static function sanitize_categories( mixed $categories ): array {
+		if ( ! is_array( $categories ) ) {
+			return [];
+		}
+
+		$sanitized_categories = [];
+		$used_slugs           = [];
+
+		foreach ( $categories as $category ) {
+			if ( ! is_array( $category ) ) {
+				continue;
+			}
+
+			if ( self::sanitize_boolean( $category['remove'] ?? false ) ) {
+				continue;
+			}
+
+			$label       = self::sanitize_plain_text( $category['label'] ?? '' );
+			$description = self::sanitize_plain_textarea( $category['description'] ?? '' );
+			$text_query  = self::sanitize_plain_text( $category['text_query'] ?? '' );
+			$enabled     = self::sanitize_boolean( $category['enabled'] ?? true );
+			$sort_order  = self::sanitize_integer( $category['sort_order'] ?? 0, 0, 999, 0 );
+			$slug        = self::sanitize_category_slug( $category['slug'] ?? '' );
+
+			if ( '' === $label && '' === $description && '' === $text_query ) {
+				continue;
+			}
+
+			if ( '' === $label || '' === $text_query ) {
+				continue;
+			}
+
+			if ( '' === $slug ) {
+				$slug = self::sanitize_category_slug( $label );
+			}
+
+			if ( '' === $slug ) {
+				$slug = self::sanitize_category_slug( $text_query );
+			}
+
+			if ( '' === $slug ) {
+				$slug = 'category';
+			}
+
+			$slug = self::make_unique_category_slug( $slug, $used_slugs );
+
+			$used_slugs[] = $slug;
+
+			$sanitized_categories[] = [
+				'slug'        => $slug,
+				'label'       => $label,
+				'description' => $description,
+				'text_query'  => $text_query,
+				'enabled'     => $enabled,
+				'sort_order'  => $sort_order,
+			];
+		}
+
+		usort(
+			$sanitized_categories,
+			static function ( array $left, array $right ): int {
+				if ( $left['sort_order'] === $right['sort_order'] ) {
+					return [ $left['label'], $left['slug'] ] <=> [ $right['label'], $right['slug'] ];
+				}
+
+				return $left['sort_order'] <=> $right['sort_order'];
+			}
+		);
+
+		return array_values( $sanitized_categories );
+	}
+
+	private static function sanitize_category_slug( mixed $slug ): string {
+		return sanitize_title( self::scalar_to_string( $slug ) );
+	}
+
+	private static function make_unique_category_slug( string $slug, array $used_slugs ): string {
+		if ( ! in_array( $slug, $used_slugs, true ) ) {
+			return $slug;
+		}
+
+		$suffix       = 2;
+		$base_slug    = $slug;
+		$candidate    = $base_slug . '-' . $suffix;
+
+		while ( in_array( $candidate, $used_slugs, true ) ) {
+			++$suffix;
+			$candidate = $base_slug . '-' . $suffix;
+		}
+
+		return $candidate;
 	}
 
 	public static function sanitize_trusted_proxy_cidrs( mixed $cidrs ): string {
@@ -333,6 +430,18 @@ final class Settings {
 		$settings = $this->get_all();
 
 		return $settings['maps_handoff_enabled'];
+	}
+
+	public function use_preset_categories(): bool {
+		$settings = $this->get_all();
+
+		return $settings['use_preset_categories'];
+	}
+
+	public function get_categories(): array {
+		$settings = $this->get_all();
+
+		return is_array( $settings['categories'] ) ? array_values( $settings['categories'] ) : [];
 	}
 
 	public function get_google_maps_embed_api_key(): string {

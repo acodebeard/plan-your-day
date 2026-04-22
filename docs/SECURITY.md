@@ -1,7 +1,7 @@
 # Security Model
 
-This document covers the security behavior implemented so far and the pieces
-still planned for the WordPress plugin.
+This document covers the security behavior implemented so far for the
+WordPress plugin.
 
 ## Current Key Handling
 
@@ -34,9 +34,9 @@ The settings page:
 - Escapes admin output.
 - Sanitizes every registered setting before saving.
 
-## Current Request-Origin Helper
+## Current Public Endpoint Protections
 
-`RequestOriginValidator` implements a same-site heuristic for future public
+`RequestOriginValidator` implements a same-site heuristic for public REST
 request handling:
 
 - Fetch Metadata headers are preferred when browsers send them.
@@ -44,22 +44,17 @@ request handling:
 - User-activated top-level document navigations can still be allowed.
 - `Origin` and `Referer` fallbacks compare against the expected host and port.
 
-This helper is not yet wired to public REST routes because those routes do not
-exist yet.
-
-## Planned Public Endpoint Protections
-
-Still planned:
+The public planner endpoints also use:
 
 - WordPress REST routes for browse and route preview requests.
 - POST-only route methods.
 - Request schemas and request-field sanitization.
 - Guest-safe visitor token cookie.
 - HMAC endpoint token generation and validation.
-- Object-cache-aware or file-backed rate limiter.
+- File-backed rate limiter.
 - Trusted-proxy-aware client IP resolution.
 - Structured REST errors for bad requests and invalid tokens.
 
 The standalone runtime still contains session-backed endpoint protection and
-rate limiting. Those behaviors are migration reference, not the final plugin
+rate limiting. Those behaviors remain migration reference, not the final plugin
 implementation.

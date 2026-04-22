@@ -49,7 +49,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 
 		$request_body = [
 			'textQuery'      => $query,
-			'pageSize'       => 16,
+			'pageSize'       => $this->settings->get_result_count(),
 			'rankPreference' => 'DISTANCE',
 		];
 

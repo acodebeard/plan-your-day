@@ -1,9 +1,10 @@
 # Plan Your Day Documentation
 
 This directory documents the WordPress plugin migration as it exists today.
-The plugin is installable and has admin/settings, Google API, cache, and
-planner helper foundations. Public planner rendering, REST endpoints, assets,
-migration helpers, release builds, and production QA are still in progress.
+The plugin is installable and has admin/settings, Google API, cache, planner
+helper, and planner state foundations. Public planner rendering, REST endpoints,
+assets, migration helpers, release builds, and production QA are still in
+progress.
 
 ## Current Documents
 
