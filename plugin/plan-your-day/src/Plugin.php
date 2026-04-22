@@ -3,7 +3,6 @@ declare( strict_types=1 );
 
 namespace Acodebeard\PlanYourDay;
 
-use Acodebeard\PlanYourDay\Admin\LegacyConfigMigrator;
 use Acodebeard\PlanYourDay\Admin\SettingsPage;
 use Acodebeard\PlanYourDay\Frontend\FrontendAssets;
 use Acodebeard\PlanYourDay\Frontend\PlannerRenderer;
@@ -66,7 +65,6 @@ final class Plugin {
 		$this->google_api_cache         = new GoogleApiCache();
 		$this->category_catalog         = new CategoryCatalog( $this->settings );
 		$this->place_parser             = new PlaceParser();
-		$legacy_config_migrator         = new LegacyConfigMigrator( $this->settings );
 		$this->waypoint_list            = new WaypointList( $this->settings );
 		$this->request_state_parser     = new RequestStateParser( $this->waypoint_list );
 		$this->start_context_resolver   = new StartContextResolver( $this->settings );
@@ -81,8 +79,7 @@ final class Plugin {
 			$this->settings,
 			$this->google_api_cache,
 			$this->google_api_client(),
-			$this->category_catalog,
-			$legacy_config_migrator
+			$this->category_catalog
 		);
 		$this->frontend_assets          = new FrontendAssets();
 		$this->planner_renderer         = new PlannerRenderer(
@@ -112,9 +109,7 @@ final class Plugin {
 		add_action( 'admin_init', [ $this->settings, 'register' ] );
 		add_action( 'admin_menu', [ $this->settings_page, 'register' ] );
 		add_action( 'admin_notices', [ $this->settings_page, 'render_missing_required_settings_notice' ] );
-		add_action( 'admin_notices', [ $this->settings_page, 'render_legacy_config_notice' ] );
 		add_action( 'admin_post_plan_your_day_clear_google_cache', [ $this->settings_page, 'handle_clear_google_cache' ] );
-		add_action( 'admin_post_plan_your_day_import_legacy_config', [ $this->settings_page, 'handle_import_legacy_config' ] );
 		add_action( 'admin_post_plan_your_day_test_google_api', [ $this->settings_page, 'handle_test_google_api' ] );
 	}
 

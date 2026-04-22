@@ -17,20 +17,17 @@ final class SettingsPage {
 	private GoogleApiCache $google_api_cache;
 	private GoogleApiClientInterface $google_api_client;
 	private CategoryCatalog $category_catalog;
-	private LegacyConfigMigrator $legacy_config_migrator;
 
 	public function __construct(
 		Settings $settings,
 		GoogleApiCache $google_api_cache,
 		GoogleApiClientInterface $google_api_client,
-		CategoryCatalog $category_catalog,
-		LegacyConfigMigrator $legacy_config_migrator
+		CategoryCatalog $category_catalog
 	) {
 		$this->settings          = $settings;
 		$this->google_api_cache  = $google_api_cache;
 		$this->google_api_client = $google_api_client;
 		$this->category_catalog  = $category_catalog;
-		$this->legacy_config_migrator = $legacy_config_migrator;
 	}
 
 	public function register(): void {
@@ -330,9 +327,7 @@ final class SettingsPage {
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 			<?php $this->render_cache_notice(); ?>
 			<?php $this->render_google_test_notice(); ?>
-			<?php $this->render_legacy_import_notice(); ?>
 			<?php $this->render_setup_status_panel(); ?>
-			<?php $this->render_legacy_migration_panel(); ?>
 			<form action="<?php echo esc_url( admin_url( 'options.php' ) ); ?>" method="post">
 				<?php
 				settings_fields( Settings::OPTION_GROUP );
@@ -421,7 +416,6 @@ final class SettingsPage {
 		$embed_key         = $this->settings->get_google_maps_embed_api_key();
 		$places_key        = $this->settings->get_google_places_api_key();
 		$geocoding_key     = $this->settings->get_google_geocoding_api_key();
-		$legacy_summary    = $this->legacy_config_migrator->get_legacy_summary();
 
 		return [
 			[
@@ -474,20 +468,6 @@ final class SettingsPage {
 					)
 					: __( 'No active categories are available. Add at least one custom category or re-enable the preset fallback.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'type'   => [] !== $active_categories ? 'success' : 'warning',
-			],
-			[
-				'label'  => __( 'Legacy config migration', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'status' => $this->legacy_config_migrator->migration_is_recommended()
-					? __( 'Available', PLAN_YOUR_DAY_TEXT_DOMAIN )
-					: ( $this->legacy_config_migrator->has_legacy_config() ? __( 'Detected', PLAN_YOUR_DAY_TEXT_DOMAIN ) : __( 'Not needed', PLAN_YOUR_DAY_TEXT_DOMAIN ) ),
-				'detail' => $this->legacy_config_migrator->has_legacy_config()
-					? sprintf(
-						/* translators: %d is the number of detected legacy categories. */
-						__( 'Legacy config was detected for migration, including %d category entries when available. The importer only copies values into plugin settings.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-						$legacy_summary['category_count']
-					)
-					: __( 'No legacy standalone config was detected in the current WordPress runtime.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'type'   => $this->legacy_config_migrator->migration_is_recommended() ? 'warning' : 'optional',
 			],
 		];
 	}
@@ -557,21 +537,6 @@ final class SettingsPage {
 		);
 	}
 
-	public function render_legacy_config_notice(): void {
-		if ( ! current_user_can( 'manage_options' ) || ! $this->legacy_config_migrator->migration_is_recommended() ) {
-			return;
-		}
-
-		$url = add_query_arg( 'page', Settings::PAGE_SLUG, admin_url( 'options-general.php' ) );
-
-		printf(
-			'<div class="notice notice-info"><p>%1$s <a href="%2$s">%3$s</a></p></div>',
-			esc_html__( 'Plan Your Day detected legacy standalone config that can be imported into plugin settings.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			esc_url( $url ),
-			esc_html__( 'Open the migration tool', PLAN_YOUR_DAY_TEXT_DOMAIN )
-		);
-	}
-
 	public function handle_clear_google_cache(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You do not have permission to manage Plan Your Day settings.', PLAN_YOUR_DAY_TEXT_DOMAIN ) );
@@ -584,30 +549,6 @@ final class SettingsPage {
 			[
 				'page'                        => Settings::PAGE_SLUG,
 				'plan_your_day_cache_cleared' => $cleared,
-			],
-			admin_url( 'options-general.php' )
-		);
-
-		wp_safe_redirect( $redirect_url );
-		exit;
-	}
-
-	public function handle_import_legacy_config(): void {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage Plan Your Day settings.', PLAN_YOUR_DAY_TEXT_DOMAIN ) );
-		}
-
-		check_admin_referer( 'plan_your_day_import_legacy_config' );
-
-		$results = $this->legacy_config_migrator->import();
-		$this->google_api_cache->clear();
-
-		$redirect_url = add_query_arg(
-			[
-				'page'                              => Settings::PAGE_SLUG,
-				'plan_your_day_legacy_imported'     => 1,
-				'plan_your_day_imported_fields'     => (int) $results['imported_fields'],
-				'plan_your_day_imported_categories' => (int) $results['imported_categories'],
 			],
 			admin_url( 'options-general.php' )
 		);
@@ -759,69 +700,6 @@ final class SettingsPage {
 				)
 			)
 		);
-	}
-
-	private function render_legacy_import_notice(): void {
-		$imported            = filter_input( INPUT_GET, 'plan_your_day_legacy_imported', FILTER_VALIDATE_INT );
-		$imported_fields     = filter_input( INPUT_GET, 'plan_your_day_imported_fields', FILTER_VALIDATE_INT );
-		$imported_categories = filter_input( INPUT_GET, 'plan_your_day_imported_categories', FILTER_VALIDATE_INT );
-
-		if ( 1 !== $imported ) {
-			return;
-		}
-
-		printf(
-			'<div class="notice notice-success inline"><p>%s</p></div>',
-			esc_html(
-				sprintf(
-					/* translators: 1: imported field count, 2: imported category count. */
-					__( 'Imported legacy config into plugin settings. %1$d individual settings and %2$d categories were copied where plugin settings were empty.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-					max( 0, (int) $imported_fields ),
-					max( 0, (int) $imported_categories )
-				)
-			)
-		);
-	}
-
-	private function render_legacy_migration_panel(): void {
-		if ( ! $this->legacy_config_migrator->has_legacy_config() ) {
-			return;
-		}
-
-		$legacy_summary = $this->legacy_config_migrator->get_legacy_summary();
-		?>
-		<h2><?php esc_html_e( 'Legacy Migration', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h2>
-		<p>
-			<?php esc_html_e( 'Import legacy standalone planner values into plugin settings. This tool only copies configuration into the plugin and does not modify legacy files automatically.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
-		</p>
-		<ul style="list-style:disc; padding-left:1.5rem; margin-bottom:1rem;">
-			<?php if ( $legacy_summary['has_default_location'] ) : ?>
-				<li><?php esc_html_e( 'A legacy default location was detected.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></li>
-			<?php endif; ?>
-			<?php if ( $legacy_summary['has_google_keys'] ) : ?>
-				<li><?php esc_html_e( 'Legacy Google API keys were detected.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></li>
-			<?php endif; ?>
-			<?php if ( $legacy_summary['category_count'] > 0 ) : ?>
-				<li>
-					<?php
-					echo esc_html(
-						sprintf(
-							/* translators: %d is the number of detected legacy categories. */
-							__( '%d legacy categories were detected.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-							$legacy_summary['category_count']
-						)
-					);
-					?>
-				</li>
-			<?php endif; ?>
-		</ul>
-		<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post">
-			<input type="hidden" name="action" value="plan_your_day_import_legacy_config" />
-			<?php wp_nonce_field( 'plan_your_day_import_legacy_config' ); ?>
-			<?php submit_button( __( 'Import legacy config', PLAN_YOUR_DAY_TEXT_DOMAIN ), 'secondary', 'submit', false ); ?>
-		</form>
-		<hr />
-		<?php
 	}
 
 	private function render_google_test_results_panel(): void {
