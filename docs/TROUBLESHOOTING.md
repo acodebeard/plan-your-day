@@ -69,3 +69,22 @@ Current likely causes:
 
 The frontend planner is not wired yet, so current Google behavior is mostly
 validated through WP-CLI or future REST/renderer work.
+
+## Plugin Settings Are Empty But Legacy DKC Config Exists
+
+Open the plugin settings screen:
+
+```text
+http://localhost/dkc/wp-admin/options-general.php?page=plan-your-day
+```
+
+If the current WordPress runtime exposes the legacy DKC planner helpers or
+constants, the page shows a `Legacy Migration` panel and an admin notice. Use
+the import action to copy legacy location values, Google API keys, and legacy
+categories into `plan_your_day_settings`.
+
+The importer is conservative:
+
+- It only copies scalar settings when the plugin field is still empty.
+- It only imports legacy categories when no custom plugin categories are saved.
+- It clears cached Google API responses after import.
