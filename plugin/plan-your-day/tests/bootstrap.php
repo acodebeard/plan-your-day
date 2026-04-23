@@ -250,4 +250,50 @@ if ( ! class_exists( 'WP_Error' ) ) {
 	}
 }
 
+if ( ! class_exists( 'WP_REST_Request' ) ) {
+	class WP_REST_Request {
+		private array $params = [];
+
+		public function __construct(
+			private string $method = 'GET',
+			private string $route = ''
+		) {
+		}
+
+		public function get_param( string $key ): mixed {
+			return $this->params[ $key ] ?? null;
+		}
+
+		public function set_param( string $key, mixed $value ): void {
+			$this->params[ $key ] = $value;
+		}
+
+		public function get_method(): string {
+			return $this->method;
+		}
+
+		public function get_route(): string {
+			return $this->route;
+		}
+	}
+}
+
+if ( ! class_exists( 'WP_REST_Response' ) ) {
+	class WP_REST_Response {
+		public function __construct(
+			private mixed $data = null,
+			private int $status = 200
+		) {
+		}
+
+		public function get_data(): mixed {
+			return $this->data;
+		}
+
+		public function get_status(): int {
+			return $this->status;
+		}
+	}
+}
+
 require dirname( __DIR__ ) . '/vendor/autoload.php';
