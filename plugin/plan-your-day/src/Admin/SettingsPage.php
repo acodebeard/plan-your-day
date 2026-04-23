@@ -289,7 +289,7 @@ final class SettingsPage {
 		$this->add_field(
 			'rate_limit_per_minute',
 			__( 'Requests per minute', 'plan-your-day' ),
-			__( 'Configuration value for the later public endpoint rate limiter.', 'plan-your-day' ),
+			__( 'Per-minute budget for the active public planner REST rate limiter. Requests are enforced by client IP and planner scope.', 'plan-your-day' ),
 			'number',
 			[
 				'min' => 1,
@@ -510,7 +510,7 @@ final class SettingsPage {
 	public function render_rate_limiting_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Store rate-limit configuration for later endpoint enforcement. This issue does not implement the limiter.', 'plan-your-day' )
+			esc_html__( 'Control the active runtime limiter for public planner REST requests. Higher-cost requests can consume more of this budget before external Google work starts.', 'plan-your-day' )
 		);
 	}
 
