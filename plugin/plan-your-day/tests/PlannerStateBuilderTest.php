@@ -127,10 +127,51 @@ final class PlannerStateBuilderTest extends TestCase {
 
 		self::assertSame( [ 'place-a', 'place-b' ], $google_api_client->requested_place_ids );
 		self::assertSame( [ 'place-a', 'place-b', 'place-c' ], $state['selected_waypoint_ids'] );
-		self::assertCount( 0, $state['trip_waypoints'] );
+		self::assertCount( 2, $state['trip_waypoints'] );
+		self::assertTrue( $state['trip_waypoints'][0]['unresolved'] ?? false );
+		self::assertTrue( $state['trip_waypoints'][1]['unresolved'] ?? false );
 		self::assertSame(
 			'The trip preview stopped loading more places after repeated Google place errors. Try again later or remove any invalid stops.',
 			$state['messages'][2]['text'] ?? ''
+		);
+		self::assertSame(
+			'The trip preview and Google Maps handoff will stay unavailable until every selected place loads successfully.',
+			$state['messages'][3]['text'] ?? ''
+		);
+	}
+
+	public function test_build_preserves_selected_waypoint_ids_and_returns_placeholder_for_single_failed_place(): void {
+		$google_api_client = new FakePlannerGoogleApiClient(
+			[
+				'place-a' => GoogleApiResult::success(
+					[
+						'place' => $this->place( 'place-a', 'Alpha' ),
+					]
+				),
+				'place-b' => GoogleApiResult::failure( 'place_details_unavailable', 'failed', 503 ),
+			]
+		);
+		$builder           = $this->planner_state_builder( $google_api_client );
+
+		$state = $builder->build(
+			[
+				'selected_waypoint_ids' => [ 'place-a', 'place-b' ],
+				'start_mode'            => Settings::START_MODE_DEFAULT,
+			],
+			[
+				'include_results'        => false,
+				'include_trip_waypoints' => true,
+			]
+		);
+
+		self::assertSame( [ 'place-a', 'place-b' ], $state['selected_waypoint_ids'] );
+		self::assertCount( 2, $state['trip_waypoints'] );
+		self::assertSame( 'place-b', $state['trip_waypoints'][1]['id'] );
+		self::assertTrue( $state['trip_waypoints'][1]['unresolved'] ?? false );
+		self::assertSame( '', $state['maps_url'] );
+		self::assertSame(
+			'The trip preview and Google Maps handoff will stay unavailable until every selected place loads successfully.',
+			$state['messages'][1]['text'] ?? ''
 		);
 	}
 
