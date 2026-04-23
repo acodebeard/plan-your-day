@@ -82,6 +82,7 @@ final class PlannerStateBuilder {
 		$search_results       = [];
 		$search_results_error = '';
 		$trip_waypoints       = [];
+		$resolved_waypoints   = [];
 		$iframe_src           = '';
 		$maps_url             = '';
 		$maps_link_label      = __( 'Explore in Google Maps', 'plan-your-day' );
@@ -128,16 +129,8 @@ final class PlannerStateBuilder {
 		if ( $include_trip_waypoints && [] !== $selected_waypoint_ids ) {
 			$trip_waypoint_response = $this->get_trip_waypoints( $selected_waypoint_ids, $options );
 			$trip_waypoints         = $trip_waypoint_response['waypoints'];
+			$resolved_waypoints     = $trip_waypoint_response['resolved_waypoints'];
 			$messages               = array_merge( $messages, $trip_waypoint_response['messages'] );
-
-			if ( empty( $trip_waypoint_response['is_partial'] ) ) {
-				$selected_waypoint_ids = array_map(
-					static function ( array $waypoint ): string {
-						return (string) $waypoint['id'];
-					},
-					$trip_waypoints
-				);
-			}
 		}
 
 		$has_category         = '' !== $category_key;
@@ -155,7 +148,7 @@ final class PlannerStateBuilder {
 			: __( 'No Google results loaded', 'plan-your-day' );
 
 		if ( $has_trip ) {
-			$route_state = $this->build_trip_route_state( $trip_waypoints, $search_context );
+			$route_state = $this->build_trip_route_state( $trip_waypoints, $resolved_waypoints, $search_context );
 			$messages    = array_merge( $messages, $route_state['messages'] );
 
 			$trip_count_label   = $route_state['trip_count_label'];
@@ -283,6 +276,7 @@ final class PlannerStateBuilder {
 
 	private function get_trip_waypoints( array $waypoint_ids, array $options = [] ): array {
 		$waypoints             = [];
+		$resolved_waypoints    = [];
 		$messages              = [];
 		$is_partial            = false;
 		$deadline_at           = $this->resolve_trip_waypoint_deadline_at( $options );
@@ -313,6 +307,7 @@ final class PlannerStateBuilder {
 
 			if ( ! $detail_response->is_success() || empty( $detail_response->data()['place'] ) ) {
 				++$failure_count;
+				$waypoints[] = $this->build_unresolved_trip_waypoint( $waypoint_id );
 				DebugLogger::log(
 					'planner.trip_waypoint.skipped',
 					[
@@ -350,7 +345,8 @@ final class PlannerStateBuilder {
 				continue;
 			}
 
-			$waypoints[] = $detail_response->data()['place'];
+			$waypoints[]          = $detail_response->data()['place'];
+			$resolved_waypoints[] = $detail_response->data()['place'];
 		}
 
 		DebugLogger::log(
@@ -368,9 +364,19 @@ final class PlannerStateBuilder {
 		);
 
 		return [
-			'waypoints'   => $waypoints,
-			'messages'    => $messages,
-			'is_partial'  => $is_partial,
+			'waypoints'          => $waypoints,
+			'resolved_waypoints' => $resolved_waypoints,
+			'messages'           => $messages,
+			'is_partial'         => $is_partial,
+		];
+	}
+
+	private function build_unresolved_trip_waypoint( string $waypoint_id ): array {
+		return [
+			'id'         => $waypoint_id,
+			'label'      => __( 'Selected place needs attention', 'plan-your-day' ),
+			'address'    => __( 'Google could not load this place right now. It is still selected and can be retried, moved, or removed.', 'plan-your-day' ),
+			'unresolved' => true,
 		];
 	}
 
@@ -424,7 +430,7 @@ final class PlannerStateBuilder {
 		return max( 1, absint( $limit ) );
 	}
 
-	private function build_trip_route_state( array $trip_waypoints, array $search_context ): array {
+	private function build_trip_route_state( array $trip_waypoints, array $resolved_waypoints, array $search_context ): array {
 		$messages            = [];
 		$trip_count          = count( $trip_waypoints );
 		$trip_count_label    = sprintf(
@@ -432,7 +438,9 @@ final class PlannerStateBuilder {
 			_n( '%d waypoint selected', '%d waypoints selected', $trip_count, 'plan-your-day' ),
 			$trip_count
 		);
-		$route_description   = $this->build_route_description( $trip_waypoints, $search_context['handoff_summary'] );
+		$route_description   = [] !== $resolved_waypoints
+			? $this->build_route_description( $resolved_waypoints, $search_context['handoff_summary'] )
+			: __( 'One or more selected places still need to load before the walking trip can be previewed.', 'plan-your-day' );
 		$overview            = sprintf(
 			/* translators: 1: waypoint count label, 2: route description. */
 			__( '%1$s. %2$s', 'plan-your-day' ),
@@ -442,11 +450,26 @@ final class PlannerStateBuilder {
 		$iframe_src          = '';
 		$maps_url            = '';
 
+		if ( count( $resolved_waypoints ) !== count( $trip_waypoints ) ) {
+			$messages[] = [
+				'type' => 'warning',
+				'text' => __( 'The trip preview and Google Maps handoff will stay unavailable until every selected place loads successfully.', 'plan-your-day' ),
+			];
+
+			return [
+				'trip_count_label' => $trip_count_label,
+				'overview'         => $overview,
+				'iframe_src'       => $iframe_src,
+				'maps_url'         => $maps_url,
+				'messages'         => $messages,
+			];
+		}
+
 		if ( $this->settings->is_map_preview_enabled() ) {
 			$iframe_src = $this->map_url_builder->build_embed_directions_url(
 				$this->settings->get_google_maps_embed_api_key(),
 				$search_context['search_area'],
-				$trip_waypoints
+				$resolved_waypoints
 			);
 
 			if ( '' === $iframe_src ) {
@@ -460,7 +483,7 @@ final class PlannerStateBuilder {
 		if ( $this->settings->is_maps_handoff_enabled() ) {
 			$maps_url = $this->map_url_builder->build_directions_handoff_url(
 				$search_context['directions_origin'],
-				$trip_waypoints
+				$resolved_waypoints
 			);
 		}
 
