@@ -27,9 +27,10 @@ final class RateLimiter {
 		$this->time_provider      = $time_provider ?? static fn (): float => microtime( true );
 	}
 
-	public function enforce( string $scope, array $server = [] ): ?WP_Error {
+	public function enforce( string $scope, array $server = [], int $cost = 1 ): ?WP_Error {
 		$limit = max( 1, $this->settings->get_rate_limit_per_minute() );
 		$ip    = $this->client_ip_resolver->resolve( $server );
+		$cost  = max( 1, $cost );
 
 		if ( '' === $ip ) {
 			$ip = 'unknown';
@@ -53,13 +54,13 @@ final class RateLimiter {
 				)
 			);
 
-			if ( count( $timestamps ) >= $limit ) {
+			if ( count( $timestamps ) + $cost > $limit ) {
 				$this->persist_state( $key, $timestamps );
 
 				return $this->rate_limited_error();
 			}
 
-			$timestamps[] = $now;
+			$timestamps = array_merge( $timestamps, array_fill( 0, $cost, $now ) );
 			$this->persist_state( $key, $timestamps );
 		} finally {
 			$this->release_lock( $key );

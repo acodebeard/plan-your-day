@@ -52,4 +52,47 @@ final class PlannerRoutesTest extends TestCase {
 		self::assertTrue( $routes->validate_loose_waypoints( null ) );
 		self::assertFalse( $routes->validate_loose_waypoints( [ 'place-1', [ 'bad' ] ] ) );
 	}
+
+	public function test_get_rate_limit_cost_weights_browse_search_and_trip_waypoints(): void {
+		$routes = ( new ReflectionClass( PlannerRoutes::class ) )->newInstanceWithoutConstructor();
+		$method = new \ReflectionMethod( PlannerRoutes::class, 'get_rate_limit_cost' );
+		$method->setAccessible( true );
+
+		self::assertSame(
+			5,
+			$method->invoke(
+				$routes,
+				'browse',
+				[
+					'category_key'          => 'coffee',
+					'category_search'       => '',
+					'selected_waypoint_ids' => [ 'place-1', 'place-2' ],
+				]
+			)
+		);
+		self::assertSame(
+			3,
+			$method->invoke(
+				$routes,
+				'route',
+				[
+					'category_key'          => 'coffee',
+					'category_search'       => '',
+					'selected_waypoint_ids' => [ 'place-1', 'place-2' ],
+				]
+			)
+		);
+		self::assertSame(
+			1,
+			$method->invoke(
+				$routes,
+				'browse',
+				[
+					'category_key'          => '',
+					'category_search'       => '',
+					'selected_waypoint_ids' => [],
+				]
+			)
+		);
+	}
 }
