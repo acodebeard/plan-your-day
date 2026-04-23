@@ -25,4 +25,31 @@ final class PlannerRoutesTest extends TestCase {
 		self::assertFalse( $routes->sanitize_boolean( '0' ) );
 		self::assertFalse( $routes->sanitize_boolean( false ) );
 	}
+
+	public function test_validate_loose_scalar_accepts_scalar_and_null_values(): void {
+		$routes = ( new ReflectionClass( PlannerRoutes::class ) )->newInstanceWithoutConstructor();
+
+		self::assertTrue( $routes->validate_loose_scalar( 'coffee' ) );
+		self::assertTrue( $routes->validate_loose_scalar( 1 ) );
+		self::assertTrue( $routes->validate_loose_scalar( null ) );
+		self::assertFalse( $routes->validate_loose_scalar( [ 'coffee' ] ) );
+	}
+
+	public function test_validate_loose_boolean_accepts_common_boolean_wire_values(): void {
+		$routes = ( new ReflectionClass( PlannerRoutes::class ) )->newInstanceWithoutConstructor();
+
+		self::assertTrue( $routes->validate_loose_boolean( true ) );
+		self::assertTrue( $routes->validate_loose_boolean( '0' ) );
+		self::assertTrue( $routes->validate_loose_boolean( null ) );
+		self::assertFalse( $routes->validate_loose_boolean( [ true ] ) );
+	}
+
+	public function test_validate_loose_waypoints_accepts_scalar_arrays_and_rejects_nested_values(): void {
+		$routes = ( new ReflectionClass( PlannerRoutes::class ) )->newInstanceWithoutConstructor();
+
+		self::assertTrue( $routes->validate_loose_waypoints( [ 'place-1', 'place-2' ] ) );
+		self::assertTrue( $routes->validate_loose_waypoints( 'place-1' ) );
+		self::assertTrue( $routes->validate_loose_waypoints( null ) );
+		self::assertFalse( $routes->validate_loose_waypoints( [ 'place-1', [ 'bad' ] ] ) );
+	}
 }

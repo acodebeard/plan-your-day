@@ -6,6 +6,7 @@ namespace Acodebeard\PlanYourDay\Planner;
 use Acodebeard\PlanYourDay\Google\GoogleApiClientInterface;
 use Acodebeard\PlanYourDay\Security\RequestOriginValidator;
 use Acodebeard\PlanYourDay\Settings\Settings;
+use Acodebeard\PlanYourDay\Support\DebugLogger;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -110,6 +111,18 @@ final class PlannerStateBuilder {
 					'text' => $search_results_error,
 				];
 			}
+
+			DebugLogger::log(
+				'planner.search_results',
+				[
+					'category_key'         => $category_key,
+					'requested_search'     => $requested_category_search,
+					'active_search_label'  => $active_search_label,
+					'search_query'         => $search_query,
+					'search_results_count' => count( $search_results ),
+					'search_results_error' => $search_results_error,
+				]
+			);
 		}
 
 		if ( $include_trip_waypoints && [] !== $selected_waypoint_ids ) {
@@ -273,6 +286,17 @@ final class PlannerStateBuilder {
 			$detail_response = $this->google_api_client->place_details( $waypoint_id );
 
 			if ( ! $detail_response->is_success() || empty( $detail_response->data()['place'] ) ) {
+				DebugLogger::log(
+					'planner.trip_waypoint.skipped',
+					[
+						'waypoint_id' => $waypoint_id,
+						'response'    => [
+							'success'     => $detail_response->is_success(),
+							'message'     => $detail_response->message(),
+							'status_code' => $detail_response->status_code(),
+						],
+					]
+				);
 				$messages[] = [
 					'type' => 'warning',
 					'text' => __( 'One selected place could not be loaded from Google and was skipped.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
@@ -282,6 +306,20 @@ final class PlannerStateBuilder {
 
 			$waypoints[] = $detail_response->data()['place'];
 		}
+
+		DebugLogger::log(
+			'planner.trip_waypoints.loaded',
+			[
+				'requested_ids' => $waypoint_ids,
+				'loaded_count'  => count( $waypoints ),
+				'loaded_ids'    => array_map(
+					static function ( array $waypoint ): string {
+						return (string) ( $waypoint['id'] ?? '' );
+					},
+					$waypoints
+				),
+			]
+		);
 
 		return [
 			'waypoints' => $waypoints,

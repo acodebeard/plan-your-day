@@ -211,6 +211,9 @@ final class PlannerRenderer {
 		$heading_id                = $instance_id . '-categories-heading';
 		$category_search_id        = $instance_id . '-category-search';
 		$custom_results_heading_id = $instance_id . '-custom-results-heading';
+		$custom_results_trigger_id = $instance_id . '-custom-results-trigger';
+		$custom_results_panel_id   = $instance_id . '-custom-results-panel';
+		$has_custom_search         = (bool) $planner_state['is_custom_search'];
 		?>
 		<section class="plan-your-day__card" aria-labelledby="<?php echo esc_attr( $heading_id ); ?>">
 			<div class="plan-your-day__card-header">
@@ -242,26 +245,50 @@ final class PlannerRenderer {
 			</div>
 
 			<div
-				class="plan-your-day__custom-search-results"
+				class="plan-your-day__custom-search-results plan-your-day__category-accordion-item<?php echo $has_custom_search ? ' is-expanded' : ''; ?>"
 				data-plan-custom-results
-				aria-labelledby="<?php echo esc_attr( $custom_results_heading_id ); ?>"
-				<?php echo ( $planner_state['is_custom_search'] || [] === $category_catalog ) ? '' : 'hidden'; ?>>
+				<?php echo ( $has_custom_search || [] === $category_catalog ) ? '' : 'hidden'; ?>>
 				<div class="plan-your-day__custom-search-header">
-					<h4 id="<?php echo esc_attr( $custom_results_heading_id ); ?>" data-plan-custom-results-heading>
-						<?php
-						echo esc_html(
-							$planner_state['is_custom_search']
-								? sprintf(
-									/* translators: %s is the active search label. */
-									__( 'Results for %s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-									$planner_state['active_search_label']
-								)
-								: $results_empty_state['heading']
-						);
-						?>
+					<h4 class="plan-your-day__category-accordion-heading">
+						<button
+							class="plan-your-day__category-trigger"
+							type="button"
+							id="<?php echo esc_attr( $custom_results_trigger_id ); ?>"
+							aria-expanded="<?php echo $has_custom_search ? 'true' : 'false'; ?>"
+							aria-controls="<?php echo esc_attr( $custom_results_panel_id ); ?>"
+							data-plan-custom-results-button>
+							<span class="plan-your-day__category-trigger-copy">
+								<span class="plan-your-day__category-title" id="<?php echo esc_attr( $custom_results_heading_id ); ?>" data-plan-custom-results-heading>
+									<?php
+									echo esc_html(
+										$has_custom_search
+											? sprintf(
+												/* translators: %s is the active search label. */
+												__( 'Results for %s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+												$planner_state['active_search_label']
+											)
+											: $results_empty_state['heading']
+									);
+									?>
+								</span>
+								<span class="plan-your-day__category-description" data-plan-custom-results-description>
+									<?php esc_html_e( 'Custom category search results.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
+								</span>
+							</span>
+							<span class="plan-your-day__category-trigger-side" aria-hidden="true">
+								<span class="plan-your-day__category-trigger-icon"></span>
+							</span>
+						</button>
 					</h4>
 				</div>
-				<div class="plan-your-day__category-results-scroll" data-plan-custom-results-panel>
+				<div
+					class="plan-your-day__category-panel"
+					id="<?php echo esc_attr( $custom_results_panel_id ); ?>"
+					role="region"
+					aria-labelledby="<?php echo esc_attr( $custom_results_trigger_id ); ?>"
+					data-plan-custom-results-region
+					<?php echo $has_custom_search || [] === $category_catalog ? '' : 'hidden'; ?>>
+					<div class="plan-your-day__category-results-scroll" data-plan-custom-results-panel>
 					<?php if ( $planner_state['is_custom_search'] && [] !== (array) $planner_state['search_results'] ) : ?>
 						<ul class="plan-your-day__results-list">
 							<?php foreach ( (array) $planner_state['search_results'] as $result ) : ?>
@@ -274,6 +301,7 @@ final class PlannerRenderer {
 							<p><?php echo esc_html( $results_empty_state['body'] ); ?></p>
 						</div>
 					<?php endif; ?>
+					</div>
 				</div>
 			</div>
 
@@ -594,6 +622,11 @@ final class PlannerRenderer {
 				'requestFailed'       => __( 'The planner request could not be completed. Refresh the page and try again.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'resultsUpdated'      => __( 'Results updated.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'searchResultsFor'    => __( 'Results for %s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'categoryResultsExpanded' => __( '%s results expanded.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'categoryResultsCollapsed' => __( '%s results collapsed.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'customSearchResultsDescription' => __( 'Custom category search results.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'customResultsExpanded' => __( 'Custom search results expanded.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'customResultsCollapsed' => __( 'Custom search results collapsed.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'tripUpdated'         => __( 'Trip updated.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'startingPointUpdated' => __( 'Starting point updated.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'startOptionsExpanded' => __( 'Starting point options expanded.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
@@ -614,6 +647,7 @@ final class PlannerRenderer {
 				'removeWaypointLabel' => __( 'Remove %s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 				'clearTrip'          => __( 'Clear trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
 			],
+			'debug'           => defined( 'WP_DEBUG' ) && true === WP_DEBUG,
 			'initialState'    => [
 				'category'            => $planner_state['category_key'],
 				'categorySearch'      => $planner_state['category_search'],

@@ -5,6 +5,7 @@ namespace Acodebeard\PlanYourDay\Google;
 
 use Acodebeard\PlanYourDay\Planner\PlaceParser;
 use Acodebeard\PlanYourDay\Settings\Settings;
+use Acodebeard\PlanYourDay\Support\DebugLogger;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -64,6 +65,16 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 				],
 			];
 		}
+
+		DebugLogger::log(
+			'google.text_search.request',
+			[
+				'query'            => $query,
+				'origin_latitude'  => $origin_latitude,
+				'origin_longitude' => $origin_longitude,
+				'request_body'     => $request_body,
+			]
+		);
 
 		$response = $this->transport->post(
 			self::TEXT_SEARCH_ENDPOINT,
@@ -131,6 +142,13 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 			);
 		}
 
+		DebugLogger::log(
+			'google.place_details.request',
+			[
+				'place_id' => $place_id,
+			]
+		);
+
 		$response = $this->transport->get(
 			self::PLACE_DETAILS_ENDPOINT . rawurlencode( $place_id ),
 			[
@@ -195,6 +213,13 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 			);
 		}
 
+		DebugLogger::log(
+			'google.geocode.request',
+			[
+				'address' => $address,
+			]
+		);
+
 		$response = $this->transport->get(
 			add_query_arg(
 				[
@@ -251,10 +276,24 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 	 */
 	private function decode_response( mixed $response, string $error_code, string $message ): array|GoogleApiResult {
 		if ( is_wp_error( $response ) ) {
+			DebugLogger::log(
+				'google.response.wp_error',
+				[
+					'error_code' => $error_code,
+					'response'   => $response,
+				]
+			);
 			return GoogleApiResult::failure( $error_code, $message );
 		}
 
 		if ( ! is_array( $response ) ) {
+			DebugLogger::log(
+				'google.response.invalid_transport',
+				[
+					'error_code'    => $error_code,
+					'response_type' => gettype( $response ),
+				]
+			);
 			return GoogleApiResult::failure( $error_code, $message );
 		}
 
@@ -262,6 +301,14 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		$body        = json_decode( (string) wp_remote_retrieve_body( $response ), true );
 
 		if ( $status_code < 200 || $status_code >= 300 || ! is_array( $body ) ) {
+			DebugLogger::log(
+				'google.response.error',
+				[
+					'error_code'   => $error_code,
+					'status_code'  => $status_code,
+					'body_excerpt' => wp_remote_retrieve_body( $response ),
+				]
+			);
 			return GoogleApiResult::failure(
 				$error_code,
 				$message,
@@ -269,6 +316,15 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 				$this->is_retryable_status( $status_code )
 			);
 		}
+
+		DebugLogger::log(
+			'google.response.success',
+			[
+				'error_code'  => $error_code,
+				'status_code' => $status_code,
+				'body_keys'   => array_keys( $body ),
+			]
+		);
 
 		return [
 			'body'        => $body,
