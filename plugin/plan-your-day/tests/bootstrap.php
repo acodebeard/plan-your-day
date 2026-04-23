@@ -113,9 +113,79 @@ if ( ! function_exists( 'update_option' ) ) {
 	}
 }
 
+if ( ! function_exists( 'get_transient' ) ) {
+	function get_transient( string $transient ): mixed {
+		return $GLOBALS['plan_your_day_test_transients'][ $transient ] ?? false;
+	}
+}
+
+if ( ! function_exists( 'set_transient' ) ) {
+	function set_transient( string $transient, mixed $value, int $expiration ): bool {
+		$GLOBALS['plan_your_day_test_transients'][ $transient ] = $value;
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'delete_transient' ) ) {
+	function delete_transient( string $transient ): bool {
+		unset( $GLOBALS['plan_your_day_test_transients'][ $transient ] );
+
+		return true;
+	}
+}
+
 if ( ! function_exists( 'wp_parse_url' ) ) {
 	function wp_parse_url( string $url, int $component = -1 ): mixed {
 		return parse_url( $url, $component );
+	}
+}
+
+if ( ! function_exists( 'wp_json_encode' ) ) {
+	function wp_json_encode( mixed $value ): string|false {
+		return json_encode( $value );
+	}
+}
+
+if ( ! function_exists( 'is_wp_error' ) ) {
+	function is_wp_error( mixed $thing ): bool {
+		return $thing instanceof WP_Error;
+	}
+}
+
+if ( ! function_exists( 'wp_remote_retrieve_response_code' ) ) {
+	function wp_remote_retrieve_response_code( array $response ): int {
+		return (int) ( $response['response']['code'] ?? 0 );
+	}
+}
+
+if ( ! function_exists( 'wp_remote_retrieve_body' ) ) {
+	function wp_remote_retrieve_body( array $response ): string {
+		return (string) ( $response['body'] ?? '' );
+	}
+}
+
+if ( ! function_exists( 'add_query_arg' ) ) {
+	function add_query_arg( array $args, string $url ): string {
+		$query = http_build_query( $args );
+
+		if ( '' === $query ) {
+			return $url;
+		}
+
+		return $url . ( str_contains( $url, '?' ) ? '&' : '?' ) . $query;
+	}
+}
+
+if ( ! function_exists( 'esc_url_raw' ) ) {
+	function esc_url_raw( string $url ): string {
+		return $url;
+	}
+}
+
+if ( ! function_exists( '_n' ) ) {
+	function _n( string $single, string $plural, int $number, ?string $domain = null ): string {
+		return 1 === $number ? $single : $plural;
 	}
 }
 

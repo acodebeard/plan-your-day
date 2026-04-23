@@ -119,7 +119,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		);
 	}
 
-	public function place_details( string $place_id ): GoogleApiResult {
+	public function place_details( string $place_id, ?int $timeout = null ): GoogleApiResult {
 		$place_id = PlaceParser::sanitize_place_id( $place_id );
 
 		if ( '' === $place_id ) {
@@ -152,7 +152,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		$response = $this->transport->get(
 			self::PLACE_DETAILS_ENDPOINT . rawurlencode( $place_id ),
 			[
-				'timeout' => $this->settings->get_google_api_timeout(),
+				'timeout' => $this->resolve_timeout( $timeout ),
 				'headers' => [
 					'X-Goog-Api-Key'   => $api_key,
 					'X-Goog-FieldMask' => self::PLACE_DETAILS_FIELD_MASK,
@@ -188,6 +188,16 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 			],
 			$decoded['status_code']
 		);
+	}
+
+	private function resolve_timeout( ?int $timeout_override = null ): int {
+		$timeout = $this->settings->get_google_api_timeout();
+
+		if ( null === $timeout_override || $timeout_override < 1 ) {
+			return $timeout;
+		}
+
+		return min( $timeout, $timeout_override );
 	}
 
 	public function geocode( string $address ): GoogleApiResult {
