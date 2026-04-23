@@ -69,6 +69,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          coverage: none
+
+      - uses: ramsey/composer-install@v3
+        with:
+          working-directory: plugin/plan-your-day
+          composer-options: "--no-dev --optimize-autoloader"
+
       - uses: wordpress/plugin-check-action@v1
         with:
           build-dir: ./plugin/plan-your-day
