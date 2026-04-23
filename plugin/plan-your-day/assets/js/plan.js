@@ -174,7 +174,7 @@
                     ? `<span class="plan-your-day__result-added" aria-label="${escapeHtml(formatString(strings.alreadyInTripAria, label))}">${escapeHtml(strings.inTrip || '')}</span>`
                     : `<button class="plan-your-day__result-add" type="submit" name="waypoints[]" value="${escapeHtml(
                         placeId
-                      )}" data-plan-action="add-waypoint" data-place-id="${escapeHtml(placeId)}" aria-label="${escapeHtml(
+                      )}" data-plan-action="add-waypoint" data-plan-route-mutation data-place-id="${escapeHtml(placeId)}" aria-label="${escapeHtml(
                         formatString(strings.addWaypointLabel || '', label)
                       )}">${escapeHtml(
                         strings.addToTrip || ''
@@ -196,7 +196,7 @@
       <span class="plan-your-day__count-pill" data-plan-trip-count>${escapeHtml(tripCountLabel)}</span>
       ${
         selectedWaypointIds.length > 0
-          ? `<button class="plan-your-day__clear-link" type="submit" name="clear_trip" value="1" data-plan-clear-trip data-plan-action="clear-trip">${escapeHtml(
+          ? `<button class="plan-your-day__clear-link" type="submit" name="clear_trip" value="1" data-plan-clear-trip data-plan-action="clear-trip" data-plan-route-mutation>${escapeHtml(
               strings.clearTrip || ''
             )}</button>`
           : ''
@@ -243,6 +243,7 @@
                     type="${canMoveUp ? 'submit' : 'button'}"
                     name="move_waypoint"
                     value="${escapeHtml(`${placeId}:up`)}"
+                    data-plan-route-mutation
                     aria-label="${escapeHtml(formatString(strings.moveWaypointUpLabel || '', label))}"
                     ${canMoveUp ? '' : 'disabled'}>
                     ${escapeHtml(strings.moveUp || '')}
@@ -252,13 +253,14 @@
                     type="${canMoveDown ? 'submit' : 'button'}"
                     name="move_waypoint"
                     value="${escapeHtml(`${placeId}:down`)}"
+                    data-plan-route-mutation
                     aria-label="${escapeHtml(formatString(strings.moveWaypointDownLabel || '', label))}"
                     ${canMoveDown ? '' : 'disabled'}>
                     ${escapeHtml(strings.moveDown || '')}
                   </button>
                   <button type="submit" name="remove_waypoint" value="${escapeHtml(
                     placeId
-                  )}" data-plan-action="remove-waypoint" data-place-id="${escapeHtml(placeId)}">
+                  )}" data-plan-action="remove-waypoint" data-plan-route-mutation data-place-id="${escapeHtml(placeId)}">
                     ${escapeHtml(formatString(strings.removeWaypointLabel, label))}
                   </button>
                 </div>
@@ -499,6 +501,32 @@
     root.setAttribute('aria-busy', String(isBusy));
   };
 
+  const setRouteMutationBusyState = (root, isBusy) => {
+    root.querySelectorAll('[data-plan-route-mutation]').forEach((control) => {
+      if (!(control instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      if (isBusy) {
+        if (!control.hasAttribute('data-plan-disabled-before-request')) {
+          control.setAttribute('data-plan-disabled-before-request', control.disabled ? 'true' : 'false');
+        }
+
+        control.disabled = true;
+        return;
+      }
+
+      const disabledBeforeRequest = control.getAttribute('data-plan-disabled-before-request');
+
+      if (null === disabledBeforeRequest) {
+        return;
+      }
+
+      control.disabled = disabledBeforeRequest === 'true';
+      control.removeAttribute('data-plan-disabled-before-request');
+    });
+  };
+
   const setRegionBusyState = (refs, state, isBusy) => {
     const activeCategory = state.category || '';
 
@@ -607,6 +635,7 @@
       syncHiddenInputs(refs, state);
       syncStartUi(refs, config, state);
       syncCategorySearchUi(refs, state);
+      setRouteMutationBusyState(root, false);
     };
 
     const showRequestError = (message) => {
@@ -648,6 +677,7 @@
       activeRequestController = new AbortController();
       setBusyState(root, true);
       setRegionBusyState(refs, state, true);
+      setRouteMutationBusyState(root, endpointKey === 'route');
       debugLog(config, 'info', 'request:start', {
         endpointKey,
         payload,
@@ -735,6 +765,7 @@
         if (requestId === activeRequestId) {
           setBusyState(root, false);
           setRegionBusyState(refs, state, false);
+          setRouteMutationBusyState(root, false);
         }
       }
     };

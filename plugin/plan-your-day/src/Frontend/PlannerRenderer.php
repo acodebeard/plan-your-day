@@ -426,6 +426,7 @@ final class PlannerRenderer {
 						name="waypoints[]"
 							value="<?php echo esc_attr( $place_id ); ?>"
 							data-plan-action="add-waypoint"
+							data-plan-route-mutation
 							data-place-id="<?php echo esc_attr( $place_id ); ?>"
 							aria-label="
 							<?php
@@ -461,7 +462,7 @@ final class PlannerRenderer {
 				<div class="plan-your-day__trip-header-actions" data-plan-trip-header-actions>
 					<span class="plan-your-day__count-pill" data-plan-trip-count><?php echo esc_html( $planner_state['trip_count_label'] ); ?></span>
 					<?php if ( [] !== (array) $planner_state['selected_waypoint_ids'] ) : ?>
-						<button class="plan-your-day__clear-link" type="submit" name="clear_trip" value="1" data-plan-clear-trip data-plan-action="clear-trip">
+						<button class="plan-your-day__clear-link" type="submit" name="clear_trip" value="1" data-plan-clear-trip data-plan-action="clear-trip" data-plan-route-mutation>
 							<?php esc_html_e( 'Clear trip', 'plan-your-day' ); ?>
 						</button>
 					<?php endif; ?>
@@ -504,6 +505,7 @@ final class PlannerRenderer {
 						type="<?php echo $index > 0 ? 'submit' : 'button'; ?>"
 						name="move_waypoint"
 						value="<?php echo esc_attr( $place_id . ':up' ); ?>"
+						data-plan-route-mutation
 						aria-label="
 						<?php
 						/* translators: %s is a place label. */
@@ -518,6 +520,7 @@ final class PlannerRenderer {
 						type="<?php echo $index < $waypoint_count - 1 ? 'submit' : 'button'; ?>"
 						name="move_waypoint"
 						value="<?php echo esc_attr( $place_id . ':down' ); ?>"
+						data-plan-route-mutation
 						aria-label="
 						<?php
 						/* translators: %s is a place label. */
@@ -527,7 +530,7 @@ final class PlannerRenderer {
 					<?php disabled( $index >= $waypoint_count - 1 ); ?>>
 					<?php esc_html_e( 'Move down', 'plan-your-day' ); ?>
 					</button>
-					<button type="submit" name="remove_waypoint" value="<?php echo esc_attr( $place_id ); ?>" data-plan-action="remove-waypoint" data-place-id="<?php echo esc_attr( $place_id ); ?>">
+					<button type="submit" name="remove_waypoint" value="<?php echo esc_attr( $place_id ); ?>" data-plan-action="remove-waypoint" data-plan-route-mutation data-place-id="<?php echo esc_attr( $place_id ); ?>">
 						<?php
 						/* translators: %s is a place label. */
 						echo esc_html( sprintf( __( 'Remove %s', 'plan-your-day' ), $label ) );
