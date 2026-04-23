@@ -19,6 +19,8 @@ defined( 'ABSPATH' ) || exit;
 
 final class PlannerRoutes {
 	public const REST_NAMESPACE = 'plan-your-day/v1';
+	private const RATE_LIMIT_BASE_COST = 1;
+	private const BROWSE_SEARCH_COST = 2;
 	private const PUBLIC_TRIP_WAYPOINT_DEADLINE_SECONDS = 12;
 	private const PUBLIC_TRIP_WAYPOINT_PLACE_DETAILS_TIMEOUT = 5;
 	private const PUBLIC_TRIP_WAYPOINT_MAX_FAILURES = 3;
@@ -77,14 +79,15 @@ final class PlannerRoutes {
 				'params' => $this->debug_request_params( $request ),
 			]
 		);
-		$guard = $this->guard_request( $request, 'browse' );
+		$request_state = $this->request_state_parser->parse( $this->request_params_from_request( $request ) );
+		$guard         = $this->guard_request( $request, 'browse', $request_state );
 
 		if ( $guard instanceof WP_Error ) {
 			return $guard;
 		}
 
 		$planner_state = $this->planner_state_builder->build(
-			$this->request_state_parser->parse( $this->request_params_from_request( $request ) ),
+			$request_state,
 			$this->public_trip_waypoint_options( true )
 		);
 		DebugLogger::log(
@@ -114,14 +117,15 @@ final class PlannerRoutes {
 				'params' => $this->debug_request_params( $request ),
 			]
 		);
-		$guard = $this->guard_request( $request, 'route' );
+		$request_state = $this->request_state_parser->parse( $this->request_params_from_request( $request ) );
+		$guard         = $this->guard_request( $request, 'route', $request_state );
 
 		if ( $guard instanceof WP_Error ) {
 			return $guard;
 		}
 
 		$planner_state = $this->planner_state_builder->build(
-			$this->request_state_parser->parse( $this->request_params_from_request( $request ) ),
+			$request_state,
 			$this->public_trip_waypoint_options( false )
 		);
 		DebugLogger::log(
@@ -143,7 +147,7 @@ final class PlannerRoutes {
 		);
 	}
 
-	private function guard_request( WP_REST_Request $request, string $scope ): ?WP_Error {
+	private function guard_request( WP_REST_Request $request, string $scope, array $request_state ): ?WP_Error {
 		if ( ! $this->request_origin_validator->is_same_site_request( $_SERVER ) ) {
 			$error = new WP_Error(
 				'plan_your_day_invalid_origin',
@@ -192,7 +196,7 @@ final class PlannerRoutes {
 			return $error;
 		}
 
-		$rate_limit = $this->rate_limiter->enforce( $scope, $_SERVER );
+		$rate_limit = $this->rate_limiter->enforce( $scope, $_SERVER, $this->get_rate_limit_cost( $scope, $request_state ) );
 
 		if ( $rate_limit instanceof WP_Error ) {
 			DebugLogger::log(
@@ -215,6 +219,22 @@ final class PlannerRoutes {
 			'trip_waypoint_place_details_timeout' => self::PUBLIC_TRIP_WAYPOINT_PLACE_DETAILS_TIMEOUT,
 			'trip_waypoint_max_failures'         => self::PUBLIC_TRIP_WAYPOINT_MAX_FAILURES,
 		];
+	}
+
+	private function get_rate_limit_cost( string $scope, array $request_state ): int {
+		$cost               = self::RATE_LIMIT_BASE_COST;
+		$selected_waypoints = array_values( (array) ( $request_state['selected_waypoint_ids'] ?? [] ) );
+
+		if ( 'browse' === $scope && $this->request_uses_google_search( $request_state ) ) {
+			$cost += self::BROWSE_SEARCH_COST;
+		}
+
+		return $cost + count( $selected_waypoints );
+	}
+
+	private function request_uses_google_search( array $request_state ): bool {
+		return '' !== sanitize_key( (string) ( $request_state['category_key'] ?? '' ) )
+			|| '' !== trim( sanitize_text_field( (string) ( $request_state['category_search'] ?? '' ) ) );
 	}
 
 	private function route_args(): array {

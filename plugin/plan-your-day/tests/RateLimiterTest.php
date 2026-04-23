@@ -44,6 +44,18 @@ final class RateLimiterTest extends TestCase {
 		self::assertSame( 'plan_your_day_rate_limited', $error->get_error_code() );
 	}
 
+	public function test_enforce_counts_weighted_cost_against_the_limit(): void {
+		$now     = 300.0;
+		$limiter = $this->build_limiter( 5, $now );
+
+		self::assertNull( $limiter->enforce( 'browse', [ 'REMOTE_ADDR' => '198.51.100.10' ], 3 ) );
+
+		$error = $limiter->enforce( 'browse', [ 'REMOTE_ADDR' => '198.51.100.10' ], 3 );
+
+		self::assertInstanceOf( WP_Error::class, $error );
+		self::assertSame( 'plan_your_day_rate_limited', $error->get_error_code() );
+	}
+
 	public function test_enforce_recovers_from_a_stale_lock(): void {
 		$now = 200.0;
 		update_option(
