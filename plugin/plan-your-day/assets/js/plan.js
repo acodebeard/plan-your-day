@@ -208,10 +208,12 @@
     const tripWaypoints = Array.isArray(routeData?.tripWaypoints) ? routeData.tripWaypoints : [];
 
     if (tripWaypoints.length === 0) {
+      const tripEmptyState = routeData?.tripEmptyState || {};
+
       return `
         <div class="plan-your-day__trip-empty" data-plan-trip-empty>
-          <h4>${escapeHtml(strings.tripEmptyHeading || '')}</h4>
-          <p>${escapeHtml(strings.tripEmptyBody || '')}</p>
+          <h4>${escapeHtml(tripEmptyState.heading || strings.tripEmptyHeading || '')}</h4>
+          <p>${escapeHtml(tripEmptyState.body || strings.tripEmptyBody || '')}</p>
         </div>
       `;
     }
@@ -592,11 +594,11 @@
       config.rest.routeUrl !== '' &&
       typeof config.rest?.endpointToken === 'string' &&
       config.rest.endpointToken !== '';
+    const shouldHydrateOnLoad = Boolean(config.hydration?.shouldHydrateOnLoad);
 
     let isStartPanelOpen = true;
     let activeRequestController = null;
     let activeRequestId = 0;
-    let allowNativeSubmit = false;
 
     const renderAll = () => {
       renderCategoryPanels(refs, state, strings);
@@ -629,25 +631,6 @@
       if (refs.startToggleLabel) {
         refs.startToggleLabel.textContent = isStartPanelOpen ? 'Hide' : 'Show';
       }
-    };
-
-    const submitFormFallback = (submitter = null) => {
-      if (!(refs.form instanceof HTMLFormElement)) {
-        return;
-      }
-
-      debugLog(config, 'warn', 'request:fallback-submit', {
-        submitterName: submitter instanceof HTMLElement ? submitter.getAttribute('name') || '' : '',
-        submitterValue: submitter instanceof HTMLElement ? submitter.getAttribute('value') || '' : '',
-      });
-      allowNativeSubmit = true;
-
-      if (submitter instanceof HTMLElement && typeof refs.form.requestSubmit === 'function') {
-        refs.form.requestSubmit(submitter);
-        return;
-      }
-
-      refs.form.submit();
     };
 
     const sendRequest = async (endpointKey, payload, announcementMessage) => {
@@ -766,11 +749,7 @@
           return;
         }
 
-        void sendRequest('browse', buildPayload(refs, state), strings.startingPointUpdated || '').then((status) => {
-          if (status === 'failed') {
-            submitFormFallback();
-          }
-        });
+        void sendRequest('browse', buildPayload(refs, state), strings.startingPointUpdated || '');
       });
     });
 
@@ -784,11 +763,7 @@
           return;
         }
 
-        void sendRequest('browse', buildPayload(refs, state), strings.startingPointUpdated || '').then((status) => {
-          if (status === 'failed') {
-            submitFormFallback();
-          }
-        });
+        void sendRequest('browse', buildPayload(refs, state), strings.startingPointUpdated || '');
       });
     }
 
@@ -810,21 +785,12 @@
         state.expandedCategory = '';
         state.customResultsExpanded = true;
 
-        void sendRequest('browse', payload, strings.resultsUpdated || '').then((status) => {
-          if (status === 'failed') {
-            submitFormFallback();
-          }
-        });
+        void sendRequest('browse', payload, strings.resultsUpdated || '');
       });
     }
 
     if (refs.form instanceof HTMLFormElement) {
       refs.form.addEventListener('submit', (event) => {
-        if (allowNativeSubmit) {
-          allowNativeSubmit = false;
-          return;
-        }
-
         const submitter = event.submitter;
 
         if (!(submitter instanceof HTMLButtonElement) || !hasRestConfig) {
@@ -883,11 +849,7 @@
         }
 
         event.preventDefault();
-        void sendRequest(endpointKey, payload, announcementMessage).then((status) => {
-          if (status === 'failed') {
-            submitFormFallback(submitter);
-          }
-        });
+        void sendRequest(endpointKey, payload, announcementMessage);
       });
     }
 
@@ -943,6 +905,15 @@
     renderAll();
     updateStartPanelState();
     root.classList.add('is-enhanced');
+
+    if (shouldHydrateOnLoad) {
+      if (!hasRestConfig) {
+        showRequestError(strings.requestFailed || '');
+        return;
+      }
+
+      void sendRequest('browse', buildPayload(refs, state), '');
+    }
   };
 
   const init = () => {
