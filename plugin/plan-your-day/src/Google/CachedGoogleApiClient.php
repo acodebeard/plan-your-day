@@ -36,7 +36,7 @@ final class CachedGoogleApiClient implements GoogleApiClientInterface {
 		);
 	}
 
-	public function place_details( string $place_id ): GoogleApiResult {
+	public function place_details( string $place_id, ?int $timeout = null ): GoogleApiResult {
 		$cache_key = $this->cache->build_key(
 			'place_details',
 			[
@@ -48,7 +48,7 @@ final class CachedGoogleApiClient implements GoogleApiClientInterface {
 		return $this->remember(
 			$cache_key,
 			$this->settings->get_google_place_details_cache_ttl(),
-			fn (): GoogleApiResult => $this->client->place_details( $place_id )
+			fn (): GoogleApiResult => $this->client->place_details( $place_id, $timeout )
 		);
 	}
 

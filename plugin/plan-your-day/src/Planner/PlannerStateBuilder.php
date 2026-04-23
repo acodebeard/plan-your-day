@@ -126,15 +126,18 @@ final class PlannerStateBuilder {
 		}
 
 		if ( $include_trip_waypoints && [] !== $selected_waypoint_ids ) {
-			$trip_waypoint_response = $this->get_trip_waypoints( $selected_waypoint_ids );
+			$trip_waypoint_response = $this->get_trip_waypoints( $selected_waypoint_ids, $options );
 			$trip_waypoints         = $trip_waypoint_response['waypoints'];
 			$messages               = array_merge( $messages, $trip_waypoint_response['messages'] );
-			$selected_waypoint_ids  = array_map(
-				static function ( array $waypoint ): string {
-					return (string) $waypoint['id'];
-				},
-				$trip_waypoints
-			);
+
+			if ( empty( $trip_waypoint_response['is_partial'] ) ) {
+				$selected_waypoint_ids = array_map(
+					static function ( array $waypoint ): string {
+						return (string) $waypoint['id'];
+					},
+					$trip_waypoints
+				);
+			}
 		}
 
 		$has_category         = '' !== $category_key;
@@ -278,14 +281,38 @@ final class PlannerStateBuilder {
 		}
 	}
 
-	private function get_trip_waypoints( array $waypoint_ids ): array {
-		$waypoints = [];
-		$messages  = [];
+	private function get_trip_waypoints( array $waypoint_ids, array $options = [] ): array {
+		$waypoints             = [];
+		$messages              = [];
+		$is_partial            = false;
+		$deadline_at           = $this->resolve_trip_waypoint_deadline_at( $options );
+		$place_details_timeout = $this->normalize_trip_waypoint_timeout( $options['trip_waypoint_place_details_timeout'] ?? null );
+		$max_failures          = $this->normalize_trip_waypoint_limit( $options['trip_waypoint_max_failures'] ?? null );
+		$failure_count         = 0;
 
 		foreach ( $waypoint_ids as $waypoint_id ) {
-			$detail_response = $this->google_api_client->place_details( $waypoint_id );
+			$request_timeout = $this->resolve_trip_waypoint_request_timeout( $place_details_timeout, $deadline_at );
+
+			if ( null === $request_timeout ) {
+				$is_partial = true;
+				$messages[] = [
+					'type' => 'warning',
+					'text' => __( 'The trip preview stopped loading more places before the request timed out. Try again or remove a few stops.', 'plan-your-day' ),
+				];
+				DebugLogger::log(
+					'planner.trip_waypoints.deadline_reached',
+					[
+						'requested_ids' => $waypoint_ids,
+						'loaded_count'  => count( $waypoints ),
+					]
+				);
+				break;
+			}
+
+			$detail_response = $this->google_api_client->place_details( $waypoint_id, $request_timeout );
 
 			if ( ! $detail_response->is_success() || empty( $detail_response->data()['place'] ) ) {
+				++$failure_count;
 				DebugLogger::log(
 					'planner.trip_waypoint.skipped',
 					[
@@ -301,6 +328,25 @@ final class PlannerStateBuilder {
 					'type' => 'warning',
 					'text' => __( 'One selected place could not be loaded from Google and was skipped.', 'plan-your-day' ),
 				];
+
+				if ( null !== $max_failures && $failure_count >= $max_failures ) {
+					$is_partial = true;
+					$messages[] = [
+						'type' => 'warning',
+						'text' => __( 'The trip preview stopped loading more places after repeated Google place errors. Try again later or remove any invalid stops.', 'plan-your-day' ),
+					];
+					DebugLogger::log(
+						'planner.trip_waypoints.failure_limit_reached',
+						[
+							'requested_ids' => $waypoint_ids,
+							'loaded_count'  => count( $waypoints ),
+							'failure_count' => $failure_count,
+							'max_failures'  => $max_failures,
+						]
+					);
+					break;
+				}
+
 				continue;
 			}
 
@@ -322,9 +368,60 @@ final class PlannerStateBuilder {
 		);
 
 		return [
-			'waypoints' => $waypoints,
-			'messages'  => $messages,
+			'waypoints'   => $waypoints,
+			'messages'    => $messages,
+			'is_partial'  => $is_partial,
 		];
+	}
+
+	private function resolve_trip_waypoint_deadline_at( array $options ): ?float {
+		if ( isset( $options['trip_waypoint_deadline_at'] ) && is_numeric( $options['trip_waypoint_deadline_at'] ) ) {
+			return (float) $options['trip_waypoint_deadline_at'];
+		}
+
+		if ( ! isset( $options['trip_waypoint_deadline_seconds'] ) || ! is_numeric( $options['trip_waypoint_deadline_seconds'] ) ) {
+			return null;
+		}
+
+		$deadline_seconds = (float) $options['trip_waypoint_deadline_seconds'];
+
+		if ( $deadline_seconds <= 0 ) {
+			return null;
+		}
+
+		return microtime( true ) + $deadline_seconds;
+	}
+
+	private function resolve_trip_waypoint_request_timeout( ?int $place_details_timeout, ?float $deadline_at ): ?int {
+		$request_timeout = $place_details_timeout ?? $this->settings->get_google_api_timeout();
+
+		if ( null === $deadline_at ) {
+			return $request_timeout;
+		}
+
+		$remaining_seconds = $deadline_at - microtime( true );
+
+		if ( $remaining_seconds <= 0 ) {
+			return null;
+		}
+
+		return max( 1, min( $request_timeout, (int) ceil( $remaining_seconds ) ) );
+	}
+
+	private function normalize_trip_waypoint_timeout( mixed $timeout ): ?int {
+		if ( ! is_numeric( $timeout ) ) {
+			return null;
+		}
+
+		return max( 1, min( $this->settings->get_google_api_timeout(), absint( $timeout ) ) );
+	}
+
+	private function normalize_trip_waypoint_limit( mixed $limit ): ?int {
+		if ( ! is_numeric( $limit ) ) {
+			return null;
+		}
+
+		return max( 1, absint( $limit ) );
 	}
 
 	private function build_trip_route_state( array $trip_waypoints, array $search_context ): array {

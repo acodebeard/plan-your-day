@@ -19,6 +19,9 @@ defined( 'ABSPATH' ) || exit;
 
 final class PlannerRoutes {
 	public const REST_NAMESPACE = 'plan-your-day/v1';
+	private const PUBLIC_TRIP_WAYPOINT_DEADLINE_SECONDS = 12;
+	private const PUBLIC_TRIP_WAYPOINT_PLACE_DETAILS_TIMEOUT = 5;
+	private const PUBLIC_TRIP_WAYPOINT_MAX_FAILURES = 3;
 
 	private RequestStateParser $request_state_parser;
 	private PlannerStateBuilder $planner_state_builder;
@@ -82,10 +85,7 @@ final class PlannerRoutes {
 
 		$planner_state = $this->planner_state_builder->build(
 			$this->request_state_parser->parse( $this->request_params_from_request( $request ) ),
-			[
-				'include_results'        => true,
-				'include_trip_waypoints' => true,
-			]
+			$this->public_trip_waypoint_options( true )
 		);
 		DebugLogger::log(
 			'rest.browse.response',
@@ -122,10 +122,7 @@ final class PlannerRoutes {
 
 		$planner_state = $this->planner_state_builder->build(
 			$this->request_state_parser->parse( $this->request_params_from_request( $request ) ),
-			[
-				'include_results'        => false,
-				'include_trip_waypoints' => true,
-			]
+			$this->public_trip_waypoint_options( false )
 		);
 		DebugLogger::log(
 			'rest.route.response',
@@ -208,6 +205,16 @@ final class PlannerRoutes {
 		}
 
 		return $rate_limit;
+	}
+
+	private function public_trip_waypoint_options( bool $include_results ): array {
+		return [
+			'include_results'                    => $include_results,
+			'include_trip_waypoints'             => true,
+			'trip_waypoint_deadline_seconds'     => self::PUBLIC_TRIP_WAYPOINT_DEADLINE_SECONDS,
+			'trip_waypoint_place_details_timeout' => self::PUBLIC_TRIP_WAYPOINT_PLACE_DETAILS_TIMEOUT,
+			'trip_waypoint_max_failures'         => self::PUBLIC_TRIP_WAYPOINT_MAX_FAILURES,
+		];
 	}
 
 	private function route_args(): array {
