@@ -134,6 +134,36 @@ final class PlannerStateBuilderTest extends TestCase {
 		);
 	}
 
+	public function test_build_skips_remote_work_when_results_and_trip_waypoints_are_disabled(): void {
+		$google_api_client = new FakePlannerGoogleApiClient(
+			[
+				'place-a' => GoogleApiResult::success(
+					[
+						'place' => $this->place( 'place-a', 'Alpha' ),
+					]
+				),
+			]
+		);
+		$builder           = $this->planner_state_builder( $google_api_client );
+
+		$state = $builder->build(
+			[
+				'category_search'       => 'coffee',
+				'selected_waypoint_ids' => [ 'place-a' ],
+				'start_mode'            => Settings::START_MODE_DEFAULT,
+			],
+			[
+				'include_results'        => false,
+				'include_trip_waypoints' => false,
+			]
+		);
+
+		self::assertSame( [], $google_api_client->requested_place_ids );
+		self::assertSame( 0, $google_api_client->text_search_calls );
+		self::assertSame( 0, $google_api_client->geocode_calls );
+		self::assertSame( [ 'place-a' ], $state['selected_waypoint_ids'] );
+	}
+
 	private function planner_state_builder( GoogleApiClientInterface $google_api_client ): PlannerStateBuilder {
 		$settings = new Settings();
 
@@ -168,6 +198,10 @@ final class FakePlannerGoogleApiClient implements GoogleApiClientInterface {
 	/** @var list<int|null> */
 	public array $timeouts = [];
 
+	public int $text_search_calls = 0;
+
+	public int $geocode_calls = 0;
+
 	/**
 	 * @param array<string, GoogleApiResult> $place_details_results
 	 */
@@ -176,6 +210,8 @@ final class FakePlannerGoogleApiClient implements GoogleApiClientInterface {
 	}
 
 	public function text_search( string $query, ?float $origin_latitude = null, ?float $origin_longitude = null ): GoogleApiResult {
+		++$this->text_search_calls;
+
 		return GoogleApiResult::success(
 			[
 				'places' => [],
@@ -191,6 +227,8 @@ final class FakePlannerGoogleApiClient implements GoogleApiClientInterface {
 	}
 
 	public function geocode( string $address ): GoogleApiResult {
+		++$this->geocode_calls;
+
 		return GoogleApiResult::success(
 			[
 				'latitude'  => 33.4484,

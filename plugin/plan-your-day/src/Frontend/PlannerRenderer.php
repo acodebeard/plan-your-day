@@ -45,12 +45,25 @@ final class PlannerRenderer {
 			return $this->render_setup_notice( $instance_id, $title_id );
 		}
 
-		$request_state       = $this->request_state_parser->parse( $request );
-		$planner_state       = $this->planner_state_builder->build( $request_state );
+		$request_state           = $this->request_state_parser->parse( $request );
+		$should_hydrate_on_load = InitialPlannerHydration::should_hydrate_on_load( $request_state );
+		$planner_state           = $this->planner_state_builder->build(
+			$request_state,
+			InitialPlannerHydration::build_render_state_options()
+		);
+
+		if ( $should_hydrate_on_load ) {
+			$planner_state = InitialPlannerHydration::apply_loading_placeholders( $planner_state );
+		}
+
 		$category_catalog    = $this->category_catalog->get_all();
 		$start_points        = $this->get_start_points();
-		$results_empty_state = $this->planner_payload_builder->get_empty_results_state( $planner_state );
-		$preview_empty_state = $this->planner_payload_builder->get_empty_preview_state( $planner_state );
+		$results_empty_state = isset( $planner_state['results_empty_state'] )
+			? (array) $planner_state['results_empty_state']
+			: $this->planner_payload_builder->get_empty_results_state( $planner_state );
+		$preview_empty_state = isset( $planner_state['preview_empty_state'] )
+			? (array) $planner_state['preview_empty_state']
+			: $this->planner_payload_builder->get_empty_preview_state( $planner_state );
 		$action_url          = '' !== $action_url ? $action_url : $this->get_current_url();
 		$form_action         = $action_url . '#' . $instance_id;
 		$maps_link_enabled   = '' !== $planner_state['maps_url'];
@@ -95,7 +108,7 @@ final class PlannerRenderer {
 				</form>
 			</div>
 
-			<script type="application/json" data-plan-config><?php echo wp_json_encode( $this->build_config( $instance_id, $action_url, $planner_state, $start_points, $category_catalog, $endpoint_token ) ); ?></script>
+			<script type="application/json" data-plan-config><?php echo wp_json_encode( $this->build_config( $instance_id, $action_url, $planner_state, $start_points, $category_catalog, $endpoint_token, $should_hydrate_on_load ) ); ?></script>
 		</section>
 		<?php
 
@@ -429,9 +442,15 @@ final class PlannerRenderer {
 	}
 
 	private function render_trip_card( string $instance_id, array $planner_state ): void {
-		$heading_id = $instance_id . '-trip-heading';
-		$help_id    = $instance_id . '-trip-help';
-		$waypoints  = (array) $planner_state['trip_waypoints'];
+		$heading_id       = $instance_id . '-trip-heading';
+		$help_id          = $instance_id . '-trip-help';
+		$waypoints        = (array) $planner_state['trip_waypoints'];
+		$trip_empty_state = isset( $planner_state['trip_empty_state'] )
+			? (array) $planner_state['trip_empty_state']
+			: [
+				'heading' => __( 'Start building the trip', 'plan-your-day' ),
+				'body'    => __( 'Search Google by category, then add the exact places you want as walking-trip waypoints.', 'plan-your-day' ),
+			];
 		?>
 		<section class="plan-your-day__card" aria-labelledby="<?php echo esc_attr( $heading_id ); ?>">
 			<div class="plan-your-day__card-header">
@@ -458,8 +477,8 @@ final class PlannerRenderer {
 					</ol>
 				<?php else : ?>
 					<div class="plan-your-day__trip-empty" data-plan-trip-empty>
-						<h4><?php esc_html_e( 'Start building the trip', 'plan-your-day' ); ?></h4>
-						<p><?php esc_html_e( 'Search Google by category, then add the exact places you want as walking-trip waypoints.', 'plan-your-day' ); ?></p>
+						<h4><?php echo esc_html( $trip_empty_state['heading'] ); ?></h4>
+						<p><?php echo esc_html( $trip_empty_state['body'] ); ?></p>
 					</div>
 				<?php endif; ?>
 			</div>
@@ -635,7 +654,22 @@ final class PlannerRenderer {
 		return $start_points;
 	}
 
-	private function build_config( string $instance_id, string $action_url, array $planner_state, array $start_points, array $category_catalog, string $endpoint_token ): array {
+	private function build_config( string $instance_id, string $action_url, array $planner_state, array $start_points, array $category_catalog, string $endpoint_token, bool $should_hydrate_on_load ): array {
+		$browse_payload = $this->planner_payload_builder->build_browse_payload( $planner_state );
+		$route_payload  = $this->planner_payload_builder->build_route_payload( $planner_state );
+
+		if ( isset( $planner_state['results_empty_state'] ) ) {
+			$browse_payload['resultsEmptyState'] = (array) $planner_state['results_empty_state'];
+		}
+
+		if ( isset( $planner_state['preview_empty_state'] ) ) {
+			$route_payload['emptyPreviewState'] = (array) $planner_state['preview_empty_state'];
+		}
+
+		if ( isset( $planner_state['trip_empty_state'] ) ) {
+			$route_payload['tripEmptyState'] = (array) $planner_state['trip_empty_state'];
+		}
+
 		return [
 			'actionUrl'       => $action_url,
 			'sectionId'       => $instance_id,
@@ -645,6 +679,9 @@ final class PlannerRenderer {
 				'browseUrl'      => rest_url( PlannerRoutes::REST_NAMESPACE . '/browse' ),
 				'routeUrl'       => rest_url( PlannerRoutes::REST_NAMESPACE . '/route' ),
 				'endpointToken'  => $endpoint_token,
+			],
+			'hydration'       => [
+				'shouldHydrateOnLoad' => $should_hydrate_on_load,
 			],
 			'strings'         => [
 				'requestFailed'       => __( 'The planner request could not be completed. Refresh the page and try again.', 'plan-your-day' ),
@@ -702,8 +739,8 @@ final class PlannerRenderer {
 				'customStart'         => $planner_state['custom_start'],
 			],
 			'initialData'     => [
-				'browse' => $this->planner_payload_builder->build_browse_payload( $planner_state ),
-				'route'  => $this->planner_payload_builder->build_route_payload( $planner_state ),
+				'browse' => $browse_payload,
+				'route'  => $route_payload,
 			],
 		];
 	}
