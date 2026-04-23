@@ -84,10 +84,10 @@ final class PlannerStateBuilder {
 		$trip_waypoints       = [];
 		$iframe_src           = '';
 		$maps_url             = '';
-		$maps_link_label      = __( 'Explore in Google Maps', PLAN_YOUR_DAY_TEXT_DOMAIN );
-		$preview_mode_label   = __( 'Google place search', PLAN_YOUR_DAY_TEXT_DOMAIN );
-		$overview             = __( 'Search for any category or pick one below to load Google results, then add exact places to your trip.', PLAN_YOUR_DAY_TEXT_DOMAIN );
-		$trip_count_label     = __( 'Trip not started', PLAN_YOUR_DAY_TEXT_DOMAIN );
+		$maps_link_label      = __( 'Explore in Google Maps', 'plan-your-day' );
+		$preview_mode_label   = __( 'Google place search', 'plan-your-day' );
+		$overview             = __( 'Search for any category or pick one below to load Google results, then add exact places to your trip.', 'plan-your-day' );
+		$trip_count_label     = __( 'Trip not started', 'plan-your-day' );
 
 		if ( $include_results && '' !== $search_query ) {
 			$search_origin_coordinates = $this->geocode_search_area( $search_context['search_area'] );
@@ -146,25 +146,25 @@ final class PlannerStateBuilder {
 		$search_results_label = $has_search
 			? sprintf(
 				/* translators: %d is the number of Google results. */
-				_n( '%d Google result', '%d Google results', $search_results_count, PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				_n( '%d Google result', '%d Google results', $search_results_count, 'plan-your-day' ),
 				$search_results_count
 			)
-			: __( 'No Google results loaded', PLAN_YOUR_DAY_TEXT_DOMAIN );
+			: __( 'No Google results loaded', 'plan-your-day' );
 
 		if ( $has_trip ) {
 			$route_state = $this->build_trip_route_state( $trip_waypoints, $search_context );
 			$messages    = array_merge( $messages, $route_state['messages'] );
 
 			$trip_count_label   = $route_state['trip_count_label'];
-			$preview_mode_label = __( 'Walking directions', PLAN_YOUR_DAY_TEXT_DOMAIN );
-			$maps_link_label    = __( 'Open trip in Google Maps', PLAN_YOUR_DAY_TEXT_DOMAIN );
+			$preview_mode_label = __( 'Walking directions', 'plan-your-day' );
+			$maps_link_label    = __( 'Open trip in Google Maps', 'plan-your-day' );
 			$overview           = $route_state['overview'];
 			$iframe_src         = $route_state['iframe_src'];
 			$maps_url           = $route_state['maps_url'];
 		} elseif ( $has_search ) {
 			$overview = sprintf(
 				/* translators: 1: search label, 2: start summary. */
-				__( 'Browsing Google results for %1$s near %2$s. Add any result to start building a walking trip.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Browsing Google results for %1$s near %2$s. Add any result to start building a walking trip.', 'plan-your-day' ),
 				$active_search_label,
 				$search_context['handoff_summary']
 			);
@@ -178,7 +178,7 @@ final class PlannerStateBuilder {
 				if ( '' === $iframe_src ) {
 					$messages[] = [
 						'type' => 'warning',
-						'text' => __( 'Add a valid Google Maps Embed API key before relying on the on-site search preview.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+						'text' => __( 'Add a valid Google Maps Embed API key before relying on the on-site search preview.', 'plan-your-day' ),
 					];
 				}
 			}
@@ -187,7 +187,7 @@ final class PlannerStateBuilder {
 				$maps_url = $this->map_url_builder->build_search_handoff_url( $handoff_search_query );
 			}
 		} elseif ( ! $has_categories ) {
-			$overview = __( 'Search for any category to load Google results, then add exact places to your trip.', PLAN_YOUR_DAY_TEXT_DOMAIN );
+			$overview = __( 'Search for any category to load Google results, then add exact places to your trip.', 'plan-your-day' );
 		}
 
 		return [
@@ -299,7 +299,7 @@ final class PlannerStateBuilder {
 				);
 				$messages[] = [
 					'type' => 'warning',
-					'text' => __( 'One selected place could not be loaded from Google and was skipped.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+					'text' => __( 'One selected place could not be loaded from Google and was skipped.', 'plan-your-day' ),
 				];
 				continue;
 			}
@@ -332,13 +332,13 @@ final class PlannerStateBuilder {
 		$trip_count          = count( $trip_waypoints );
 		$trip_count_label    = sprintf(
 			/* translators: %d is the number of selected waypoints. */
-			_n( '%d waypoint selected', '%d waypoints selected', $trip_count, PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			_n( '%d waypoint selected', '%d waypoints selected', $trip_count, 'plan-your-day' ),
 			$trip_count
 		);
 		$route_description   = $this->build_route_description( $trip_waypoints, $search_context['handoff_summary'] );
 		$overview            = sprintf(
 			/* translators: 1: waypoint count label, 2: route description. */
-			__( '%1$s. %2$s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( '%1$s. %2$s', 'plan-your-day' ),
 			$trip_count_label,
 			$route_description
 		);
@@ -355,7 +355,7 @@ final class PlannerStateBuilder {
 			if ( '' === $iframe_src ) {
 				$messages[] = [
 					'type' => 'warning',
-					'text' => __( 'Add a valid Google Maps Embed API key before relying on the on-site trip preview.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+					'text' => __( 'Add a valid Google Maps Embed API key before relying on the on-site trip preview.', 'plan-your-day' ),
 				];
 			}
 		}
@@ -383,7 +383,7 @@ final class PlannerStateBuilder {
 		if ( [] === $intermediates ) {
 			return sprintf(
 				/* translators: 1: start summary, 2: destination label. */
-				__( 'Walking directions run from %1$s to %2$s.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Walking directions run from %1$s to %2$s.', 'plan-your-day' ),
 				$handoff_summary,
 				$destination['label']
 			);
@@ -402,7 +402,7 @@ final class PlannerStateBuilder {
 
 		return sprintf(
 			/* translators: 1: start summary, 2: destination label, 3: via stop labels. */
-			__( 'Walking directions run from %1$s to %2$s via %3$s.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Walking directions run from %1$s to %2$s via %3$s.', 'plan-your-day' ),
 			$handoff_summary,
 			$destination['label'],
 			$via_label
@@ -433,7 +433,7 @@ final class PlannerStateBuilder {
 		if ( 2 === $label_count ) {
 			return sprintf(
 				/* translators: 1: first label, 2: second label. */
-				__( '%1$s and %2$s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( '%1$s and %2$s', 'plan-your-day' ),
 				$labels[0],
 				$labels[1]
 			);
@@ -443,7 +443,7 @@ final class PlannerStateBuilder {
 
 		return sprintf(
 			/* translators: 1: comma-separated label list, 2: final label. */
-			__( '%1$s, and %2$s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( '%1$s, and %2$s', 'plan-your-day' ),
 			implode( ', ', $labels ),
 			$last_label
 		);

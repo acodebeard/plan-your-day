@@ -29,42 +29,14 @@ final class RateLimiter {
 		}
 
 		$bucket    = (int) floor( time() / self::WINDOW_SECONDS );
-		$cache_dir = trailingslashit( sys_get_temp_dir() ) . self::CACHE_DIR_NAME;
-
-		if ( ! is_dir( $cache_dir ) && ! @mkdir( $cache_dir, 0700, true ) && ! is_dir( $cache_dir ) ) {
-			error_log( sprintf( '[plan-your-day] rate limiter degraded: unable to create %s', $cache_dir ) );
-
-			return null;
-		}
-
 		$key       = hash( 'sha256', $scope . '|' . $ip . '|' . $bucket );
-		$file_path = $cache_dir . '/' . $key;
-		$handle    = @fopen( $file_path, 'c+' );
-		$count     = 0;
-
-		if ( false === $handle ) {
-			error_log( sprintf( '[plan-your-day] rate limiter degraded: unable to open %s', $file_path ) );
-
-			return null;
-		}
-
-		if ( ! flock( $handle, LOCK_EX ) ) {
-			fclose( $handle );
-			error_log( sprintf( '[plan-your-day] rate limiter degraded: unable to lock %s', $file_path ) );
-
-			return null;
-		}
-
-		$raw_count = stream_get_contents( $handle );
-		$count     = is_string( $raw_count ) ? (int) $raw_count : 0;
+		$cache_key = self::CACHE_DIR_NAME . '_' . $key;
+		$count     = (int) get_transient( $cache_key );
 
 		if ( $count >= $limit ) {
-			flock( $handle, LOCK_UN );
-			fclose( $handle );
-
 			return new WP_Error(
 				'plan_your_day_rate_limited',
-				__( 'Planner requests are temporarily limited. Please wait a minute and try again.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Planner requests are temporarily limited. Please wait a minute and try again.', 'plan-your-day' ),
 				[
 					'status' => 429,
 				]
@@ -72,33 +44,8 @@ final class RateLimiter {
 		}
 
 		$count++;
-		rewind( $handle );
-		ftruncate( $handle, 0 );
-		fwrite( $handle, (string) $count );
-		fflush( $handle );
-		flock( $handle, LOCK_UN );
-		fclose( $handle );
-
-		if ( 0 === $count % 25 ) {
-			$this->cleanup_old_files( $cache_dir );
-		}
+		set_transient( $cache_key, $count, self::WINDOW_SECONDS * 2 );
 
 		return null;
-	}
-
-	private function cleanup_old_files( string $cache_dir ): void {
-		$expiration = time() - ( self::WINDOW_SECONDS * 5 );
-
-		foreach ( (array) glob( $cache_dir . '/*' ) as $file_path ) {
-			if ( ! is_string( $file_path ) || ! is_file( $file_path ) ) {
-				continue;
-			}
-
-			$file_mtime = @filemtime( $file_path );
-
-			if ( false !== $file_mtime && $file_mtime < $expiration ) {
-				@unlink( $file_path );
-			}
-		}
 	}
 }

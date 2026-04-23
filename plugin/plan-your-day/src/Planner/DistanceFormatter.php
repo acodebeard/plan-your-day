@@ -42,14 +42,14 @@ final class DistanceFormatter {
 			if ( '' === $reference_label ) {
 				return sprintf(
 					/* translators: %s is a distance unit abbreviation, such as mi or km. */
-					__( 'Less than 0.1 %s away', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+					__( 'Less than 0.1 %s away', 'plan-your-day' ),
 					$unit_label
 				);
 			}
 
 			return sprintf(
 				/* translators: 1: distance unit abbreviation, 2: starting point label. */
-				__( 'Less than 0.1 %1$s from %2$s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Less than 0.1 %1$s from %2$s', 'plan-your-day' ),
 				$unit_label,
 				$reference_label
 			);
@@ -62,7 +62,7 @@ final class DistanceFormatter {
 		if ( '' === $reference_label ) {
 			return sprintf(
 				/* translators: 1: rounded distance, 2: distance unit abbreviation. */
-				__( 'Approx. %1$s %2$s away', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Approx. %1$s %2$s away', 'plan-your-day' ),
 				$rounded_distance,
 				$unit_label
 			);
@@ -70,7 +70,7 @@ final class DistanceFormatter {
 
 		return sprintf(
 			/* translators: 1: rounded distance, 2: distance unit abbreviation, 3: starting point label. */
-			__( 'Approx. %1$s %2$s from %3$s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Approx. %1$s %2$s from %3$s', 'plan-your-day' ),
 			$rounded_distance,
 			$unit_label,
 			$reference_label

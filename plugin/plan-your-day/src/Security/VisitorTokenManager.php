@@ -96,6 +96,6 @@ final class VisitorTokenManager {
 	}
 
 	private function secret_key(): string {
-		return wp_salt( 'auth' ) . '|' . PLAN_YOUR_DAY_TEXT_DOMAIN;
+		return wp_salt( 'auth' ) . '|plan-your-day';
 	}
 }

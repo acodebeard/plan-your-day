@@ -32,8 +32,8 @@ final class SettingsPage {
 
 	public function register(): void {
 		add_options_page(
-			__( 'Plan Your Day Settings', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Plan Your Day', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Plan Your Day Settings', 'plan-your-day' ),
+			__( 'Plan Your Day', 'plan-your-day' ),
 			'manage_options',
 			Settings::PAGE_SLUG,
 			[ $this, 'render' ]
@@ -41,15 +41,15 @@ final class SettingsPage {
 
 		add_settings_section(
 			'plan_your_day_default_location',
-			__( 'Default Location', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Default Location', 'plan-your-day' ),
 			[ $this, 'render_default_location_section' ],
 			Settings::PAGE_SLUG
 		);
 
 		$this->add_field(
 			'default_location_label',
-			__( 'Default location label', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Required. Human-readable label used for the default trip start.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Default location label', 'plan-your-day' ),
+			__( 'Required. Human-readable label used for the default trip start.', 'plan-your-day' ),
 			'text',
 			[],
 			'plan_your_day_default_location'
@@ -57,8 +57,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'default_location_address',
-			__( 'Default location address or search phrase', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Required. Address, landmark, or search phrase used when the planner needs a stable starting area.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Default location address or search phrase', 'plan-your-day' ),
+			__( 'Required. Address, landmark, or search phrase used when the planner needs a stable starting area.', 'plan-your-day' ),
 			'textarea',
 			[
 				'rows' => 3,
@@ -68,8 +68,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'default_location_latitude',
-			__( 'Default latitude', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Optional. Decimal latitude from -90 to 90 for distance hints and search biasing.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Default latitude', 'plan-your-day' ),
+			__( 'Optional. Decimal latitude from -90 to 90 for distance hints and search biasing.', 'plan-your-day' ),
 			'number',
 			[
 				'min'  => -90,
@@ -81,8 +81,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'default_location_longitude',
-			__( 'Default longitude', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Optional. Decimal longitude from -180 to 180 for distance hints and search biasing.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Default longitude', 'plan-your-day' ),
+			__( 'Optional. Decimal longitude from -180 to 180 for distance hints and search biasing.', 'plan-your-day' ),
 			'number',
 			[
 				'min'  => -180,
@@ -94,8 +94,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'default_location_place_id',
-			__( 'Default Google Place ID', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Optional. Google Place ID for the default location when a future workflow needs exact place details.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Default Google Place ID', 'plan-your-day' ),
+			__( 'Optional. Google Place ID for the default location when a future workflow needs exact place details.', 'plan-your-day' ),
 			'text',
 			[],
 			'plan_your_day_default_location'
@@ -103,15 +103,15 @@ final class SettingsPage {
 
 		add_settings_section(
 			'plan_your_day_planner_behavior',
-			__( 'Planner Behavior', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Planner Behavior', 'plan-your-day' ),
 			[ $this, 'render_planner_behavior_section' ],
 			Settings::PAGE_SLUG
 		);
 
 		$this->add_field(
 			'allowed_start_modes',
-			__( 'Allowed start modes', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Choose which starting-point controls the planner may offer.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Allowed start modes', 'plan-your-day' ),
+			__( 'Choose which starting-point controls the planner may offer.', 'plan-your-day' ),
 			'checkbox_group',
 			[
 				'choices' => Settings::start_mode_choices(),
@@ -121,8 +121,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'max_waypoints',
-			__( 'Max waypoints', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Maximum selected Google places a public request may resolve.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Max waypoints', 'plan-your-day' ),
+			__( 'Maximum selected Google places a public request may resolve.', 'plan-your-day' ),
 			'number',
 			[
 				'min' => 1,
@@ -133,8 +133,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'result_count',
-			__( 'Result count', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Maximum Google text-search results requested per browse action.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Result count', 'plan-your-day' ),
+			__( 'Maximum Google text-search results requested per browse action.', 'plan-your-day' ),
 			'number',
 			[
 				'min' => 1,
@@ -145,8 +145,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'distance_unit',
-			__( 'Distance unit', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Unit for approximate distance hints.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Distance unit', 'plan-your-day' ),
+			__( 'Unit for approximate distance hints.', 'plan-your-day' ),
 			'select',
 			[
 				'choices' => Settings::distance_unit_choices(),
@@ -156,8 +156,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'map_preview_enabled',
-			__( 'Map preview', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Allow on-page Google Maps preview rendering when the frontend is added.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Map preview', 'plan-your-day' ),
+			__( 'Allow on-page Google Maps preview rendering when the frontend is added.', 'plan-your-day' ),
 			'checkbox',
 			[],
 			'plan_your_day_planner_behavior'
@@ -165,8 +165,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'maps_handoff_enabled',
-			__( 'Google Maps handoff', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Allow outbound Google Maps links when the frontend is added.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Google Maps handoff', 'plan-your-day' ),
+			__( 'Allow outbound Google Maps links when the frontend is added.', 'plan-your-day' ),
 			'checkbox',
 			[],
 			'plan_your_day_planner_behavior'
@@ -174,15 +174,15 @@ final class SettingsPage {
 
 		add_settings_section(
 			'plan_your_day_categories',
-			__( 'Categories', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Categories', 'plan-your-day' ),
 			[ $this, 'render_categories_section' ],
 			Settings::PAGE_SLUG
 		);
 
 		$this->add_field(
 			'use_preset_categories',
-			__( 'Preset category fallback', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'When no enabled custom categories are saved, show the built-in preset categories. Disable this to display no preset categories.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Preset category fallback', 'plan-your-day' ),
+			__( 'When no enabled custom categories are saved, show the built-in preset categories. Disable this to display no preset categories.', 'plan-your-day' ),
 			'checkbox',
 			[],
 			'plan_your_day_categories'
@@ -190,8 +190,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'categories',
-			__( 'Custom categories', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Manage the category list shown to visitors. The Google search query is the phrase sent to Google Places.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Custom categories', 'plan-your-day' ),
+			__( 'Manage the category list shown to visitors. The Google search query is the phrase sent to Google Places.', 'plan-your-day' ),
 			'categories',
 			[],
 			'plan_your_day_categories'
@@ -199,36 +199,36 @@ final class SettingsPage {
 
 		add_settings_section(
 			'plan_your_day_google_api',
-			__( 'Google API', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Google API', 'plan-your-day' ),
 			[ $this, 'render_google_api_section' ],
 			Settings::PAGE_SLUG
 		);
 
 		$this->add_field(
 			'google_maps_embed_api_key',
-			__( 'Maps Embed API key', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Browser-facing key for Google Maps Embed previews. This key can appear in frontend iframe URLs.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Maps Embed API key', 'plan-your-day' ),
+			__( 'Browser-facing key for Google Maps Embed previews. This key can appear in frontend iframe URLs.', 'plan-your-day' ),
 			'password'
 		);
 
 		$this->add_field(
 			'google_places_api_key',
-			__( 'Places API key', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Server-side key for Places API (New) text search and place details. This key is never sent to browser config.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Places API key', 'plan-your-day' ),
+			__( 'Server-side key for Places API (New) text search and place details. This key is never sent to browser config.', 'plan-your-day' ),
 			'password'
 		);
 
 		$this->add_field(
 			'google_geocoding_api_key',
-			__( 'Geocoding API key', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Optional server-side key for Geocoding API. Leave empty to use the Places API key for geocoding.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Geocoding API key', 'plan-your-day' ),
+			__( 'Optional server-side key for Geocoding API. Leave empty to use the Places API key for geocoding.', 'plan-your-day' ),
 			'password'
 		);
 
 		$this->add_field(
 			'google_api_timeout',
-			__( 'API timeout', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Request timeout in seconds. Saved values are clamped between 1 and 30 seconds.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'API timeout', 'plan-your-day' ),
+			__( 'Request timeout in seconds. Saved values are clamped between 1 and 30 seconds.', 'plan-your-day' ),
 			'number',
 			[
 				'min' => 1,
@@ -238,15 +238,15 @@ final class SettingsPage {
 
 		add_settings_section(
 			'plan_your_day_google_cache',
-			__( 'Google API Cache', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Google API Cache', 'plan-your-day' ),
 			[ $this, 'render_google_cache_section' ],
 			Settings::PAGE_SLUG
 		);
 
 		$this->add_field(
 			'google_text_search_cache_ttl',
-			__( 'Text search cache TTL', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Seconds to cache successful Google text search responses. Use 0 to disable this cache.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Text search cache TTL', 'plan-your-day' ),
+			__( 'Seconds to cache successful Google text search responses. Use 0 to disable this cache.', 'plan-your-day' ),
 			'number',
 			[
 				'min' => 0,
@@ -257,8 +257,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'google_place_details_cache_ttl',
-			__( 'Place details cache TTL', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Seconds to cache successful Google place details responses. Use 0 to disable this cache.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Place details cache TTL', 'plan-your-day' ),
+			__( 'Seconds to cache successful Google place details responses. Use 0 to disable this cache.', 'plan-your-day' ),
 			'number',
 			[
 				'min' => 0,
@@ -269,8 +269,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'google_geocoding_cache_ttl',
-			__( 'Geocoding cache TTL', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Seconds to cache successful Google geocoding responses. Use 0 to disable this cache.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Geocoding cache TTL', 'plan-your-day' ),
+			__( 'Seconds to cache successful Google geocoding responses. Use 0 to disable this cache.', 'plan-your-day' ),
 			'number',
 			[
 				'min' => 0,
@@ -281,15 +281,15 @@ final class SettingsPage {
 
 		add_settings_section(
 			'plan_your_day_rate_limiting',
-			__( 'Rate Limiting', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Rate Limiting', 'plan-your-day' ),
 			[ $this, 'render_rate_limiting_section' ],
 			Settings::PAGE_SLUG
 		);
 
 		$this->add_field(
 			'rate_limit_per_minute',
-			__( 'Requests per minute', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Configuration value for the later public endpoint rate limiter.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Requests per minute', 'plan-your-day' ),
+			__( 'Configuration value for the later public endpoint rate limiter.', 'plan-your-day' ),
 			'number',
 			[
 				'min' => 1,
@@ -300,15 +300,15 @@ final class SettingsPage {
 
 		add_settings_section(
 			'plan_your_day_advanced',
-			__( 'Advanced', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Advanced', 'plan-your-day' ),
 			[ $this, 'render_advanced_section' ],
 			Settings::PAGE_SLUG
 		);
 
 		$this->add_field(
 			'trusted_proxy_cidrs',
-			__( 'Trusted proxy CIDRs', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			__( 'Optional. One IP or CIDR per line. Invalid entries are discarded on save.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			__( 'Trusted proxy CIDRs', 'plan-your-day' ),
+			__( 'Optional. One IP or CIDR per line. Invalid entries are discarded on save.', 'plan-your-day' ),
 			'textarea',
 			[
 				'rows' => 5,
@@ -319,7 +319,7 @@ final class SettingsPage {
 
 	public function render(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage Plan Your Day settings.', PLAN_YOUR_DAY_TEXT_DOMAIN ) );
+			wp_die( esc_html__( 'You do not have permission to manage Plan Your Day settings.', 'plan-your-day' ) );
 		}
 
 		?>
@@ -336,20 +336,20 @@ final class SettingsPage {
 				?>
 			</form>
 			<hr />
-			<h2><?php esc_html_e( 'Cache Tools', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h2>
-			<p><?php esc_html_e( 'Clear cached Google API responses after changing cache settings or troubleshooting provider data.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></p>
+			<h2><?php esc_html_e( 'Cache Tools', 'plan-your-day' ); ?></h2>
+			<p><?php esc_html_e( 'Clear cached Google API responses after changing cache settings or troubleshooting provider data.', 'plan-your-day' ); ?></p>
 			<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post">
 				<input type="hidden" name="action" value="plan_your_day_clear_google_cache" />
 				<?php wp_nonce_field( 'plan_your_day_clear_google_cache' ); ?>
-				<?php submit_button( __( 'Clear Google API cache', PLAN_YOUR_DAY_TEXT_DOMAIN ), 'secondary', 'submit', false ); ?>
+				<?php submit_button( __( 'Clear Google API cache', 'plan-your-day' ), 'secondary', 'submit', false ); ?>
 			</form>
 			<hr />
-			<h2><?php esc_html_e( 'Google API Test', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h2>
-			<p><?php esc_html_e( 'Run a lightweight admin-only probe using the configured default location, categories, and server-side Google keys.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></p>
+			<h2><?php esc_html_e( 'Google API Test', 'plan-your-day' ); ?></h2>
+			<p><?php esc_html_e( 'Run a lightweight admin-only probe using the configured default location, categories, and server-side Google keys.', 'plan-your-day' ); ?></p>
 			<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post">
 				<input type="hidden" name="action" value="plan_your_day_test_google_api" />
 				<?php wp_nonce_field( 'plan_your_day_test_google_api' ); ?>
-				<?php submit_button( __( 'Run Google API test', PLAN_YOUR_DAY_TEXT_DOMAIN ), 'secondary', 'submit', false ); ?>
+				<?php submit_button( __( 'Run Google API test', 'plan-your-day' ), 'secondary', 'submit', false ); ?>
 			</form>
 			<?php $this->render_google_test_results_panel(); ?>
 		</div>
@@ -372,13 +372,13 @@ final class SettingsPage {
 			}
 		}
 		?>
-		<h2><?php esc_html_e( 'Setup Status', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h2>
+		<h2><?php esc_html_e( 'Setup Status', 'plan-your-day' ); ?></h2>
 		<p>
 			<?php
 			echo esc_html(
 				sprintf(
 					/* translators: 1: number of passing checks, 2: number of warnings, 3: number of optional checks. */
-					__( '%1$d checks look ready, %2$d still need attention, and %3$d are optional.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+					__( '%1$d checks look ready, %2$d still need attention, and %3$d are optional.', 'plan-your-day' ),
 					$ready_check_count,
 					$warning_check_count,
 					$optional_check_count
@@ -389,9 +389,9 @@ final class SettingsPage {
 		<table class="widefat striped" style="margin-bottom:1.5rem;">
 			<thead>
 				<tr>
-					<th><?php esc_html_e( 'Area', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
-					<th><?php esc_html_e( 'Status', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
-					<th><?php esc_html_e( 'Details', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
+					<th><?php esc_html_e( 'Area', 'plan-your-day' ); ?></th>
+					<th><?php esc_html_e( 'Status', 'plan-your-day' ); ?></th>
+					<th><?php esc_html_e( 'Details', 'plan-your-day' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -419,54 +419,54 @@ final class SettingsPage {
 
 		return [
 			[
-				'label'  => __( 'Required location settings', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'status' => [] === $missing_required ? __( 'Ready', PLAN_YOUR_DAY_TEXT_DOMAIN ) : __( 'Needs setup', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'label'  => __( 'Required location settings', 'plan-your-day' ),
+				'status' => [] === $missing_required ? __( 'Ready', 'plan-your-day' ) : __( 'Needs setup', 'plan-your-day' ),
 				'detail' => [] === $missing_required
-					? __( 'The planner has the required default location label and address.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+					? __( 'The planner has the required default location label and address.', 'plan-your-day' )
 					: sprintf(
 						/* translators: %s is a comma-separated list of missing settings. */
-						__( 'Missing: %s.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+						__( 'Missing: %s.', 'plan-your-day' ),
 						implode( ', ', $missing_required )
 					),
 				'type'   => [] === $missing_required ? 'success' : 'warning',
 			],
 			[
-				'label'  => __( 'Places API key', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'status' => '' !== $places_key ? __( 'Ready', PLAN_YOUR_DAY_TEXT_DOMAIN ) : __( 'Missing', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'label'  => __( 'Places API key', 'plan-your-day' ),
+				'status' => '' !== $places_key ? __( 'Ready', 'plan-your-day' ) : __( 'Missing', 'plan-your-day' ),
 				'detail' => '' !== $places_key
-					? __( 'Server-side Places requests can run.', PLAN_YOUR_DAY_TEXT_DOMAIN )
-					: __( 'Add a Places API key before trying browse or place-detail requests.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+					? __( 'Server-side Places requests can run.', 'plan-your-day' )
+					: __( 'Add a Places API key before trying browse or place-detail requests.', 'plan-your-day' ),
 				'type'   => '' !== $places_key ? 'success' : 'warning',
 			],
 			[
-				'label'  => __( 'Geocoding configuration', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'status' => '' !== $geocoding_key ? __( 'Ready', PLAN_YOUR_DAY_TEXT_DOMAIN ) : __( 'Missing', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'label'  => __( 'Geocoding configuration', 'plan-your-day' ),
+				'status' => '' !== $geocoding_key ? __( 'Ready', 'plan-your-day' ) : __( 'Missing', 'plan-your-day' ),
 				'detail' => '' !== $geocoding_key
 					? ( $geocoding_key === $places_key
-						? __( 'Geocoding will use the Places API key fallback.', PLAN_YOUR_DAY_TEXT_DOMAIN )
-						: __( 'A dedicated Geocoding API key is configured.', PLAN_YOUR_DAY_TEXT_DOMAIN ) )
-					: __( 'Add a Geocoding API key or a Places API key fallback before testing location resolution.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+						? __( 'Geocoding will use the Places API key fallback.', 'plan-your-day' )
+						: __( 'A dedicated Geocoding API key is configured.', 'plan-your-day' ) )
+					: __( 'Add a Geocoding API key or a Places API key fallback before testing location resolution.', 'plan-your-day' ),
 				'type'   => '' !== $geocoding_key ? 'success' : 'warning',
 			],
 			[
-				'label'  => __( 'Maps Embed preview key', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'status' => '' !== $embed_key ? __( 'Ready', PLAN_YOUR_DAY_TEXT_DOMAIN ) : __( 'Optional', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'label'  => __( 'Maps Embed preview key', 'plan-your-day' ),
+				'status' => '' !== $embed_key ? __( 'Ready', 'plan-your-day' ) : __( 'Optional', 'plan-your-day' ),
 				'detail' => '' !== $embed_key
-					? __( 'On-page Google Maps embeds can render when preview mode is enabled.', PLAN_YOUR_DAY_TEXT_DOMAIN )
-					: __( 'Missing this key only affects on-page embed previews; Google Maps handoff links can still work.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+					? __( 'On-page Google Maps embeds can render when preview mode is enabled.', 'plan-your-day' )
+					: __( 'Missing this key only affects on-page embed previews; Google Maps handoff links can still work.', 'plan-your-day' ),
 				'type'   => '' !== $embed_key ? 'success' : 'optional',
 			],
 			[
-				'label'  => __( 'Planner categories', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'status' => [] !== $active_categories ? __( 'Ready', PLAN_YOUR_DAY_TEXT_DOMAIN ) : __( 'Needs setup', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'label'  => __( 'Planner categories', 'plan-your-day' ),
+				'status' => [] !== $active_categories ? __( 'Ready', 'plan-your-day' ) : __( 'Needs setup', 'plan-your-day' ),
 				'detail' => [] !== $active_categories
 					? sprintf(
 						/* translators: 1: active category count, 2: custom category count. */
-						__( '%1$d active categories are available. %2$d custom categories are saved.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+						__( '%1$d active categories are available. %2$d custom categories are saved.', 'plan-your-day' ),
 						count( $active_categories ),
 						count( $custom_categories )
 					)
-					: __( 'No active categories are available. Add at least one custom category or re-enable the preset fallback.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+					: __( 'No active categories are available. Add at least one custom category or re-enable the preset fallback.', 'plan-your-day' ),
 				'type'   => [] !== $active_categories ? 'success' : 'warning',
 			],
 		];
@@ -475,49 +475,49 @@ final class SettingsPage {
 	public function render_google_api_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Configure only the Google keys and request behavior needed by the backend Google client.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+			esc_html__( 'Configure only the Google keys and request behavior needed by the backend Google client.', 'plan-your-day' )
 		);
 	}
 
 	public function render_default_location_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Set the required generic starting area. Site-specific destination values belong here, not in plugin defaults.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+			esc_html__( 'Set the required generic starting area. Site-specific destination values belong here, not in plugin defaults.', 'plan-your-day' )
 		);
 	}
 
 	public function render_planner_behavior_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Register conservative behavior limits for later renderer and REST endpoint work.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+			esc_html__( 'Register conservative behavior limits for later renderer and REST endpoint work.', 'plan-your-day' )
 		);
 	}
 
 	public function render_categories_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Use custom categories to replace the temporary built-in set. Disable the preset fallback if you want the public planner to show no preset categories until custom ones are saved.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+			esc_html__( 'Use custom categories to replace the temporary built-in set. Disable the preset fallback if you want the public planner to show no preset categories until custom ones are saved.', 'plan-your-day' )
 		);
 	}
 
 	public function render_google_cache_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Configure transient-based caching for successful Google API responses.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+			esc_html__( 'Configure transient-based caching for successful Google API responses.', 'plan-your-day' )
 		);
 	}
 
 	public function render_rate_limiting_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Store rate-limit configuration for later endpoint enforcement. This issue does not implement the limiter.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+			esc_html__( 'Store rate-limit configuration for later endpoint enforcement. This issue does not implement the limiter.', 'plan-your-day' )
 		);
 	}
 
 	public function render_advanced_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Advanced networking settings used by later security and rate-limit code.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+			esc_html__( 'Advanced networking settings used by later security and rate-limit code.', 'plan-your-day' )
 		);
 	}
 
@@ -529,17 +529,23 @@ final class SettingsPage {
 		$missing = implode( ', ', $this->settings->get_missing_required_settings() );
 		$url     = add_query_arg( 'page', Settings::PAGE_SLUG, admin_url( 'options-general.php' ) );
 
-		printf(
-			'<div class="notice notice-warning"><p>%1$s <a href="%2$s">%3$s</a></p></div>',
-			esc_html( sprintf( __( 'Plan Your Day needs required settings before the public planner can render: %s.', PLAN_YOUR_DAY_TEXT_DOMAIN ), $missing ) ),
-			esc_url( $url ),
-			esc_html__( 'Open settings', PLAN_YOUR_DAY_TEXT_DOMAIN )
-		);
+			printf(
+				'<div class="notice notice-warning"><p>%1$s <a href="%2$s">%3$s</a></p></div>',
+				esc_html(
+					sprintf(
+						/* translators: %s is a comma-separated list of missing settings. */
+						__( 'Plan Your Day needs required settings before the public planner can render: %s.', 'plan-your-day' ),
+						$missing
+					)
+				),
+				esc_url( $url ),
+				esc_html__( 'Open settings', 'plan-your-day' )
+			);
 	}
 
 	public function handle_clear_google_cache(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage Plan Your Day settings.', PLAN_YOUR_DAY_TEXT_DOMAIN ) );
+			wp_die( esc_html__( 'You do not have permission to manage Plan Your Day settings.', 'plan-your-day' ) );
 		}
 
 		check_admin_referer( 'plan_your_day_clear_google_cache' );
@@ -559,7 +565,7 @@ final class SettingsPage {
 
 	public function handle_test_google_api(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage Plan Your Day settings.', PLAN_YOUR_DAY_TEXT_DOMAIN ) );
+			wp_die( esc_html__( 'You do not have permission to manage Plan Your Day settings.', 'plan-your-day' ) );
 		}
 
 		check_admin_referer( 'plan_your_day_test_google_api' );
@@ -606,38 +612,38 @@ final class SettingsPage {
 			: null;
 		$checks = [
 			[
-				'label'   => __( 'Geocoding probe', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'label'   => __( 'Geocoding probe', 'plan-your-day' ),
 				'success' => $geocode_result->is_success(),
 				'detail'  => $geocode_result->is_success()
 					? sprintf(
 						/* translators: 1: latitude, 2: longitude. */
-						__( 'Resolved the default location to %1$s, %2$s.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+						__( 'Resolved the default location to %1$s, %2$s.', 'plan-your-day' ),
 						(string) $origin_latitude,
 						(string) $origin_longitude
 					)
 					: $geocode_result->message(),
 			],
 			[
-				'label'   => __( 'Text search probe', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'label'   => __( 'Text search probe', 'plan-your-day' ),
 				'success' => $text_search_result->is_success(),
 				'detail'  => $text_search_result->is_success()
 					? sprintf(
 						/* translators: 1: query text, 2: result count. */
-						__( 'Query "%1$s" returned %2$d place results.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+						__( 'Query "%1$s" returned %2$d place results.', 'plan-your-day' ),
 						$probe_query,
 						count( $places )
 					)
 					: $text_search_result->message(),
 			],
 			[
-				'label'   => __( 'Place details probe', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'label'   => __( 'Place details probe', 'plan-your-day' ),
 				'success' => $place_details_result instanceof \Acodebeard\PlanYourDay\Google\GoogleApiResult && $place_details_result->is_success(),
 				'detail'  => null === $place_details_result
-					? __( 'Skipped because the text search probe did not return a place ID to inspect.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+					? __( 'Skipped because the text search probe did not return a place ID to inspect.', 'plan-your-day' )
 					: ( $place_details_result->is_success()
 						? sprintf(
 							/* translators: %s is a place label. */
-							__( 'Loaded details for %s.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+							__( 'Loaded details for %s.', 'plan-your-day' ),
 							(string) ( $place_details_result->data()['place']['label'] ?? $place_id )
 						)
 						: $place_details_result->message() ),
@@ -694,7 +700,7 @@ final class SettingsPage {
 			esc_html(
 				sprintf(
 					/* translators: 1: passed checks, 2: total checks. */
-					__( 'Google API test completed: %1$d of %2$d probes passed.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+					__( 'Google API test completed: %1$d of %2$d probes passed.', 'plan-your-day' ),
 					(int) ( $results['success_count'] ?? 0 ),
 					(int) ( $results['total_count'] ?? 0 )
 				)
@@ -709,13 +715,13 @@ final class SettingsPage {
 			return;
 		}
 		?>
-		<h3><?php esc_html_e( 'Latest Google API test results', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h3>
+		<h3><?php esc_html_e( 'Latest Google API test results', 'plan-your-day' ); ?></h3>
 		<p>
 			<?php
 			echo esc_html(
 				sprintf(
 					/* translators: 1: checked datetime, 2: probe query. */
-					__( 'Checked at %1$s using the probe query "%2$s".', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+					__( 'Checked at %1$s using the probe query "%2$s".', 'plan-your-day' ),
 					(string) ( $results['checked_at'] ?? '' ),
 					(string) ( $results['probe_query'] ?? '' )
 				)
@@ -725,9 +731,9 @@ final class SettingsPage {
 		<table class="widefat striped" style="margin-top:0.75rem;">
 			<thead>
 				<tr>
-					<th><?php esc_html_e( 'Probe', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
-					<th><?php esc_html_e( 'Result', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
-					<th><?php esc_html_e( 'Details', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
+					<th><?php esc_html_e( 'Probe', 'plan-your-day' ); ?></th>
+					<th><?php esc_html_e( 'Result', 'plan-your-day' ); ?></th>
+					<th><?php esc_html_e( 'Details', 'plan-your-day' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -735,7 +741,7 @@ final class SettingsPage {
 					<tr>
 						<td><strong><?php echo esc_html( (string) ( $check['label'] ?? '' ) ); ?></strong></td>
 						<td>
-							<strong><?php echo ! empty( $check['success'] ) ? esc_html__( 'Passed', PLAN_YOUR_DAY_TEXT_DOMAIN ) : esc_html__( 'Needs attention', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></strong>
+							<strong><?php echo ! empty( $check['success'] ) ? esc_html__( 'Passed', 'plan-your-day' ) : esc_html__( 'Needs attention', 'plan-your-day' ); ?></strong>
 						</td>
 						<td><?php echo esc_html( (string) ( $check['detail'] ?? '' ) ); ?></td>
 					</tr>
@@ -820,7 +826,7 @@ final class SettingsPage {
 				esc_attr( $name ),
 				esc_attr( $id ),
 				checked( true, (bool) $value, false ),
-				esc_html__( 'Enabled', PLAN_YOUR_DAY_TEXT_DOMAIN )
+				esc_html__( 'Enabled', 'plan-your-day' )
 			);
 		} elseif ( 'checkbox_group' === $type ) {
 			$this->render_checkbox_group( $name, $id, is_array( $value ) ? $value : [], $attributes );
@@ -853,12 +859,12 @@ final class SettingsPage {
 			<table class="widefat striped">
 				<thead>
 					<tr>
-						<th><?php esc_html_e( 'Enabled', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
-						<th><?php esc_html_e( 'Label', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
-						<th><?php esc_html_e( 'Description', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
-						<th><?php esc_html_e( 'Google search query', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
-						<th><?php esc_html_e( 'Sort', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
-						<th><?php esc_html_e( 'Remove', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></th>
+						<th><?php esc_html_e( 'Enabled', 'plan-your-day' ); ?></th>
+						<th><?php esc_html_e( 'Label', 'plan-your-day' ); ?></th>
+						<th><?php esc_html_e( 'Description', 'plan-your-day' ); ?></th>
+						<th><?php esc_html_e( 'Google search query', 'plan-your-day' ); ?></th>
+						<th><?php esc_html_e( 'Sort', 'plan-your-day' ); ?></th>
+						<th><?php esc_html_e( 'Remove', 'plan-your-day' ); ?></th>
 					</tr>
 				</thead>
 				<tbody data-plan-category-rows>
@@ -882,13 +888,13 @@ final class SettingsPage {
 				</tbody>
 			</table>
 			<p>
-				<button type="button" class="button" data-plan-add-category><?php esc_html_e( 'Add category', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></button>
+				<button type="button" class="button" data-plan-add-category><?php esc_html_e( 'Add category', 'plan-your-day' ); ?></button>
 			</p>
 			<p class="description">
-				<?php esc_html_e( 'Leave a row empty to ignore it. Use the sort number to control the public order. Built-in presets remain available only through the fallback toggle above.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
+				<?php esc_html_e( 'Leave a row empty to ignore it. Use the sort number to control the public order. Built-in presets remain available only through the fallback toggle above.', 'plan-your-day' ); ?>
 			</p>
 			<details>
-				<summary><?php esc_html_e( 'View built-in preset categories', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></summary>
+				<summary><?php esc_html_e( 'View built-in preset categories', 'plan-your-day' ); ?></summary>
 				<ul>
 					<?php foreach ( $seed_rows as $seed_row ) : ?>
 						<li>
@@ -896,7 +902,7 @@ final class SettingsPage {
 							echo esc_html(
 								sprintf(
 									/* translators: 1: preset category label, 2: Google query. */
-									__( '%1$s: %2$s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+									__( '%1$s: %2$s', 'plan-your-day' ),
 									(string) $seed_row['label'],
 									(string) $seed_row['text_query']
 								)
@@ -1038,9 +1044,15 @@ final class SettingsPage {
 
 		$cleared = absint( wp_unslash( $_GET['plan_your_day_cache_cleared'] ) );
 
-		printf(
-			'<div class="notice notice-success is-dismissible"><p>%s</p></div>',
-			esc_html( sprintf( _n( 'Cleared %d Google API cache item.', 'Cleared %d Google API cache items.', $cleared, PLAN_YOUR_DAY_TEXT_DOMAIN ), $cleared ) )
-		);
+			printf(
+				'<div class="notice notice-success is-dismissible"><p>%s</p></div>',
+				esc_html(
+					sprintf(
+						/* translators: %d is the number of cleared cache items. */
+						_n( 'Cleared %d Google API cache item.', 'Cleared %d Google API cache items.', $cleared, 'plan-your-day' ),
+						$cleared
+					)
+				)
+			);
 	}
 }

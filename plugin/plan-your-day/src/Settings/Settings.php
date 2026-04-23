@@ -47,16 +47,16 @@ final class Settings {
 
 	public static function start_mode_choices(): array {
 		return [
-			self::START_MODE_CURRENT => __( 'Current location handoff', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			self::START_MODE_DEFAULT => __( 'Default location', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			self::START_MODE_CUSTOM  => __( 'Custom starting point', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			self::START_MODE_CURRENT => __( 'Current location handoff', 'plan-your-day' ),
+			self::START_MODE_DEFAULT => __( 'Default location', 'plan-your-day' ),
+			self::START_MODE_CUSTOM  => __( 'Custom starting point', 'plan-your-day' ),
 		];
 	}
 
 	public static function distance_unit_choices(): array {
 		return [
-			self::DISTANCE_UNIT_MILES      => __( 'Miles', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			self::DISTANCE_UNIT_KILOMETERS => __( 'Kilometers', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			self::DISTANCE_UNIT_MILES      => __( 'Miles', 'plan-your-day' ),
+			self::DISTANCE_UNIT_KILOMETERS => __( 'Kilometers', 'plan-your-day' ),
 		];
 	}
 
@@ -352,11 +352,11 @@ final class Settings {
 		$missing  = [];
 
 		if ( '' === $settings['default_location_label'] ) {
-			$missing['default_location_label'] = __( 'Default location label', PLAN_YOUR_DAY_TEXT_DOMAIN );
+			$missing['default_location_label'] = __( 'Default location label', 'plan-your-day' );
 		}
 
 		if ( '' === $settings['default_location_address'] ) {
-			$missing['default_location_address'] = __( 'Default location address or search phrase', PLAN_YOUR_DAY_TEXT_DOMAIN );
+			$missing['default_location_address'] = __( 'Default location address or search phrase', 'plan-your-day' );
 		}
 
 		return $missing;

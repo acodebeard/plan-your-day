@@ -115,7 +115,7 @@ final class Plugin {
 
 	public function load_textdomain(): void {
 		load_plugin_textdomain(
-			PLAN_YOUR_DAY_TEXT_DOMAIN,
+			'plan-your-day',
 			false,
 			dirname( plugin_basename( PLAN_YOUR_DAY_PLUGIN_FILE ) ) . '/languages'
 		);

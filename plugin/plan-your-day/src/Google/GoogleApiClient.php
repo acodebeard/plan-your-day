@@ -42,7 +42,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		if ( '' === $api_key ) {
 			return GoogleApiResult::failure(
 				'missing_places_api_key',
-				__( 'Add a valid Google Places API key to load Google place results.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Add a valid Google Places API key to load Google place results.', 'plan-your-day' ),
 				0,
 				false
 			);
@@ -91,7 +91,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		$decoded  = $this->decode_response(
 			$response,
 			'places_unavailable',
-			__( 'Google place results are unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+			__( 'Google place results are unavailable right now.', 'plan-your-day' )
 		);
 
 		if ( $decoded instanceof GoogleApiResult ) {
@@ -125,7 +125,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		if ( '' === $place_id ) {
 			return GoogleApiResult::failure(
 				'invalid_place_id',
-				__( 'Google place details are unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Google place details are unavailable right now.', 'plan-your-day' ),
 				0,
 				false
 			);
@@ -136,7 +136,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		if ( '' === $api_key ) {
 			return GoogleApiResult::failure(
 				'missing_places_api_key',
-				__( 'Add a valid Google Places API key to load exact Google place details.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Add a valid Google Places API key to load exact Google place details.', 'plan-your-day' ),
 				0,
 				false
 			);
@@ -162,7 +162,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		$decoded  = $this->decode_response(
 			$response,
 			'place_details_unavailable',
-			__( 'Google place details are unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+			__( 'Google place details are unavailable right now.', 'plan-your-day' )
 		);
 
 		if ( $decoded instanceof GoogleApiResult ) {
@@ -174,7 +174,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		if ( ! $place['is_valid'] ) {
 			return GoogleApiResult::failure(
 				'place_details_unavailable',
-				__( 'Google place details are unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Google place details are unavailable right now.', 'plan-your-day' ),
 				$decoded['status_code'],
 				false
 			);
@@ -196,7 +196,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		if ( '' === $address ) {
 			return GoogleApiResult::failure(
 				'empty_geocode_address',
-				__( 'Google geocoding is unavailable for this address.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Google geocoding is unavailable for this address.', 'plan-your-day' ),
 				0,
 				false
 			);
@@ -207,7 +207,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		if ( '' === $api_key ) {
 			return GoogleApiResult::failure(
 				'missing_geocoding_api_key',
-				__( 'Add a valid Google Geocoding API key or Places API key to geocode starting locations.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Add a valid Google Geocoding API key or Places API key to geocode starting locations.', 'plan-your-day' ),
 				0,
 				false
 			);
@@ -235,7 +235,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		$decoded  = $this->decode_response(
 			$response,
 			'geocoding_unavailable',
-			__( 'Google geocoding is unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+			__( 'Google geocoding is unavailable right now.', 'plan-your-day' )
 		);
 
 		if ( $decoded instanceof GoogleApiResult ) {
@@ -256,7 +256,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		) {
 			return GoogleApiResult::failure(
 				'geocoding_unavailable',
-				__( 'Google geocoding is unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Google geocoding is unavailable right now.', 'plan-your-day' ),
 				$decoded['status_code'],
 				$this->is_retryable_status( $decoded['status_code'] )
 			);

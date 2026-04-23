@@ -150,7 +150,7 @@ final class PlannerRoutes {
 		if ( ! $this->request_origin_validator->is_same_site_request( $_SERVER ) ) {
 			$error = new WP_Error(
 				'plan_your_day_invalid_origin',
-				__( 'The planner request could not be verified. Refresh the page and try again.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'The planner request could not be verified. Refresh the page and try again.', 'plan-your-day' ),
 				[
 					'status' => 403,
 				]
@@ -176,7 +176,7 @@ final class PlannerRoutes {
 		if ( ! $this->visitor_token_manager->validate_endpoint_token( $endpoint_token ) ) {
 			$error = new WP_Error(
 				'plan_your_day_invalid_token',
-				__( 'The planner request could not be verified. Refresh the page and try again.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'The planner request could not be verified. Refresh the page and try again.', 'plan-your-day' ),
 				[
 					'status' => 403,
 				]

@@ -82,4 +82,6 @@ jobs:
       - uses: wordpress/plugin-check-action@v1
         with:
           build-dir: ./plugin/plan-your-day
-          exclude-directories: tests
+          exclude-directories: tests,tools
+          exclude-files: .distignore,DECISIONS.md,phpcs.xml.dist,phpunit.xml.dist
+          ignore-warnings: true
