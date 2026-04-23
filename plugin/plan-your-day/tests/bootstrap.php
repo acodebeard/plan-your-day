@@ -106,8 +106,28 @@ if ( ! function_exists( 'get_option' ) ) {
 }
 
 if ( ! function_exists( 'update_option' ) ) {
-	function update_option( string $option_name, mixed $value ): bool {
+	function update_option( string $option_name, mixed $value, mixed $autoload = null ): bool {
 		$GLOBALS['plan_your_day_test_options'][ $option_name ] = $value;
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'add_option' ) ) {
+	function add_option( string $option_name, mixed $value, string $deprecated = '', mixed $autoload = null ): bool {
+		if ( array_key_exists( $option_name, $GLOBALS['plan_your_day_test_options'] ) ) {
+			return false;
+		}
+
+		$GLOBALS['plan_your_day_test_options'][ $option_name ] = $value;
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'delete_option' ) ) {
+	function delete_option( string $option_name ): bool {
+		unset( $GLOBALS['plan_your_day_test_options'][ $option_name ] );
 
 		return true;
 	}
