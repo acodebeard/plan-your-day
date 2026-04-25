@@ -28,6 +28,8 @@ final class CachedGoogleApiClient implements GoogleApiClientInterface {
 		return $this->remember(
 			$cache_key,
 			$this->settings->get_google_text_search_cache_ttl(),
+			'text_search',
+			'',
 			fn (): GoogleApiResult => $this->client->text_search( $query, $origin_latitude, $origin_longitude )
 		);
 	}
@@ -67,6 +69,8 @@ final class CachedGoogleApiClient implements GoogleApiClientInterface {
 		return $this->remember(
 			$cache_key,
 			$this->settings->get_google_place_details_cache_ttl(),
+			'place_details',
+			$this->sanitize_place_id( $place_id ),
 			fn (): GoogleApiResult => $this->client->place_details( $place_id, $timeout )
 		);
 	}
@@ -83,11 +87,13 @@ final class CachedGoogleApiClient implements GoogleApiClientInterface {
 		return $this->remember(
 			$cache_key,
 			$this->settings->get_google_geocoding_cache_ttl(),
+			'geocode',
+			'',
 			fn (): GoogleApiResult => $this->client->geocode( $address )
 		);
 	}
 
-	private function remember( string $cache_key, int $ttl, callable $callback ): GoogleApiResult {
+	private function remember( string $cache_key, int $ttl, string $scope, string $place_id, callable $callback ): GoogleApiResult {
 		if ( $ttl > 0 ) {
 			$cached = $this->cache->get( $cache_key );
 
@@ -97,7 +103,7 @@ final class CachedGoogleApiClient implements GoogleApiClientInterface {
 		}
 
 		$result = $callback();
-		$this->cache->set( $cache_key, $result, $ttl );
+		$this->cache->set( $cache_key, $result, $ttl, $scope, $place_id );
 
 		return $result;
 	}
