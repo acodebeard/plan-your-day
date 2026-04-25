@@ -50,11 +50,11 @@ final class GoogleApiClientTest extends TestCase {
 	}
 
 	public function test_cached_text_search_key_includes_request_shaping_settings(): void {
-		$cache           = new GoogleApiCache();
+		$cache            = new GoogleApiCache();
 		$recording_client = new RecordingGoogleApiClient();
-		$client          = new CachedGoogleApiClient( $recording_client, new Settings(), $cache );
+		$client           = new CachedGoogleApiClient( $recording_client, new Settings(), $cache );
 
-		$first = $client->text_search( ' Beaches ', 19.6400001, -155.9900001 );
+		$first  = $client->text_search( ' Beaches ', 19.6400001, -155.9900001 );
 		$second = $client->text_search( ' Beaches ', 19.6400001, -155.9900001 );
 
 		self::assertSame( 1, $recording_client->text_search_calls );
@@ -65,7 +65,6 @@ final class GoogleApiClientTest extends TestCase {
 			[
 				'query'           => 'Beaches',
 				'result_count'    => 16,
-				'distance_unit'   => Settings::DISTANCE_UNIT_MILES,
 				'rank_preference' => 'DISTANCE',
 				'location_bias'   => [
 					'circle' => [
@@ -81,6 +80,22 @@ final class GoogleApiClientTest extends TestCase {
 		);
 
 		self::assertArrayHasKey( $expected_cache_key, $GLOBALS['plan_your_day_test_transients'] );
+	}
+
+	public function test_cached_text_search_reuses_cache_when_distance_unit_changes(): void {
+		$recording_client = new RecordingGoogleApiClient();
+		$client           = new CachedGoogleApiClient( $recording_client, new Settings(), new GoogleApiCache() );
+
+		$first = $client->text_search( 'coffee', 19.64, -155.99 );
+
+		$settings                  = $GLOBALS['plan_your_day_test_options'][ Settings::OPTION_NAME ];
+		$settings['distance_unit'] = Settings::DISTANCE_UNIT_KILOMETERS;
+		update_option( Settings::OPTION_NAME, $settings );
+
+		$second = $client->text_search( 'coffee', 19.64, -155.99 );
+
+		self::assertSame( 1, $recording_client->text_search_calls );
+		self::assertSame( $first, $second );
 	}
 
 	public function test_cached_text_search_misses_after_result_count_changes(): void {

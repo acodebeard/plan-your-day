@@ -36,7 +36,6 @@ final class CachedGoogleApiClient implements GoogleApiClientInterface {
 		$parts = [
 			'query'           => trim( sanitize_text_field( $query ) ),
 			'result_count'    => $this->settings->get_result_count(),
-			'distance_unit'   => $this->settings->get_distance_unit(),
 			'rank_preference' => 'DISTANCE',
 			'location_bias'   => null,
 		];
