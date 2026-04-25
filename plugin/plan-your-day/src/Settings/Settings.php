@@ -321,8 +321,10 @@ final class Settings {
 
 		$parts = explode( '/', $cidr, 2 );
 		$ip    = $parts[0];
+		$ip_bin = inet_pton( $ip );
 
-		if ( false === inet_pton( $ip ) ) {
+		// Zone identifiers are interface-local syntax and should not be used in trusted proxy lists.
+		if ( str_contains( $ip, '%' ) || false === $ip_bin ) {
 			return false;
 		}
 
@@ -335,7 +337,7 @@ final class Settings {
 		}
 
 		$mask_bits = (int) $parts[1];
-		$max_bits  = str_contains( $ip, ':' ) ? 128 : 32;
+		$max_bits  = strlen( $ip_bin ) * 8;
 
 		return $mask_bits >= 0 && $mask_bits <= $max_bits;
 	}

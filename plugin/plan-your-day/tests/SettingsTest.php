@@ -104,4 +104,23 @@ final class SettingsTest extends TestCase {
 
 		self::assertSame( 'places-key', $settings->get_google_geocoding_api_key() );
 	}
+
+	public function test_sanitize_trusted_proxy_cidrs_accepts_ipv4_and_ipv6_edge_masks(): void {
+		$sanitized = Settings::sanitize_trusted_proxy_cidrs(
+			" 0.0.0.0/0,\n192.0.2.10/32\n2001:DB8::/32\n::/0\n2001:db8::1/128\nfe80::/10 "
+		);
+
+		self::assertSame(
+			"0.0.0.0/0\n192.0.2.10/32\n2001:DB8::/32\n::/0\n2001:db8::1/128\nfe80::/10",
+			$sanitized
+		);
+	}
+
+	public function test_sanitize_trusted_proxy_cidrs_rejects_zone_ids_and_invalid_mask_lengths(): void {
+		$sanitized = Settings::sanitize_trusted_proxy_cidrs(
+			"fe80::1%eth0/64\n192.0.2.1/33\n192.0.2.1/128\n2001:db8::/129\n10.0.0.0/8"
+		);
+
+		self::assertSame( '10.0.0.0/8', $sanitized );
+	}
 }
