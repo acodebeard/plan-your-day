@@ -26,6 +26,8 @@ if ( ! defined( 'COOKIE_DOMAIN' ) ) {
 }
 
 $GLOBALS['plan_your_day_test_options'] = [];
+$GLOBALS['plan_your_day_test_object_cache'] = [];
+$GLOBALS['plan_your_day_use_ext_object_cache'] = false;
 
 if ( ! function_exists( '__' ) ) {
 	function __( string $text, ?string $domain = null ): string {
@@ -128,6 +130,54 @@ if ( ! function_exists( 'add_option' ) ) {
 if ( ! function_exists( 'delete_option' ) ) {
 	function delete_option( string $option_name ): bool {
 		unset( $GLOBALS['plan_your_day_test_options'][ $option_name ] );
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_using_ext_object_cache' ) ) {
+	function wp_using_ext_object_cache(): bool {
+		return ! empty( $GLOBALS['plan_your_day_use_ext_object_cache'] );
+	}
+}
+
+if ( ! function_exists( 'wp_cache_get' ) ) {
+	function wp_cache_get( string $key, string $group = '', bool $force = false, ?bool &$found = null ): mixed {
+		$found = isset( $GLOBALS['plan_your_day_test_object_cache'][ $group ] )
+			&& array_key_exists( $key, $GLOBALS['plan_your_day_test_object_cache'][ $group ] );
+
+		if ( $found ) {
+			return $GLOBALS['plan_your_day_test_object_cache'][ $group ][ $key ];
+		}
+
+		return false;
+	}
+}
+
+if ( ! function_exists( 'wp_cache_set' ) ) {
+	function wp_cache_set( string $key, mixed $value, string $group = '', int $expire = 0 ): bool {
+		$GLOBALS['plan_your_day_test_object_cache'][ $group ][ $key ] = $value;
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_cache_add' ) ) {
+	function wp_cache_add( string $key, mixed $value, string $group = '', int $expire = 0 ): bool {
+		if ( isset( $GLOBALS['plan_your_day_test_object_cache'][ $group ] )
+			&& array_key_exists( $key, $GLOBALS['plan_your_day_test_object_cache'][ $group ] ) ) {
+			return false;
+		}
+
+		$GLOBALS['plan_your_day_test_object_cache'][ $group ][ $key ] = $value;
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_cache_delete' ) ) {
+	function wp_cache_delete( string $key, string $group = '' ): bool {
+		unset( $GLOBALS['plan_your_day_test_object_cache'][ $group ][ $key ] );
 
 		return true;
 	}
