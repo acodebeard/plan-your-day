@@ -29,6 +29,8 @@ $GLOBALS['plan_your_day_test_options'] = [];
 $GLOBALS['plan_your_day_test_object_cache'] = [];
 $GLOBALS['plan_your_day_use_ext_object_cache'] = false;
 $GLOBALS['plan_your_day_test_filters'] = [];
+$GLOBALS['plan_your_day_test_actions'] = [];
+$GLOBALS['plan_your_day_test_option_reads'] = [];
 
 if ( ! function_exists( '__' ) ) {
 	function __( string $text, ?string $domain = null ): string {
@@ -104,6 +106,8 @@ if ( ! function_exists( 'sanitize_title' ) ) {
 
 if ( ! function_exists( 'get_option' ) ) {
 	function get_option( string $option_name, mixed $default = false ): mixed {
+		$GLOBALS['plan_your_day_test_option_reads'][ $option_name ] = ( $GLOBALS['plan_your_day_test_option_reads'][ $option_name ] ?? 0 ) + 1;
+
 		return $GLOBALS['plan_your_day_test_options'][ $option_name ] ?? $default;
 	}
 }
@@ -111,6 +115,17 @@ if ( ! function_exists( 'get_option' ) ) {
 if ( ! function_exists( 'add_filter' ) ) {
 	function add_filter( string $hook_name, callable $callback, int $priority = 10 ): bool {
 		$GLOBALS['plan_your_day_test_filters'][ $hook_name ][ $priority ][] = $callback;
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'add_action' ) ) {
+	function add_action( string $hook_name, callable $callback, int $priority = 10, int $accepted_args = 1 ): bool {
+		$GLOBALS['plan_your_day_test_actions'][ $hook_name ][ $priority ][] = [
+			'callback'      => $callback,
+			'accepted_args' => $accepted_args,
+		];
 
 		return true;
 	}
@@ -140,9 +155,30 @@ if ( ! function_exists( 'apply_filters' ) ) {
 	}
 }
 
+if ( ! function_exists( 'do_action' ) ) {
+	function do_action( string $hook_name, mixed ...$args ): void {
+		if ( ! isset( $GLOBALS['plan_your_day_test_actions'][ $hook_name ] ) ) {
+			return;
+		}
+
+		$callbacks = $GLOBALS['plan_your_day_test_actions'][ $hook_name ];
+		ksort( $callbacks );
+
+		foreach ( $callbacks as $priority_callbacks ) {
+			foreach ( $priority_callbacks as $registration ) {
+				call_user_func_array(
+					$registration['callback'],
+					array_slice( $args, 0, (int) $registration['accepted_args'] )
+				);
+			}
+		}
+	}
+}
+
 if ( ! function_exists( 'update_option' ) ) {
 	function update_option( string $option_name, mixed $value, mixed $autoload = null ): bool {
 		$GLOBALS['plan_your_day_test_options'][ $option_name ] = $value;
+		do_action( 'update_option_' . $option_name, $GLOBALS['plan_your_day_test_options'][ $option_name ] );
 
 		return true;
 	}
@@ -155,6 +191,7 @@ if ( ! function_exists( 'add_option' ) ) {
 		}
 
 		$GLOBALS['plan_your_day_test_options'][ $option_name ] = $value;
+		do_action( 'add_option_' . $option_name, $value );
 
 		return true;
 	}
@@ -163,6 +200,7 @@ if ( ! function_exists( 'add_option' ) ) {
 if ( ! function_exists( 'delete_option' ) ) {
 	function delete_option( string $option_name ): bool {
 		unset( $GLOBALS['plan_your_day_test_options'][ $option_name ] );
+		do_action( 'delete_option_' . $option_name );
 
 		return true;
 	}
