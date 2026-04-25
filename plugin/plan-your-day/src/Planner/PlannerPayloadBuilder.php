@@ -10,7 +10,7 @@ final class PlannerPayloadBuilder {
 		return [
 			'categoryKey'        => $planner_state['category_key'],
 			'categorySearch'     => $planner_state['category_search'],
-			'categoryLabel'      => $planner_state['has_search'] ? $planner_state['active_search_label'] : __( 'Not selected', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			'categoryLabel'      => $planner_state['has_search'] ? $planner_state['active_search_label'] : __( 'Not selected', 'plan-your-day' ),
 			'hasCategory'        => $planner_state['has_category'],
 			'hasCategories'      => $planner_state['has_categories'],
 			'hasSearch'          => $planner_state['has_search'],
@@ -26,7 +26,7 @@ final class PlannerPayloadBuilder {
 		return [
 			'categoryKey'         => $planner_state['category_key'],
 			'categorySearch'      => $planner_state['category_search'],
-			'categoryLabel'       => $planner_state['has_search'] ? $planner_state['active_search_label'] : __( 'Not selected', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			'categoryLabel'       => $planner_state['has_search'] ? $planner_state['active_search_label'] : __( 'Not selected', 'plan-your-day' ),
 			'hasSearch'           => $planner_state['has_search'],
 			'selectedWaypointIds' => array_values( $planner_state['selected_waypoint_ids'] ),
 			'tripWaypoints'       => array_values( $planner_state['trip_waypoints'] ),
@@ -48,46 +48,46 @@ final class PlannerPayloadBuilder {
 	public function get_empty_results_state( array $planner_state ): array {
 		if ( ! empty( $planner_state['search_results_error'] ) ) {
 			return [
-				'heading' => __( 'Google results unavailable', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'body'    => __( 'Google place results are unavailable right now. Try again later or open the Google Maps handoff link.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'heading' => __( 'Google results unavailable', 'plan-your-day' ),
+				'body'    => __( 'Google place results are unavailable right now. Try again later or open the Google Maps handoff link.', 'plan-your-day' ),
 			];
 		}
 
 		if ( ! $planner_state['has_search'] ) {
 			return [
-				'heading' => __( 'Search for any category', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'heading' => __( 'Search for any category', 'plan-your-day' ),
 				'body'    => $planner_state['has_categories']
-					? __( 'Use the search box or choose a preset category to load real place results.', PLAN_YOUR_DAY_TEXT_DOMAIN )
-					: __( 'Use the search box to load real place results.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+					? __( 'Use the search box or choose a preset category to load real place results.', 'plan-your-day' )
+					: __( 'Use the search box to load real place results.', 'plan-your-day' ),
 			];
 		}
 
 		return [
-			'heading' => __( 'No matching Google results', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			'body'    => __( 'Try a different search or change the starting area.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			'heading' => __( 'No matching Google results', 'plan-your-day' ),
+			'body'    => __( 'Try a different search or change the starting area.', 'plan-your-day' ),
 		];
 	}
 
 	public function get_empty_preview_state( array $planner_state ): array {
 		if ( ! $planner_state['has_search'] && ! $planner_state['has_trip'] ) {
 			return [
-				'heading' => __( 'Start with a category search', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'heading' => __( 'Start with a category search', 'plan-your-day' ),
 				'body'    => $planner_state['has_categories']
-					? __( 'Use the search box or choose a preset category to load Google results, then add the places you want to turn into trip waypoints.', PLAN_YOUR_DAY_TEXT_DOMAIN )
-					: __( 'Use the search box to load Google results, then add the places you want to turn into trip waypoints.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+					? __( 'Use the search box or choose a preset category to load Google results, then add the places you want to turn into trip waypoints.', 'plan-your-day' )
+					: __( 'Use the search box to load Google results, then add the places you want to turn into trip waypoints.', 'plan-your-day' ),
 			];
 		}
 
 		if ( $planner_state['has_search'] && ! $planner_state['has_trip'] ) {
 			return [
-				'heading' => __( 'Search preview unavailable', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'body'    => __( 'The on-page map preview needs a valid Google Maps Embed API key. The Google Maps search link still works.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'heading' => __( 'Search preview unavailable', 'plan-your-day' ),
+				'body'    => __( 'The on-page map preview needs a valid Google Maps Embed API key. The Google Maps search link still works.', 'plan-your-day' ),
 			];
 		}
 
 		return [
-			'heading' => __( 'Trip preview unavailable', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-			'body'    => __( 'The on-page trip preview needs a valid Google Maps Embed API key. The Google Maps handoff link still works.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			'heading' => __( 'Trip preview unavailable', 'plan-your-day' ),
+			'body'    => __( 'The on-page trip preview needs a valid Google Maps Embed API key. The Google Maps handoff link still works.', 'plan-your-day' ),
 		];
 	}
 }

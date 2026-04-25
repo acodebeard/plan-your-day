@@ -9,6 +9,7 @@ use Acodebeard\PlanYourDay\Planner\RequestStateParser;
 use Acodebeard\PlanYourDay\Security\RateLimiter;
 use Acodebeard\PlanYourDay\Security\RequestOriginValidator;
 use Acodebeard\PlanYourDay\Security\VisitorTokenManager;
+use Acodebeard\PlanYourDay\Support\DebugLogger;
 use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
@@ -18,6 +19,11 @@ defined( 'ABSPATH' ) || exit;
 
 final class PlannerRoutes {
 	public const REST_NAMESPACE = 'plan-your-day/v1';
+	private const RATE_LIMIT_BASE_COST = 1;
+	private const BROWSE_SEARCH_COST = 2;
+	private const PUBLIC_TRIP_WAYPOINT_DEADLINE_SECONDS = 12;
+	private const PUBLIC_TRIP_WAYPOINT_PLACE_DETAILS_TIMEOUT = 5;
+	private const PUBLIC_TRIP_WAYPOINT_MAX_FAILURES = 3;
 
 	private RequestStateParser $request_state_parser;
 	private PlannerStateBuilder $planner_state_builder;
@@ -67,17 +73,32 @@ final class PlannerRoutes {
 	}
 
 	public function browse( WP_REST_Request $request ): WP_REST_Response|WP_Error {
-		$guard = $this->guard_request( $request, 'browse' );
+		DebugLogger::log(
+			'rest.browse.request',
+			[
+				'params' => $this->debug_request_params( $request ),
+			]
+		);
+		$request_state = $this->request_state_parser->parse( $this->request_params_from_request( $request ) );
+		$guard         = $this->guard_request( $request, 'browse', $request_state );
 
 		if ( $guard instanceof WP_Error ) {
 			return $guard;
 		}
 
 		$planner_state = $this->planner_state_builder->build(
-			$this->request_state_parser->parse( $this->request_params_from_request( $request ) ),
+			$request_state,
+			$this->public_trip_waypoint_options( true )
+		);
+		DebugLogger::log(
+			'rest.browse.response',
 			[
-				'include_results'        => true,
-				'include_trip_waypoints' => true,
+				'category_key'          => $planner_state['category_key'],
+				'category_search'       => $planner_state['category_search'],
+				'search_results_count'  => count( (array) $planner_state['search_results'] ),
+				'search_results_error'  => $planner_state['search_results_error'],
+				'selected_waypoint_ids' => $planner_state['selected_waypoint_ids'],
+				'messages'              => $planner_state['messages'],
 			]
 		);
 
@@ -90,17 +111,32 @@ final class PlannerRoutes {
 	}
 
 	public function route( WP_REST_Request $request ): WP_REST_Response|WP_Error {
-		$guard = $this->guard_request( $request, 'route' );
+		DebugLogger::log(
+			'rest.route.request',
+			[
+				'params' => $this->debug_request_params( $request ),
+			]
+		);
+		$request_state = $this->request_state_parser->parse( $this->request_params_from_request( $request ) );
+		$guard         = $this->guard_request( $request, 'route', $request_state );
 
 		if ( $guard instanceof WP_Error ) {
 			return $guard;
 		}
 
 		$planner_state = $this->planner_state_builder->build(
-			$this->request_state_parser->parse( $this->request_params_from_request( $request ) ),
+			$request_state,
+			$this->public_trip_waypoint_options( false )
+		);
+		DebugLogger::log(
+			'rest.route.response',
 			[
-				'include_results'        => false,
-				'include_trip_waypoints' => true,
+				'category_key'          => $planner_state['category_key'],
+				'selected_waypoint_ids' => $planner_state['selected_waypoint_ids'],
+				'trip_waypoints_count'  => count( (array) $planner_state['trip_waypoints'] ),
+				'iframe_src_present'    => '' !== (string) $planner_state['iframe_src'],
+				'maps_url_present'      => '' !== (string) $planner_state['maps_url'],
+				'messages'              => $planner_state['messages'],
 			]
 		);
 
@@ -111,77 +147,150 @@ final class PlannerRoutes {
 		);
 	}
 
-	private function guard_request( WP_REST_Request $request, string $scope ): ?WP_Error {
+	private function guard_request( WP_REST_Request $request, string $scope, array $request_state ): ?WP_Error {
 		if ( ! $this->request_origin_validator->is_same_site_request( $_SERVER ) ) {
-			return new WP_Error(
+			$error = new WP_Error(
 				'plan_your_day_invalid_origin',
-				__( 'The planner request could not be verified. Refresh the page and try again.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'The planner request could not be verified. Refresh the page and try again.', 'plan-your-day' ),
 				[
 					'status' => 403,
 				]
 			);
+			DebugLogger::log(
+				'rest.guard.invalid_origin',
+				[
+					'scope'          => $scope,
+					'host'           => $_SERVER['HTTP_HOST'] ?? '',
+					'origin'         => $_SERVER['HTTP_ORIGIN'] ?? '',
+					'referer'        => $_SERVER['HTTP_REFERER'] ?? '',
+					'sec_fetch_site' => $_SERVER['HTTP_SEC_FETCH_SITE'] ?? '',
+					'sec_fetch_mode' => $_SERVER['HTTP_SEC_FETCH_MODE'] ?? '',
+					'sec_fetch_dest' => $_SERVER['HTTP_SEC_FETCH_DEST'] ?? '',
+				]
+			);
+
+			return $error;
 		}
 
 		$endpoint_token = trim( sanitize_text_field( (string) $request->get_param( 'endpoint_token' ) ) );
 
 		if ( ! $this->visitor_token_manager->validate_endpoint_token( $endpoint_token ) ) {
-			return new WP_Error(
+			$error = new WP_Error(
 				'plan_your_day_invalid_token',
-				__( 'The planner request could not be verified. Refresh the page and try again.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'The planner request could not be verified. Refresh the page and try again.', 'plan-your-day' ),
 				[
 					'status' => 403,
 				]
 			);
+			DebugLogger::log(
+				'rest.guard.invalid_token',
+				[
+					'scope'          => $scope,
+					'token_present'  => '' !== $endpoint_token,
+					'cookie_present' => isset( $_COOKIE['plan_your_day_visitor'] ),
+					'origin'         => $_SERVER['HTTP_ORIGIN'] ?? '',
+					'referer'        => $_SERVER['HTTP_REFERER'] ?? '',
+				]
+			);
+
+			return $error;
 		}
 
-		return $this->rate_limiter->enforce( $scope, $_SERVER );
+		$rate_limit = $this->rate_limiter->enforce( $scope, $_SERVER, $this->get_rate_limit_cost( $scope, $request_state ) );
+
+		if ( $rate_limit instanceof WP_Error ) {
+			DebugLogger::log(
+				'rest.guard.rate_limited',
+				[
+					'scope' => $scope,
+					'error' => $rate_limit,
+				]
+			);
+		}
+
+		return $rate_limit;
+	}
+
+	private function public_trip_waypoint_options( bool $include_results ): array {
+		return [
+			'include_results'                    => $include_results,
+			'include_trip_waypoints'             => true,
+			'trip_waypoint_deadline_seconds'     => self::PUBLIC_TRIP_WAYPOINT_DEADLINE_SECONDS,
+			'trip_waypoint_place_details_timeout' => self::PUBLIC_TRIP_WAYPOINT_PLACE_DETAILS_TIMEOUT,
+			'trip_waypoint_max_failures'         => self::PUBLIC_TRIP_WAYPOINT_MAX_FAILURES,
+		];
+	}
+
+	private function get_rate_limit_cost( string $scope, array $request_state ): int {
+		$cost               = self::RATE_LIMIT_BASE_COST;
+		$selected_waypoints = array_values( (array) ( $request_state['selected_waypoint_ids'] ?? [] ) );
+
+		if ( 'browse' === $scope && $this->request_uses_google_search( $request_state ) ) {
+			$cost += self::BROWSE_SEARCH_COST;
+		}
+
+		return $cost + count( $selected_waypoints );
+	}
+
+	private function request_uses_google_search( array $request_state ): bool {
+		return '' !== sanitize_key( (string) ( $request_state['category_key'] ?? '' ) )
+			|| '' !== trim( sanitize_text_field( (string) ( $request_state['category_search'] ?? '' ) ) );
 	}
 
 	private function route_args(): array {
 		return [
-			'category'       => [
+			'category'        => [
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_key',
+				'validate_callback' => [ $this, 'validate_loose_scalar' ],
 				'default'           => '',
 			],
 			'category_search' => [
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
+				'validate_callback' => [ $this, 'validate_loose_scalar' ],
 				'default'           => '',
 			],
-			'waypoints'      => [
+			'waypoints'       => [
 				'type'              => 'array',
 				'sanitize_callback' => [ $this, 'sanitize_waypoints' ],
+				'validate_callback' => [ $this, 'validate_loose_waypoints' ],
 				'default'           => [],
 			],
-			'start_mode'     => [
+			'start_mode'      => [
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_key',
+				'validate_callback' => [ $this, 'validate_loose_scalar' ],
 				'default'           => '',
 			],
-			'custom_start'   => [
+			'custom_start'    => [
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
+				'validate_callback' => [ $this, 'validate_loose_scalar' ],
 				'default'           => '',
 			],
-			'clear_trip'     => [
+			'clear_trip'      => [
 				'type'              => 'boolean',
 				'sanitize_callback' => [ $this, 'sanitize_boolean' ],
+				'validate_callback' => [ $this, 'validate_loose_boolean' ],
 				'default'           => false,
 			],
 			'remove_waypoint' => [
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
+				'validate_callback' => [ $this, 'validate_loose_scalar' ],
 				'default'           => '',
 			],
-			'move_waypoint'  => [
+			'move_waypoint'   => [
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
+				'validate_callback' => [ $this, 'validate_loose_scalar' ],
 				'default'           => '',
 			],
-			'endpoint_token' => [
+			'endpoint_token'  => [
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
+				'validate_callback' => [ $this, 'validate_loose_scalar' ],
 				'default'           => '',
 			],
 		];
@@ -204,6 +313,79 @@ final class PlannerRoutes {
 
 	public function sanitize_boolean( mixed $value ): bool {
 		return true === $value || 1 === $value || '1' === (string) $value;
+	}
+
+	public function validate_loose_scalar( mixed $value, ?WP_REST_Request $request = null, string $param = '' ): bool {
+		$is_valid = null === $value || is_scalar( $value );
+
+		if ( ! $is_valid ) {
+			DebugLogger::log(
+				'rest.validation.invalid_scalar',
+				[
+					'param'   => $param,
+					'type'    => gettype( $value ),
+					'request' => $this->debug_request_params( $request ),
+				]
+			);
+		}
+
+		return $is_valid;
+	}
+
+	public function validate_loose_boolean( mixed $value, ?WP_REST_Request $request = null, string $param = '' ): bool {
+		$is_valid = null === $value || is_bool( $value ) || is_scalar( $value );
+
+		if ( ! $is_valid ) {
+			DebugLogger::log(
+				'rest.validation.invalid_boolean',
+				[
+					'param'   => $param,
+					'type'    => gettype( $value ),
+					'request' => $this->debug_request_params( $request ),
+				]
+			);
+		}
+
+		return $is_valid;
+	}
+
+	public function validate_loose_waypoints( mixed $value, ?WP_REST_Request $request = null, string $param = '' ): bool {
+		if ( null === $value ) {
+			return true;
+		}
+
+		if ( ! is_array( $value ) ) {
+			$is_valid = is_scalar( $value );
+
+			if ( ! $is_valid ) {
+				DebugLogger::log(
+					'rest.validation.invalid_waypoints',
+					[
+						'param'   => $param,
+						'type'    => gettype( $value ),
+						'request' => $this->debug_request_params( $request ),
+					]
+				);
+			}
+
+			return $is_valid;
+		}
+
+		foreach ( $value as $waypoint ) {
+			if ( ! is_scalar( $waypoint ) && null !== $waypoint ) {
+				DebugLogger::log(
+					'rest.validation.invalid_waypoint_item',
+					[
+						'param'     => $param,
+						'item_type' => gettype( $waypoint ),
+						'request'   => $this->debug_request_params( $request ),
+					]
+				);
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private function request_params_from_request( WP_REST_Request $request ): array {
@@ -230,5 +412,28 @@ final class PlannerRoutes {
 		}
 
 		return $params;
+	}
+
+	private function debug_request_params( ?WP_REST_Request $request ): array {
+		if ( ! $request instanceof WP_REST_Request ) {
+			return [];
+		}
+
+		return [
+			'method'       => $request->get_method(),
+			'route'        => $request->get_route(),
+			'params'       => [
+				'category'        => $request->get_param( 'category' ),
+				'category_search' => $request->get_param( 'category_search' ),
+				'waypoints'       => $request->get_param( 'waypoints' ),
+				'start_mode'      => $request->get_param( 'start_mode' ),
+				'custom_start'    => $request->get_param( 'custom_start' ),
+				'clear_trip'      => $request->get_param( 'clear_trip' ),
+				'remove_waypoint' => $request->get_param( 'remove_waypoint' ),
+				'move_waypoint'   => $request->get_param( 'move_waypoint' ),
+			],
+			'has_token'    => '' !== (string) $request->get_param( 'endpoint_token' ),
+			'content_type' => $_SERVER['CONTENT_TYPE'] ?? '',
+		];
 	}
 }

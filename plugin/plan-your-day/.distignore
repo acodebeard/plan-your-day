@@ -9,6 +9,8 @@
 /.github
 /node_modules
 /tests
+/tools
+/phpcs.xml.dist
 /phpunit.xml
 /phpunit.xml.dist
 /DECISIONS.md

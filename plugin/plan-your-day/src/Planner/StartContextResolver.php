@@ -38,7 +38,7 @@ final class StartContextResolver {
 		}
 
 		if ( '' === $default_location_label ) {
-			$default_location_label = __( 'Default location', PLAN_YOUR_DAY_TEXT_DOMAIN );
+			$default_location_label = __( 'Default location', 'plan-your-day' );
 		}
 
 		$preview_start_label = $default_location_label;
@@ -48,17 +48,17 @@ final class StartContextResolver {
 		$directions_origin   = $default_address;
 		$messages            = [];
 		$use_current_handoff = false;
-		$start_note_text     = __( 'The on-page results, preview, and Google Maps handoff use the configured default starting point.', PLAN_YOUR_DAY_TEXT_DOMAIN );
+		$start_note_text     = __( 'The on-page results, preview, and Google Maps handoff use the configured default starting point.', 'plan-your-day' );
 
 		if ( Settings::START_MODE_CURRENT === $start_mode ) {
-			$handoff_start_label = __( 'Current location', PLAN_YOUR_DAY_TEXT_DOMAIN );
-			$handoff_summary     = __( 'your current location', PLAN_YOUR_DAY_TEXT_DOMAIN );
+			$handoff_start_label = __( 'Current location', 'plan-your-day' );
+			$handoff_summary     = __( 'your current location', 'plan-your-day' );
 			$directions_origin   = null;
 			$use_current_handoff = true;
-			$start_note_text     = __( 'The on-page results and preview use the configured default starting point. Google Maps will start from the visitor\'s current location during handoff.', PLAN_YOUR_DAY_TEXT_DOMAIN );
+			$start_note_text     = __( 'The on-page results and preview use the configured default starting point. Google Maps will start from the visitor\'s current location during handoff.', 'plan-your-day' );
 			$messages[]          = [
 				'type' => 'note',
-				'text' => __( 'The on-page results and preview use the configured default starting point. Google Maps will start from the visitor\'s current location during handoff.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'text' => __( 'The on-page results and preview use the configured default starting point. Google Maps will start from the visitor\'s current location during handoff.', 'plan-your-day' ),
 			];
 		} elseif ( Settings::START_MODE_CUSTOM === $start_mode && '' !== $custom_start ) {
 			$search_area         = $custom_start;
@@ -66,14 +66,14 @@ final class StartContextResolver {
 			$handoff_start_label = $custom_start;
 			$handoff_summary     = $custom_start;
 			$directions_origin   = $custom_start;
-			$start_note_text     = __( 'The on-page results, preview, and Google Maps handoff all use the custom starting point.', PLAN_YOUR_DAY_TEXT_DOMAIN );
+			$start_note_text     = __( 'The on-page results, preview, and Google Maps handoff all use the custom starting point.', 'plan-your-day' );
 		} elseif ( Settings::START_MODE_CUSTOM === $start_mode ) {
-			$handoff_start_label = __( 'Default location fallback', PLAN_YOUR_DAY_TEXT_DOMAIN );
-			$handoff_summary     = __( 'the default location until a custom starting point is provided', PLAN_YOUR_DAY_TEXT_DOMAIN );
-			$start_note_text     = __( 'Add a custom address to replace the default fallback for search results, the route preview, and the Google Maps handoff.', PLAN_YOUR_DAY_TEXT_DOMAIN );
+			$handoff_start_label = __( 'Default location fallback', 'plan-your-day' );
+			$handoff_summary     = __( 'the default location until a custom starting point is provided', 'plan-your-day' );
+			$start_note_text     = __( 'Add a custom address to replace the default fallback for search results, the route preview, and the Google Maps handoff.', 'plan-your-day' );
 			$messages[]          = [
 				'type' => 'warning',
-				'text' => __( 'Add a custom address to replace the default fallback before finalizing the trip start.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				'text' => __( 'Add a custom address to replace the default fallback before finalizing the trip start.', 'plan-your-day' ),
 			];
 		}
 

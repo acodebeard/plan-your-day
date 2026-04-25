@@ -22,3 +22,4 @@ Thumbs.db
 # Dependency folders if tooling is added later.
 node_modules/
 vendor/
+plugin/plan-your-day/.phpunit.cache/

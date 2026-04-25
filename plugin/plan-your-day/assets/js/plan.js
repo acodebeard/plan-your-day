@@ -25,6 +25,45 @@
       .replace(/'/g, '&#039;');
 
   const formatString = (template, value) => String(template || '').replace('%s', String(value ?? ''));
+  const redactDebugValue = (value, key = '') => {
+    if (Array.isArray(value)) {
+      return value.map((item) => redactDebugValue(item));
+    }
+
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(
+        Object.entries(value).map(([entryKey, entryValue]) => {
+          const lowerKey = String(entryKey).toLowerCase();
+          const shouldRedact =
+            lowerKey.includes('token') ||
+            lowerKey.includes('api_key') ||
+            lowerKey.includes('authorization') ||
+            lowerKey.includes('cookie') ||
+            lowerKey.includes('secret');
+
+          return [entryKey, shouldRedact ? '[redacted]' : redactDebugValue(entryValue, entryKey)];
+        })
+      );
+    }
+
+    if (typeof value === 'string') {
+      if (String(key).toLowerCase().includes('token')) {
+        return '[redacted]';
+      }
+
+      return value.replace(/([?&](?:key|api_key|token)=)[^&]+/gi, '$1[redacted]');
+    }
+
+    return value;
+  };
+  const debugLog = (config, level, event, data = {}) => {
+    if (!config?.debug || typeof console === 'undefined') {
+      return;
+    }
+
+    const logger = typeof console[level] === 'function' ? console[level] : console.log;
+    logger.call(console, `[plan-your-day] ${event}`, redactDebugValue(data));
+  };
 
   const toStringArray = (value) => {
     if (!Array.isArray(value)) {
@@ -84,8 +123,11 @@
       .map((message) => {
         const type = String(message?.type || 'note');
         const text = String(message?.text || '');
+        const role = type === 'warning' ? 'alert' : '';
 
-        return `<li class="plan-your-day__message plan-your-day__message--${escapeHtml(type)}">${escapeHtml(text)}</li>`;
+        return `<li class="plan-your-day__message plan-your-day__message--${escapeHtml(type)}"${
+          role ? ` role="${escapeHtml(role)}"` : ''
+        }>${escapeHtml(text)}</li>`;
       })
       .join('');
   };
@@ -124,13 +166,17 @@
                 </div>
                 <div class="plan-your-day__result-tools">
                   ${mapsUri
-                    ? `<a class="plan-your-day__result-link" href="${escapeHtml(mapsUri)}" target="_blank" rel="noopener noreferrer">${escapeHtml(strings.viewInGoogleMaps || '')}</a>`
+                    ? `<a class="plan-your-day__result-link" href="${escapeHtml(mapsUri)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(
+                        formatString(strings.viewPlaceInGoogleMapsLabel || '', label)
+                      )}">${escapeHtml(strings.viewInGoogleMaps || '')}</a>`
                     : ''}
                   ${isInTrip
                     ? `<span class="plan-your-day__result-added" aria-label="${escapeHtml(formatString(strings.alreadyInTripAria, label))}">${escapeHtml(strings.inTrip || '')}</span>`
                     : `<button class="plan-your-day__result-add" type="submit" name="waypoints[]" value="${escapeHtml(
                         placeId
-                      )}" data-plan-action="add-waypoint" data-place-id="${escapeHtml(placeId)}">${escapeHtml(
+                      )}" data-plan-action="add-waypoint" data-plan-route-mutation data-place-id="${escapeHtml(placeId)}" aria-label="${escapeHtml(
+                        formatString(strings.addWaypointLabel || '', label)
+                      )}">${escapeHtml(
                         strings.addToTrip || ''
                       )}</button>`}
                 </div>
@@ -150,7 +196,7 @@
       <span class="plan-your-day__count-pill" data-plan-trip-count>${escapeHtml(tripCountLabel)}</span>
       ${
         selectedWaypointIds.length > 0
-          ? `<button class="plan-your-day__clear-link" type="submit" name="clear_trip" value="1" data-plan-clear-trip data-plan-action="clear-trip">${escapeHtml(
+          ? `<button class="plan-your-day__clear-link" type="submit" name="clear_trip" value="1" data-plan-clear-trip data-plan-action="clear-trip" data-plan-route-mutation>${escapeHtml(
               strings.clearTrip || ''
             )}</button>`
           : ''
@@ -158,20 +204,22 @@
     `;
   };
 
-  const renderTripMarkup = (routeData, strings) => {
+  const renderTripMarkup = (routeData, strings, tripHelpId) => {
     const tripWaypoints = Array.isArray(routeData?.tripWaypoints) ? routeData.tripWaypoints : [];
 
     if (tripWaypoints.length === 0) {
+      const tripEmptyState = routeData?.tripEmptyState || {};
+
       return `
         <div class="plan-your-day__trip-empty" data-plan-trip-empty>
-          <h4>${escapeHtml(strings.tripEmptyHeading || '')}</h4>
-          <p>${escapeHtml(strings.tripEmptyBody || '')}</p>
+          <h4>${escapeHtml(tripEmptyState.heading || strings.tripEmptyHeading || '')}</h4>
+          <p>${escapeHtml(tripEmptyState.body || strings.tripEmptyBody || '')}</p>
         </div>
       `;
     }
 
     return `
-      <ol class="plan-your-day__trip-list" data-plan-trip-list>
+      <ol class="plan-your-day__trip-list" data-plan-trip-list${tripHelpId ? ` aria-describedby="${escapeHtml(tripHelpId)}"` : ''}>
         ${tripWaypoints
           .map((waypoint, index) => {
             const placeId = String(waypoint?.id || '');
@@ -195,6 +243,8 @@
                     type="${canMoveUp ? 'submit' : 'button'}"
                     name="move_waypoint"
                     value="${escapeHtml(`${placeId}:up`)}"
+                    data-plan-route-mutation
+                    aria-label="${escapeHtml(formatString(strings.moveWaypointUpLabel || '', label))}"
                     ${canMoveUp ? '' : 'disabled'}>
                     ${escapeHtml(strings.moveUp || '')}
                   </button>
@@ -203,12 +253,14 @@
                     type="${canMoveDown ? 'submit' : 'button'}"
                     name="move_waypoint"
                     value="${escapeHtml(`${placeId}:down`)}"
+                    data-plan-route-mutation
+                    aria-label="${escapeHtml(formatString(strings.moveWaypointDownLabel || '', label))}"
                     ${canMoveDown ? '' : 'disabled'}>
                     ${escapeHtml(strings.moveDown || '')}
                   </button>
                   <button type="submit" name="remove_waypoint" value="${escapeHtml(
                     placeId
-                  )}" data-plan-action="remove-waypoint" data-place-id="${escapeHtml(placeId)}">
+                  )}" data-plan-action="remove-waypoint" data-plan-route-mutation data-place-id="${escapeHtml(placeId)}">
                     ${escapeHtml(formatString(strings.removeWaypointLabel, label))}
                   </button>
                 </div>
@@ -249,9 +301,13 @@
 
   const renderCategoryPanels = (refs, state, strings) => {
     const activeCategory = state.category || '';
+    const expandedCategory = state.expandedCategory || '';
     const selectedWaypointIds = toStringArray(state.route?.selectedWaypointIds);
     const browseData = state.browse || {};
     const hasCustomSearch = Boolean(browseData.hasSearch) && !activeCategory;
+    const shouldShowCustomResults = hasCustomSearch || refs.categoryButtons.length === 0;
+    const isCustomResultsExpanded =
+      (hasCustomSearch && Boolean(state.customResultsExpanded)) || (!hasCustomSearch && refs.categoryButtons.length === 0);
 
     if (refs.resultsCount) {
       refs.resultsCount.textContent = String(browseData.searchResultsLabel || '');
@@ -259,7 +315,7 @@
 
     refs.categoryButtons.forEach((button) => {
       const categoryKey = button.getAttribute('data-category-key') || '';
-      const isActive = categoryKey === activeCategory;
+      const isActive = categoryKey === activeCategory && categoryKey === expandedCategory;
       const accordionItem = button.closest('.plan-your-day__category-accordion-item');
 
       button.setAttribute('aria-expanded', String(isActive));
@@ -269,22 +325,41 @@
       }
     });
 
-    refs.categoryPanels.forEach((panel) => {
-      const categoryKey = panel.getAttribute('data-category-key') || '';
-      const isActive = categoryKey === activeCategory;
+    refs.categoryRegions.forEach((region) => {
+      const categoryKey = region.getAttribute('data-category-key') || '';
+      const isActive = categoryKey === activeCategory && categoryKey === expandedCategory;
+      const panel = region.querySelector('[data-plan-category-results-panel]');
 
-      panel.hidden = !isActive;
-      panel.innerHTML = isActive ? renderResultsMarkup(browseData, selectedWaypointIds, strings) : '';
+      region.hidden = !isActive;
+
+      if (panel instanceof HTMLElement) {
+        panel.innerHTML = isActive ? renderResultsMarkup(browseData, selectedWaypointIds, strings) : '';
+      }
     });
 
     if (refs.customResults) {
-      refs.customResults.hidden = !hasCustomSearch && refs.categoryButtons.length > 0;
+      refs.customResults.hidden = !shouldShowCustomResults;
+      refs.customResults.classList.toggle('is-expanded', isCustomResultsExpanded);
+    }
+
+    if (refs.customResultsButton) {
+      refs.customResultsButton.setAttribute('aria-expanded', String(isCustomResultsExpanded));
+    }
+
+    if (refs.customResultsRegion) {
+      refs.customResultsRegion.hidden = !isCustomResultsExpanded;
     }
 
     if (refs.customResultsHeading) {
       refs.customResultsHeading.textContent = hasCustomSearch
         ? formatString(strings.searchResultsFor || '', browseData.categoryLabel || '')
         : String(browseData?.resultsEmptyState?.heading || '');
+    }
+
+    if (refs.customResultsDescription) {
+      refs.customResultsDescription.textContent = hasCustomSearch
+        ? String(strings.customSearchResultsDescription || '')
+        : String(browseData?.resultsEmptyState?.body || '');
     }
 
     if (refs.customResultsPanel) {
@@ -305,7 +380,11 @@
     }
 
     if (refs.tripRegion) {
-      refs.tripRegion.innerHTML = renderTripMarkup(state.route, strings);
+      refs.tripRegion.innerHTML = renderTripMarkup(
+        state.route,
+        strings,
+        refs.tripRegion.getAttribute('data-plan-trip-help-id') || ''
+      );
     }
   };
 
@@ -422,6 +501,57 @@
     root.setAttribute('aria-busy', String(isBusy));
   };
 
+  const setRouteMutationBusyState = (root, isBusy) => {
+    root.querySelectorAll('[data-plan-route-mutation]').forEach((control) => {
+      if (!(control instanceof HTMLButtonElement)) {
+        return;
+      }
+
+      if (isBusy) {
+        if (!control.hasAttribute('data-plan-disabled-before-request')) {
+          control.setAttribute('data-plan-disabled-before-request', control.disabled ? 'true' : 'false');
+        }
+
+        control.disabled = true;
+        return;
+      }
+
+      const disabledBeforeRequest = control.getAttribute('data-plan-disabled-before-request');
+
+      if (null === disabledBeforeRequest) {
+        return;
+      }
+
+      control.disabled = disabledBeforeRequest === 'true';
+      control.removeAttribute('data-plan-disabled-before-request');
+    });
+  };
+
+  const setRegionBusyState = (refs, state, isBusy) => {
+    const activeCategory = state.category || '';
+
+    refs.categoryPanels.forEach((panel) => {
+      const categoryKey = panel.getAttribute('data-category-key') || '';
+      const shouldMarkBusy =
+        refs.categoryButtons.length === 0 || categoryKey === activeCategory || refs.customResults?.hidden === false;
+
+      panel.setAttribute('aria-busy', String(isBusy && shouldMarkBusy));
+    });
+
+    if (refs.customResultsPanel instanceof HTMLElement) {
+      const customResultsVisible = refs.customResults?.hidden === false;
+      refs.customResultsPanel.setAttribute('aria-busy', String(isBusy && customResultsVisible));
+    }
+
+    if (refs.tripRegion instanceof HTMLElement) {
+      refs.tripRegion.setAttribute('aria-busy', String(isBusy));
+    }
+
+    if (refs.previewCard instanceof HTMLElement) {
+      refs.previewCard.setAttribute('aria-busy', String(isBusy));
+    }
+  };
+
   const initRoot = (root) => {
     if (!(root instanceof HTMLElement) || root.dataset[ENHANCED_FLAG] === 'true') {
       return;
@@ -438,10 +568,14 @@
       waypointInputs: root.querySelector('[data-plan-waypoint-inputs]'),
       categoryButtons: Array.from(root.querySelectorAll('[data-plan-category-button]')),
       categoryItems: Array.from(root.querySelectorAll('[data-plan-category-item]')),
+      categoryRegions: Array.from(root.querySelectorAll('[data-plan-category-region]')),
       categoryPanels: Array.from(root.querySelectorAll('[data-plan-category-results-panel]')),
       categorySearchInput: root.querySelector('[data-plan-category-search]'),
       customResults: root.querySelector('[data-plan-custom-results]'),
+      customResultsButton: root.querySelector('[data-plan-custom-results-button]'),
       customResultsHeading: root.querySelector('[data-plan-custom-results-heading]'),
+      customResultsDescription: root.querySelector('[data-plan-custom-results-description]'),
+      customResultsRegion: root.querySelector('[data-plan-custom-results-region]'),
       customResultsPanel: root.querySelector('[data-plan-custom-results-panel]'),
       startModeInputs: Array.from(root.querySelectorAll('input[name="start_mode"]')),
       customStartWrap: root.querySelector('[data-plan-custom-start-wrap]'),
@@ -454,6 +588,7 @@
       tripHeaderActions: root.querySelector('[data-plan-trip-header-actions]'),
       tripRegion: root.querySelector('[data-plan-trip-region]'),
       messages: root.querySelector('[data-plan-messages]'),
+      previewCard: root.querySelector('[data-plan-preview-card]'),
       mapWrap: root.querySelector('[data-plan-map-wrap]'),
       iframe: root.querySelector('[data-plan-iframe]'),
       previewEmpty: root.querySelector('[data-plan-preview-empty]'),
@@ -474,6 +609,8 @@
       categorySearch: String(config.initialState?.categorySearch || ''),
       startMode: String(config.initialState?.startMode || 'default'),
       customStart: String(config.initialState?.customStart || ''),
+      expandedCategory: String(config.initialState?.category || ''),
+      customResultsExpanded: Boolean(config.initialData?.browse?.isCustomSearch),
       browse: config.initialData?.browse || {},
       route: config.initialData?.route || {},
     };
@@ -485,6 +622,7 @@
       config.rest.routeUrl !== '' &&
       typeof config.rest?.endpointToken === 'string' &&
       config.rest.endpointToken !== '';
+    const shouldHydrateOnLoad = Boolean(config.hydration?.shouldHydrateOnLoad);
 
     let isStartPanelOpen = true;
     let activeRequestController = null;
@@ -497,6 +635,7 @@
       syncHiddenInputs(refs, state);
       syncStartUi(refs, config, state);
       syncCategorySearchUi(refs, state);
+      setRouteMutationBusyState(root, false);
     };
 
     const showRequestError = (message) => {
@@ -506,7 +645,6 @@
           text: message || strings.requestFailed || '',
         },
       ]);
-      announce(refs.liveRegion, message || strings.requestFailed || '');
     };
 
     const updateStartPanelState = () => {
@@ -526,7 +664,7 @@
 
     const sendRequest = async (endpointKey, payload, announcementMessage) => {
       if (!hasRestConfig) {
-        return false;
+        return 'unsupported';
       }
 
       activeRequestId += 1;
@@ -538,6 +676,12 @@
 
       activeRequestController = new AbortController();
       setBusyState(root, true);
+      setRegionBusyState(refs, state, true);
+      setRouteMutationBusyState(root, endpointKey === 'route');
+      debugLog(config, 'info', 'request:start', {
+        endpointKey,
+        payload,
+      });
 
       try {
         const response = await fetch(config.rest[endpointKey === 'browse' ? 'browseUrl' : 'routeUrl'], {
@@ -554,6 +698,12 @@
           signal: activeRequestController.signal,
         });
         const responseBody = await response.json().catch(() => ({}));
+        debugLog(config, response.ok ? 'info' : 'warn', 'request:response', {
+          endpointKey,
+          status: response.status,
+          ok: response.ok,
+          body: responseBody,
+        });
 
         if (!response.ok) {
           throw new Error(responseBody?.message || strings.requestFailed || '');
@@ -564,10 +714,24 @@
         }
 
         if (endpointKey === 'browse') {
+          const previousCategory = state.category || '';
+          const previousExpandedCategory = state.expandedCategory || '';
+          const previousCategorySearch = state.categorySearch || '';
           state.browse = responseBody?.browse || {};
           state.route = responseBody?.route || {};
           state.category = String(state.browse.categoryKey || payload.category || '');
           state.categorySearch = String(state.browse.categorySearch || payload.category_search || '');
+
+          if (state.category) {
+            state.expandedCategory = state.category === previousCategory ? previousExpandedCategory : state.category;
+            state.customResultsExpanded = false;
+          } else if (!state.browse.hasSearch) {
+            state.expandedCategory = '';
+            state.customResultsExpanded = false;
+          } else if (String(payload.category_search || '') !== previousCategorySearch) {
+            state.expandedCategory = '';
+            state.customResultsExpanded = true;
+          }
         } else {
           state.route = responseBody?.route || {};
           state.category = String(state.route.categoryKey || state.category || '');
@@ -580,18 +744,28 @@
         renderAll();
         announce(refs.liveRegion, announcementMessage || '');
 
-        return true;
+        return 'success';
       } catch (error) {
         if (error?.name === 'AbortError') {
-          return false;
+          debugLog(config, 'info', 'request:aborted', {
+            endpointKey,
+          });
+          return 'aborted';
         }
 
+        debugLog(config, 'error', 'request:failed', {
+          endpointKey,
+          error: error instanceof Error ? error.message : String(error || ''),
+          payload,
+        });
         showRequestError(error instanceof Error ? error.message : strings.requestFailed || '');
 
-        return false;
+        return 'failed';
       } finally {
         if (requestId === activeRequestId) {
           setBusyState(root, false);
+          setRegionBusyState(refs, state, false);
+          setRouteMutationBusyState(root, false);
         }
       }
     };
@@ -639,6 +813,8 @@
         const payload = buildPayload(refs, state);
         payload.category = '';
         payload.category_search = refs.categorySearchInput.value || '';
+        state.expandedCategory = '';
+        state.customResultsExpanded = true;
 
         void sendRequest('browse', payload, strings.resultsUpdated || '');
       });
@@ -657,11 +833,34 @@
         const payload = buildPayload(refs, state);
 
         if (submitter.matches('[data-plan-category-button]')) {
-          payload.category = submitter.getAttribute('data-category-key') || '';
+          const nextCategory = submitter.getAttribute('data-category-key') || '';
+
+          if (nextCategory === state.category) {
+            const categoryLabel =
+              submitter.querySelector('.plan-your-day__category-title')?.textContent?.trim() || nextCategory;
+
+            event.preventDefault();
+            state.expandedCategory = state.expandedCategory === nextCategory ? '' : nextCategory;
+            state.customResultsExpanded = false;
+            renderCategoryPanels(refs, state, strings);
+            announce(
+              refs.liveRegion,
+              state.expandedCategory === nextCategory
+                ? formatString(strings.categoryResultsExpanded || '', categoryLabel)
+                : formatString(strings.categoryResultsCollapsed || '', categoryLabel)
+            );
+            return;
+          }
+
+          payload.category = nextCategory;
           payload.category_search = '';
+          state.expandedCategory = nextCategory;
+          state.customResultsExpanded = false;
         } else if (submitter.matches('[data-plan-action="search-category-query"]')) {
           payload.category = '';
           payload.category_search = refs.categorySearchInput instanceof HTMLInputElement ? refs.categorySearchInput.value || '' : '';
+          state.expandedCategory = '';
+          state.customResultsExpanded = true;
         } else if (submitter.matches('[data-plan-action="add-waypoint"]')) {
           payload.waypoints = [...payload.waypoints, submitter.getAttribute('data-place-id') || submitter.value || ''];
           endpointKey = 'route';
@@ -710,12 +909,42 @@
           refs.liveRegion,
           isStartPanelOpen ? strings.startOptionsExpanded || '' : strings.startOptionsCollapsed || ''
         );
+        return;
+      }
+
+      const customResultsButton = target.closest('[data-plan-custom-results-button]');
+
+      if (customResultsButton instanceof HTMLButtonElement) {
+        event.preventDefault();
+
+        if (!state.browse?.hasSearch || state.category) {
+          return;
+        }
+
+        state.expandedCategory = '';
+        state.customResultsExpanded = !state.customResultsExpanded;
+        renderCategoryPanels(refs, state, strings);
+        announce(
+          refs.liveRegion,
+          state.customResultsExpanded
+            ? String(strings.customResultsExpanded || '')
+            : String(strings.customResultsCollapsed || '')
+        );
       }
     });
 
     renderAll();
     updateStartPanelState();
     root.classList.add('is-enhanced');
+
+    if (shouldHydrateOnLoad) {
+      if (!hasRestConfig) {
+        showRequestError(strings.requestFailed || '');
+        return;
+      }
+
+      void sendRequest('browse', buildPayload(refs, state), '');
+    }
   };
 
   const init = () => {

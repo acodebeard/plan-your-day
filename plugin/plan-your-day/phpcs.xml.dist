@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<ruleset name="Plan Your Day">
+	<description>WordPress Coding Standards checks for Plan Your Day plugin code.</description>
+
+	<arg name="basepath" value="."/>
+	<arg name="colors"/>
+	<arg name="extensions" value="php"/>
+	<arg name="parallel" value="4"/>
+
+	<file>plan-your-day.php</file>
+	<file>uninstall.php</file>
+	<file>src</file>
+
+	<exclude-pattern>vendor/*</exclude-pattern>
+	<exclude-pattern>tests/*</exclude-pattern>
+
+	<rule ref="WordPress-Core">
+		<exclude name="WordPress.Files.FileName"/>
+		<exclude name="WordPress.WP.I18n"/>
+		<exclude name="Generic.Arrays.DisallowShortArraySyntax"/>
+		<exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+	</rule>
+	<rule ref="WordPress-Extra">
+		<exclude name="WordPress.Files.FileName"/>
+		<exclude name="WordPress.WP.I18n"/>
+		<exclude name="Generic.Arrays.DisallowShortArraySyntax"/>
+		<exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+	</rule>
+
+	<rule ref="Generic.Commenting.Todo.TaskFound">
+		<severity>0</severity>
+	</rule>
+
+	<rule ref="Squiz.Commenting.FileComment">
+		<severity>0</severity>
+	</rule>
+
+	<rule ref="Squiz.Commenting.FunctionComment">
+		<severity>0</severity>
+	</rule>
+
+	<rule ref="Squiz.Commenting.ClassComment">
+		<severity>0</severity>
+	</rule>
+</ruleset>

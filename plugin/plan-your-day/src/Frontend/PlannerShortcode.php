@@ -31,7 +31,16 @@ final class PlannerShortcode {
 
 		$action_url = esc_url_raw( (string) $attributes['action_url'] );
 
-		$this->assets->dequeue_conflicting_assets();
+		/*
+		 * Some themes still enqueue an older planner controller that binds to the
+		 * same data attributes as this shortcode. Dequeue that legacy footer
+		 * script here so the plugin remains the single source of interactive
+		 * behavior for the rendered planner instance.
+		 */
+		if ( wp_script_is( 'dkc-plan', 'enqueued' ) ) {
+			wp_dequeue_script( 'dkc-plan' );
+		}
+
 		$this->assets->enqueue();
 
 		return $this->renderer->render( $_GET, $action_url );

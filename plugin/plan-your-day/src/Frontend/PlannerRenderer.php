@@ -45,12 +45,25 @@ final class PlannerRenderer {
 			return $this->render_setup_notice( $instance_id, $title_id );
 		}
 
-		$request_state       = $this->request_state_parser->parse( $request );
-		$planner_state       = $this->planner_state_builder->build( $request_state );
+		$request_state           = $this->request_state_parser->parse( $request );
+		$should_hydrate_on_load = InitialPlannerHydration::should_hydrate_on_load( $request_state );
+		$planner_state           = $this->planner_state_builder->build(
+			$request_state,
+			InitialPlannerHydration::build_render_state_options()
+		);
+
+		if ( $should_hydrate_on_load ) {
+			$planner_state = InitialPlannerHydration::apply_loading_placeholders( $planner_state );
+		}
+
 		$category_catalog    = $this->category_catalog->get_all();
 		$start_points        = $this->get_start_points();
-		$results_empty_state = $this->planner_payload_builder->get_empty_results_state( $planner_state );
-		$preview_empty_state = $this->planner_payload_builder->get_empty_preview_state( $planner_state );
+		$results_empty_state = isset( $planner_state['results_empty_state'] )
+			? (array) $planner_state['results_empty_state']
+			: $this->planner_payload_builder->get_empty_results_state( $planner_state );
+		$preview_empty_state = isset( $planner_state['preview_empty_state'] )
+			? (array) $planner_state['preview_empty_state']
+			: $this->planner_payload_builder->get_empty_preview_state( $planner_state );
 		$action_url          = '' !== $action_url ? $action_url : $this->get_current_url();
 		$form_action         = $action_url . '#' . $instance_id;
 		$maps_link_enabled   = '' !== $planner_state['maps_url'];
@@ -66,10 +79,10 @@ final class PlannerRenderer {
 			<div class="plan-your-day__surface">
 				<header class="plan-your-day__hero">
 					<div class="plan-your-day__hero-copy">
-						<p class="plan-your-day__eyebrow"><?php esc_html_e( 'Trip builder', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></p>
-						<h2 id="<?php echo esc_attr( $title_id ); ?>"><?php esc_html_e( 'Plan Your Day', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h2>
+						<p class="plan-your-day__eyebrow"><?php esc_html_e( 'Trip builder', 'plan-your-day' ); ?></p>
+						<h2 id="<?php echo esc_attr( $title_id ); ?>"><?php esc_html_e( 'Plan Your Day', 'plan-your-day' ); ?></h2>
 						<p class="plan-your-day__intro">
-							<?php esc_html_e( 'Search by category, choose real places from Google, then turn your picks into a walking trip.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
+							<?php esc_html_e( 'Search by category, choose real places from Google, then turn your picks into a walking trip.', 'plan-your-day' ); ?>
 						</p>
 					</div>
 				</header>
@@ -95,7 +108,7 @@ final class PlannerRenderer {
 				</form>
 			</div>
 
-			<script type="application/json" data-plan-config><?php echo wp_json_encode( $this->build_config( $instance_id, $action_url, $planner_state, $start_points, $category_catalog, $endpoint_token ) ); ?></script>
+			<script type="application/json" data-plan-config><?php echo wp_json_encode( $this->build_config( $instance_id, $action_url, $planner_state, $start_points, $category_catalog, $endpoint_token, $should_hydrate_on_load ) ); ?></script>
 		</section>
 		<?php
 
@@ -112,13 +125,13 @@ final class PlannerRenderer {
 			id="<?php echo esc_attr( $instance_id ); ?>"
 			aria-labelledby="<?php echo esc_attr( $title_id ); ?>">
 			<div class="plan-your-day__surface">
-				<h2 id="<?php echo esc_attr( $title_id ); ?>"><?php esc_html_e( 'Plan Your Day setup needed', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h2>
+				<h2 id="<?php echo esc_attr( $title_id ); ?>"><?php esc_html_e( 'Plan Your Day setup needed', 'plan-your-day' ); ?></h2>
 				<p>
 					<?php
 					echo esc_html(
 						sprintf(
 							/* translators: %s is a comma-separated list of missing setting labels. */
-							__( 'The planner needs required settings before it can render: %s.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+							__( 'The planner needs required settings before it can render: %s.', 'plan-your-day' ),
 							$missing
 						)
 					);
@@ -127,7 +140,7 @@ final class PlannerRenderer {
 				<?php if ( current_user_can( 'manage_options' ) ) : ?>
 					<p>
 						<a href="<?php echo esc_url( admin_url( 'options-general.php?page=' . Settings::PAGE_SLUG ) ); ?>">
-							<?php esc_html_e( 'Open Plan Your Day settings', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
+							<?php esc_html_e( 'Open Plan Your Day settings', 'plan-your-day' ); ?>
 						</a>
 					</p>
 				<?php endif; ?>
@@ -148,14 +161,14 @@ final class PlannerRenderer {
 		<section class="plan-your-day__card" aria-labelledby="<?php echo esc_attr( $start_heading_id ); ?>">
 			<div class="plan-your-day__card-header">
 				<div>
-					<h3 id="<?php echo esc_attr( $start_heading_id ); ?>"><?php esc_html_e( 'Starting point', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h3>
-					<p id="<?php echo esc_attr( $start_help_id ); ?>"><?php esc_html_e( 'Choose where the trip starts.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></p>
+					<h3 id="<?php echo esc_attr( $start_heading_id ); ?>"><?php esc_html_e( 'Starting point', 'plan-your-day' ); ?></h3>
+					<p id="<?php echo esc_attr( $start_help_id ); ?>"><?php esc_html_e( 'Choose where the trip starts.', 'plan-your-day' ); ?></p>
 				</div>
 			</div>
 
 			<div class="plan-your-day__start-panel" id="<?php echo esc_attr( $start_panel_id ); ?>" data-plan-start-panel>
 				<fieldset class="plan-your-day__fieldset" aria-describedby="<?php echo esc_attr( $start_help_id ); ?>">
-					<legend class="screen-reader-text"><?php esc_html_e( 'Starting point mode', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></legend>
+					<legend class="screen-reader-text"><?php esc_html_e( 'Starting point mode', 'plan-your-day' ); ?></legend>
 					<div class="plan-your-day__start-options">
 						<?php foreach ( $start_points as $start_key => $start_point ) : ?>
 							<label class="plan-your-day__start-option">
@@ -176,13 +189,13 @@ final class PlannerRenderer {
 						class="plan-your-day__custom-start"
 						data-plan-custom-start-wrap
 						<?php echo Settings::START_MODE_CUSTOM === $planner_state['start_mode'] ? '' : 'hidden'; ?>>
-						<label for="<?php echo esc_attr( $custom_start_id ); ?>"><?php esc_html_e( 'Custom starting point', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></label>
+						<label for="<?php echo esc_attr( $custom_start_id ); ?>"><?php esc_html_e( 'Custom starting point', 'plan-your-day' ); ?></label>
 						<input
 							id="<?php echo esc_attr( $custom_start_id ); ?>"
 							type="text"
 							name="custom_start"
 							value="<?php echo esc_attr( $planner_state['custom_start'] ); ?>"
-							placeholder="<?php esc_attr_e( 'Hotel name or street address', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>"
+							placeholder="<?php esc_attr_e( 'Hotel name or street address', 'plan-your-day' ); ?>"
 							autocomplete="street-address"
 							data-plan-custom-start>
 					</div>
@@ -199,7 +212,7 @@ final class PlannerRenderer {
 				</div>
 
 				<div class="plan-your-day__actions">
-					<button class="plan-your-day__submit" type="submit"><?php esc_html_e( 'Update results', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></button>
+					<button class="plan-your-day__submit" type="submit"><?php esc_html_e( 'Update results', 'plan-your-day' ); ?></button>
 				</div>
 			</div>
 		</section>
@@ -211,57 +224,84 @@ final class PlannerRenderer {
 		$heading_id                = $instance_id . '-categories-heading';
 		$category_search_id        = $instance_id . '-category-search';
 		$custom_results_heading_id = $instance_id . '-custom-results-heading';
+		$custom_results_trigger_id = $instance_id . '-custom-results-trigger';
+		$custom_results_panel_id   = $instance_id . '-custom-results-panel';
+		$has_custom_search         = (bool) $planner_state['is_custom_search'];
 		?>
 		<section class="plan-your-day__card" aria-labelledby="<?php echo esc_attr( $heading_id ); ?>">
 			<div class="plan-your-day__card-header">
 				<div>
-					<h3 id="<?php echo esc_attr( $heading_id ); ?>" data-plan-results-heading><?php esc_html_e( 'What are you looking for?', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h3>
+					<h3 id="<?php echo esc_attr( $heading_id ); ?>" data-plan-results-heading><?php esc_html_e( 'What are you looking for?', 'plan-your-day' ); ?></h3>
 					<p id="<?php echo esc_attr( $category_help_id ); ?>">
-						<?php esc_html_e( 'Search for any category or use a preset shortcut to load Google results.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
+						<?php esc_html_e( 'Search for any category or use a preset shortcut to load Google results.', 'plan-your-day' ); ?>
 					</p>
 				</div>
 				<span class="plan-your-day__count-pill" data-plan-results-count><?php echo esc_html( $planner_state['search_results_label'] ); ?></span>
 			</div>
 
 			<div class="plan-your-day__category-search">
-				<label for="<?php echo esc_attr( $category_search_id ); ?>" class="screen-reader-text"><?php esc_html_e( 'Search categories', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></label>
+				<label for="<?php echo esc_attr( $category_search_id ); ?>" class="screen-reader-text"><?php esc_html_e( 'Search categories', 'plan-your-day' ); ?></label>
 				<div class="plan-your-day__category-search-controls">
 					<input
 						id="<?php echo esc_attr( $category_search_id ); ?>"
 						type="search"
 						name="category_search"
 						value="<?php echo esc_attr( (string) $planner_state['category_search'] ); ?>"
-						placeholder="<?php esc_attr_e( 'Search categories', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>"
+						placeholder="<?php esc_attr_e( 'Search categories', 'plan-your-day' ); ?>"
 						autocomplete="off"
 						spellcheck="false"
 						data-plan-category-search>
 					<button class="plan-your-day__category-search-button" type="submit" data-plan-action="search-category-query">
-						<?php esc_html_e( 'Search', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
+						<?php esc_html_e( 'Search', 'plan-your-day' ); ?>
 					</button>
 				</div>
 			</div>
 
 			<div
-				class="plan-your-day__custom-search-results"
+				class="plan-your-day__custom-search-results plan-your-day__category-accordion-item<?php echo $has_custom_search ? ' is-expanded' : ''; ?>"
 				data-plan-custom-results
-				aria-labelledby="<?php echo esc_attr( $custom_results_heading_id ); ?>"
-				<?php echo ( $planner_state['is_custom_search'] || [] === $category_catalog ) ? '' : 'hidden'; ?>>
+				<?php echo ( $has_custom_search || [] === $category_catalog ) ? '' : 'hidden'; ?>>
 				<div class="plan-your-day__custom-search-header">
-					<h4 id="<?php echo esc_attr( $custom_results_heading_id ); ?>" data-plan-custom-results-heading>
-						<?php
-						echo esc_html(
-							$planner_state['is_custom_search']
-								? sprintf(
-									/* translators: %s is the active search label. */
-									__( 'Results for %s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-									$planner_state['active_search_label']
-								)
-								: $results_empty_state['heading']
-						);
-						?>
+					<h4 class="plan-your-day__category-accordion-heading">
+						<button
+							class="plan-your-day__category-trigger"
+							type="button"
+							id="<?php echo esc_attr( $custom_results_trigger_id ); ?>"
+							aria-expanded="<?php echo $has_custom_search ? 'true' : 'false'; ?>"
+							aria-controls="<?php echo esc_attr( $custom_results_panel_id ); ?>"
+							data-plan-custom-results-button>
+							<span class="plan-your-day__category-trigger-copy">
+								<span class="plan-your-day__category-title" id="<?php echo esc_attr( $custom_results_heading_id ); ?>" data-plan-custom-results-heading>
+									<?php
+									echo esc_html(
+										$has_custom_search
+											? sprintf(
+												/* translators: %s is the active search label. */
+												__( 'Results for %s', 'plan-your-day' ),
+												$planner_state['active_search_label']
+											)
+											: $results_empty_state['heading']
+									);
+									?>
+								</span>
+								<span class="plan-your-day__category-description" data-plan-custom-results-description>
+									<?php esc_html_e( 'Custom category search results.', 'plan-your-day' ); ?>
+								</span>
+							</span>
+							<span class="plan-your-day__category-trigger-side" aria-hidden="true">
+								<span class="plan-your-day__category-trigger-icon"></span>
+							</span>
+						</button>
 					</h4>
 				</div>
-				<div class="plan-your-day__category-results-scroll" data-plan-custom-results-panel>
+				<div
+					class="plan-your-day__category-panel"
+					id="<?php echo esc_attr( $custom_results_panel_id ); ?>"
+					role="region"
+					aria-labelledby="<?php echo esc_attr( $custom_results_trigger_id ); ?>"
+					data-plan-custom-results-region
+					<?php echo $has_custom_search || [] === $category_catalog ? '' : 'hidden'; ?>>
+					<div class="plan-your-day__category-results-scroll" data-plan-custom-results-panel>
 					<?php if ( $planner_state['is_custom_search'] && [] !== (array) $planner_state['search_results'] ) : ?>
 						<ul class="plan-your-day__results-list">
 							<?php foreach ( (array) $planner_state['search_results'] as $result ) : ?>
@@ -274,6 +314,7 @@ final class PlannerRenderer {
 							<p><?php echo esc_html( $results_empty_state['body'] ); ?></p>
 						</div>
 					<?php endif; ?>
+					</div>
 				</div>
 			</div>
 
@@ -302,6 +343,9 @@ final class PlannerRenderer {
 										<span class="plan-your-day__category-title"><?php echo esc_html( (string) $category['label'] ); ?></span>
 										<span class="plan-your-day__category-description"><?php echo esc_html( (string) $category['description'] ); ?></span>
 									</span>
+									<span class="plan-your-day__category-trigger-side" aria-hidden="true">
+										<span class="plan-your-day__category-trigger-icon"></span>
+									</span>
 								</button>
 							</h4>
 
@@ -310,6 +354,8 @@ final class PlannerRenderer {
 								id="<?php echo esc_attr( $panel_id ); ?>"
 								role="region"
 								aria-labelledby="<?php echo esc_attr( $trigger_id ); ?>"
+								data-plan-category-region
+								data-category-key="<?php echo esc_attr( (string) $category_key ); ?>"
 								<?php echo $is_active ? '' : 'hidden'; ?>>
 								<div class="plan-your-day__category-results-scroll" data-plan-category-results-panel data-category-key="<?php echo esc_attr( (string) $category_key ); ?>">
 									<?php if ( [] !== $search_result_list ) : ?>
@@ -349,24 +395,46 @@ final class PlannerRenderer {
 			</div>
 			<div class="plan-your-day__result-tools">
 				<?php if ( ! empty( $result['maps_uri'] ) ) : ?>
-					<a class="plan-your-day__result-link" href="<?php echo esc_url( (string) $result['maps_uri'] ); ?>" target="_blank" rel="noopener noreferrer">
-						<?php esc_html_e( 'View in Google Maps', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
+					<a
+							class="plan-your-day__result-link"
+							href="<?php echo esc_url( (string) $result['maps_uri'] ); ?>"
+							target="_blank"
+							rel="noopener noreferrer"
+							aria-label="
+							<?php
+							/* translators: %s is a place label. */
+							echo esc_attr( sprintf( __( 'View %s in Google Maps', 'plan-your-day' ), $label ) );
+							?>
+							">
+						<?php esc_html_e( 'View in Google Maps', 'plan-your-day' ); ?>
 					</a>
 				<?php endif; ?>
 
 				<?php if ( $is_in_trip ) : ?>
-					<span class="plan-your-day__result-added" aria-label="<?php echo esc_attr( sprintf( __( '%s is already in the trip', PLAN_YOUR_DAY_TEXT_DOMAIN ), $label ) ); ?>">
-						<?php esc_html_e( 'In trip', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
+						<span class="plan-your-day__result-added" aria-label="
+						<?php
+						/* translators: %s is a place label. */
+						echo esc_attr( sprintf( __( '%s is already in the trip', 'plan-your-day' ), $label ) );
+						?>
+						">
+						<?php esc_html_e( 'In trip', 'plan-your-day' ); ?>
 					</span>
 				<?php else : ?>
 					<button
 						class="plan-your-day__result-add"
 						type="submit"
 						name="waypoints[]"
-						value="<?php echo esc_attr( $place_id ); ?>"
-						data-plan-action="add-waypoint"
-						data-place-id="<?php echo esc_attr( $place_id ); ?>">
-						<?php esc_html_e( 'Add to trip', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
+							value="<?php echo esc_attr( $place_id ); ?>"
+							data-plan-action="add-waypoint"
+							data-plan-route-mutation
+							data-place-id="<?php echo esc_attr( $place_id ); ?>"
+							aria-label="
+							<?php
+							/* translators: %s is a place label. */
+							echo esc_attr( sprintf( __( 'Add %s to trip', 'plan-your-day' ), $label ) );
+							?>
+							">
+						<?php esc_html_e( 'Add to trip', 'plan-your-day' ); ?>
 					</button>
 				<?php endif; ?>
 			</div>
@@ -375,27 +443,33 @@ final class PlannerRenderer {
 	}
 
 	private function render_trip_card( string $instance_id, array $planner_state ): void {
-		$heading_id = $instance_id . '-trip-heading';
-		$help_id    = $instance_id . '-trip-help';
-		$waypoints  = (array) $planner_state['trip_waypoints'];
+		$heading_id       = $instance_id . '-trip-heading';
+		$help_id          = $instance_id . '-trip-help';
+		$waypoints        = (array) $planner_state['trip_waypoints'];
+		$trip_empty_state = isset( $planner_state['trip_empty_state'] )
+			? (array) $planner_state['trip_empty_state']
+			: [
+				'heading' => __( 'Start building the trip', 'plan-your-day' ),
+				'body'    => __( 'Search Google by category, then add the exact places you want as walking-trip waypoints.', 'plan-your-day' ),
+			];
 		?>
 		<section class="plan-your-day__card" aria-labelledby="<?php echo esc_attr( $heading_id ); ?>">
 			<div class="plan-your-day__card-header">
 				<div>
-					<h3 id="<?php echo esc_attr( $heading_id ); ?>" tabindex="-1" data-plan-trip-heading><?php esc_html_e( 'Trip waypoints', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h3>
-					<p id="<?php echo esc_attr( $help_id ); ?>"><?php esc_html_e( 'Add exact places from Google, then use the move controls to set the walking trip order.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></p>
+					<h3 id="<?php echo esc_attr( $heading_id ); ?>" tabindex="-1" data-plan-trip-heading><?php esc_html_e( 'Trip waypoints', 'plan-your-day' ); ?></h3>
+					<p id="<?php echo esc_attr( $help_id ); ?>"><?php esc_html_e( 'Add exact places from Google, then use the move controls to set the walking trip order.', 'plan-your-day' ); ?></p>
 				</div>
 				<div class="plan-your-day__trip-header-actions" data-plan-trip-header-actions>
 					<span class="plan-your-day__count-pill" data-plan-trip-count><?php echo esc_html( $planner_state['trip_count_label'] ); ?></span>
 					<?php if ( [] !== (array) $planner_state['selected_waypoint_ids'] ) : ?>
-						<button class="plan-your-day__clear-link" type="submit" name="clear_trip" value="1" data-plan-clear-trip data-plan-action="clear-trip">
-							<?php esc_html_e( 'Clear trip', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
+						<button class="plan-your-day__clear-link" type="submit" name="clear_trip" value="1" data-plan-clear-trip data-plan-action="clear-trip" data-plan-route-mutation>
+							<?php esc_html_e( 'Clear trip', 'plan-your-day' ); ?>
 						</button>
 					<?php endif; ?>
 				</div>
 			</div>
 
-			<div data-plan-trip-region>
+			<div data-plan-trip-region data-plan-trip-help-id="<?php echo esc_attr( $help_id ); ?>">
 				<?php if ( [] !== $waypoints ) : ?>
 					<ol class="plan-your-day__trip-list" aria-describedby="<?php echo esc_attr( $help_id ); ?>" data-plan-trip-list>
 						<?php foreach ( $waypoints as $index => $waypoint ) : ?>
@@ -404,8 +478,8 @@ final class PlannerRenderer {
 					</ol>
 				<?php else : ?>
 					<div class="plan-your-day__trip-empty" data-plan-trip-empty>
-						<h4><?php esc_html_e( 'Start building the trip', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h4>
-						<p><?php esc_html_e( 'Search Google by category, then add the exact places you want as walking-trip waypoints.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></p>
+						<h4><?php echo esc_html( $trip_empty_state['heading'] ); ?></h4>
+						<p><?php echo esc_html( $trip_empty_state['body'] ); ?></p>
 					</div>
 				<?php endif; ?>
 			</div>
@@ -428,23 +502,40 @@ final class PlannerRenderer {
 			<div class="plan-your-day__trip-tools">
 				<button
 					class="plan-your-day__reorder-button plan-your-day__reorder-button--up"
-					type="<?php echo $index > 0 ? 'submit' : 'button'; ?>"
-					name="move_waypoint"
-					value="<?php echo esc_attr( $place_id . ':up' ); ?>"
+						type="<?php echo $index > 0 ? 'submit' : 'button'; ?>"
+						name="move_waypoint"
+						value="<?php echo esc_attr( $place_id . ':up' ); ?>"
+						data-plan-route-mutation
+						aria-label="
+						<?php
+						/* translators: %s is a place label. */
+						echo esc_attr( sprintf( __( 'Move %s up in the trip', 'plan-your-day' ), $label ) );
+						?>
+						"
 					<?php disabled( 0 === $index ); ?>>
-					<?php esc_html_e( 'Move up', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
+					<?php esc_html_e( 'Move up', 'plan-your-day' ); ?>
 				</button>
 				<button
 					class="plan-your-day__reorder-button plan-your-day__reorder-button--down"
-					type="<?php echo $index < $waypoint_count - 1 ? 'submit' : 'button'; ?>"
-					name="move_waypoint"
-					value="<?php echo esc_attr( $place_id . ':down' ); ?>"
+						type="<?php echo $index < $waypoint_count - 1 ? 'submit' : 'button'; ?>"
+						name="move_waypoint"
+						value="<?php echo esc_attr( $place_id . ':down' ); ?>"
+						data-plan-route-mutation
+						aria-label="
+						<?php
+						/* translators: %s is a place label. */
+						echo esc_attr( sprintf( __( 'Move %s down in the trip', 'plan-your-day' ), $label ) );
+						?>
+						"
 					<?php disabled( $index >= $waypoint_count - 1 ); ?>>
-					<?php esc_html_e( 'Move down', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>
-				</button>
-				<button type="submit" name="remove_waypoint" value="<?php echo esc_attr( $place_id ); ?>" data-plan-action="remove-waypoint" data-place-id="<?php echo esc_attr( $place_id ); ?>">
-					<?php echo esc_html( sprintf( __( 'Remove %s', PLAN_YOUR_DAY_TEXT_DOMAIN ), $label ) ); ?>
-				</button>
+					<?php esc_html_e( 'Move down', 'plan-your-day' ); ?>
+					</button>
+					<button type="submit" name="remove_waypoint" value="<?php echo esc_attr( $place_id ); ?>" data-plan-action="remove-waypoint" data-plan-route-mutation data-place-id="<?php echo esc_attr( $place_id ); ?>">
+						<?php
+						/* translators: %s is a place label. */
+						echo esc_html( sprintf( __( 'Remove %s', 'plan-your-day' ), $label ) );
+						?>
+					</button>
 			</div>
 		</li>
 		<?php
@@ -453,23 +544,23 @@ final class PlannerRenderer {
 	private function render_preview_card( string $instance_id, array $planner_state, array $preview_empty_state, bool $maps_link_enabled ): void {
 		$heading_id     = $instance_id . '-preview-heading';
 		$maps_label_id  = $instance_id . '-maps-label';
-		$category_label = $planner_state['has_search'] ? (string) $planner_state['active_search_label'] : __( 'Not selected', PLAN_YOUR_DAY_TEXT_DOMAIN );
+		$category_label = $planner_state['has_search'] ? (string) $planner_state['active_search_label'] : __( 'Not selected', 'plan-your-day' );
 		?>
 		<section class="plan-your-day__card plan-your-day__preview-card" aria-labelledby="<?php echo esc_attr( $heading_id ); ?>" data-plan-preview-card>
 			<div class="plan-your-day__card-header">
 				<div>
-					<h3 id="<?php echo esc_attr( $heading_id ); ?>" tabindex="-1" data-plan-preview-heading><?php esc_html_e( 'Trip preview', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></h3>
-					<p><?php esc_html_e( 'The map starts as a Google place search and switches to walking directions once you add exact waypoints.', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></p>
+					<h3 id="<?php echo esc_attr( $heading_id ); ?>" tabindex="-1" data-plan-preview-heading><?php esc_html_e( 'Trip preview', 'plan-your-day' ); ?></h3>
+					<p><?php esc_html_e( 'The map starts as a Google place search and switches to walking directions once you add exact waypoints.', 'plan-your-day' ); ?></p>
 				</div>
 			</div>
 
-			<div class="screen-reader-text" aria-live="polite" data-plan-live-region></div>
+			<div class="screen-reader-text" role="status" aria-live="polite" aria-atomic="true" data-plan-live-region></div>
 			<?php $this->render_messages( (array) $planner_state['messages'] ); ?>
 
 			<div class="plan-your-day__map-wrap" data-plan-map-wrap <?php echo '' !== $planner_state['iframe_src'] ? '' : 'hidden'; ?>>
 				<iframe
 					class="plan-your-day__map-frame"
-					title="<?php esc_attr_e( 'Google Maps trip preview', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?>"
+					title="<?php esc_attr_e( 'Google Maps trip preview', 'plan-your-day' ); ?>"
 					src="<?php echo '' !== $planner_state['iframe_src'] ? esc_url( $planner_state['iframe_src'] ) : ''; ?>"
 					loading="lazy"
 					referrerpolicy="no-referrer-when-downgrade"
@@ -484,31 +575,31 @@ final class PlannerRenderer {
 
 			<div class="plan-your-day__summary" data-plan-summary>
 				<div class="plan-your-day__summary-top">
-					<p class="plan-your-day__summary-eyebrow"><?php esc_html_e( 'Trip summary', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></p>
+					<p class="plan-your-day__summary-eyebrow"><?php esc_html_e( 'Trip summary', 'plan-your-day' ); ?></p>
 					<p class="plan-your-day__summary-count" data-plan-summary-count><?php echo esc_html( $planner_state['trip_count_label'] ); ?></p>
 				</div>
 				<p class="plan-your-day__summary-overview" data-plan-summary-overview><?php echo esc_html( $planner_state['overview'] ); ?></p>
 				<dl class="plan-your-day__summary-grid">
 					<div>
-						<dt><?php esc_html_e( 'Active search', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></dt>
+						<dt><?php esc_html_e( 'Active search', 'plan-your-day' ); ?></dt>
 						<dd data-plan-summary-category><?php echo esc_html( $category_label ); ?></dd>
 					</div>
 					<div>
-						<dt><?php esc_html_e( 'Google results', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></dt>
+						<dt><?php esc_html_e( 'Google results', 'plan-your-day' ); ?></dt>
 						<dd data-plan-summary-results><?php echo esc_html( $planner_state['search_results_label'] ); ?></dd>
 					</div>
 					<div>
-						<dt><?php esc_html_e( 'Google Maps start', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></dt>
+						<dt><?php esc_html_e( 'Google Maps start', 'plan-your-day' ); ?></dt>
 						<dd data-plan-summary-handoff-start><?php echo esc_html( $planner_state['handoff_start_label'] ); ?></dd>
 					</div>
 					<div>
-						<dt><?php esc_html_e( 'Map mode', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></dt>
+						<dt><?php esc_html_e( 'Map mode', 'plan-your-day' ); ?></dt>
 						<dd data-plan-summary-mode><?php echo esc_html( $planner_state['preview_mode_label'] ); ?></dd>
 					</div>
 				</dl>
 
 				<div class="plan-your-day__summary-handoff">
-					<p class="plan-your-day__summary-handoff-label" id="<?php echo esc_attr( $maps_label_id ); ?>"><?php esc_html_e( 'Open in Google Maps', PLAN_YOUR_DAY_TEXT_DOMAIN ); ?></p>
+					<p class="plan-your-day__summary-handoff-label" id="<?php echo esc_attr( $maps_label_id ); ?>"><?php esc_html_e( 'Open in Google Maps', 'plan-your-day' ); ?></p>
 					<a
 						class="plan-your-day__maps-link plan-your-day__maps-link--summary<?php echo $maps_link_enabled ? '' : ' is-disabled'; ?>"
 						<?php echo $maps_link_enabled ? 'href="' . esc_url( $planner_state['maps_url'] ) . '"' : ''; ?>
@@ -528,7 +619,9 @@ final class PlannerRenderer {
 		?>
 		<ul class="plan-your-day__messages" data-plan-messages <?php echo [] === $messages ? 'hidden' : ''; ?>>
 			<?php foreach ( $messages as $message ) : ?>
-				<li class="plan-your-day__message plan-your-day__message--<?php echo esc_attr( (string) ( $message['type'] ?? 'note' ) ); ?>">
+				<li
+					class="plan-your-day__message plan-your-day__message--<?php echo esc_attr( (string) ( $message['type'] ?? 'note' ) ); ?>"
+					<?php echo 'warning' === ( $message['type'] ?? 'note' ) ? 'role="alert"' : ''; ?>>
 					<?php echo esc_html( (string) ( $message['text'] ?? '' ) ); ?>
 				</li>
 			<?php endforeach; ?>
@@ -540,13 +633,13 @@ final class PlannerRenderer {
 		$allowed_modes = $this->settings->get_allowed_start_modes();
 		$choices       = Settings::start_mode_choices();
 		$descriptions  = [
-			Settings::START_MODE_CURRENT => __( 'Use the configured default location for on-page previews. Google Maps can start from the visitor\'s current location during handoff.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			Settings::START_MODE_CURRENT => __( 'Use the configured default location for on-page previews. Google Maps can start from the visitor\'s current location during handoff.', 'plan-your-day' ),
 			Settings::START_MODE_DEFAULT => sprintf(
 				/* translators: %s is the configured default location label. */
-				__( 'Start from %s.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Start from %s.', 'plan-your-day' ),
 				$this->settings->get_default_location_label()
 			),
-			Settings::START_MODE_CUSTOM  => __( 'Enter a hotel name, landmark, or street address.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			Settings::START_MODE_CUSTOM  => __( 'Enter a hotel name, landmark, or street address.', 'plan-your-day' ),
 		];
 		$start_points  = [];
 
@@ -564,7 +657,22 @@ final class PlannerRenderer {
 		return $start_points;
 	}
 
-	private function build_config( string $instance_id, string $action_url, array $planner_state, array $start_points, array $category_catalog, string $endpoint_token ): array {
+	private function build_config( string $instance_id, string $action_url, array $planner_state, array $start_points, array $category_catalog, string $endpoint_token, bool $should_hydrate_on_load ): array {
+		$browse_payload = $this->planner_payload_builder->build_browse_payload( $planner_state );
+		$route_payload  = $this->planner_payload_builder->build_route_payload( $planner_state );
+
+		if ( isset( $planner_state['results_empty_state'] ) ) {
+			$browse_payload['resultsEmptyState'] = (array) $planner_state['results_empty_state'];
+		}
+
+		if ( isset( $planner_state['preview_empty_state'] ) ) {
+			$route_payload['emptyPreviewState'] = (array) $planner_state['preview_empty_state'];
+		}
+
+		if ( isset( $planner_state['trip_empty_state'] ) ) {
+			$route_payload['tripEmptyState'] = (array) $planner_state['trip_empty_state'];
+		}
+
 		return [
 			'actionUrl'       => $action_url,
 			'sectionId'       => $instance_id,
@@ -575,26 +683,57 @@ final class PlannerRenderer {
 				'routeUrl'       => rest_url( PlannerRoutes::REST_NAMESPACE . '/route' ),
 				'endpointToken'  => $endpoint_token,
 			],
-			'strings'         => [
-				'requestFailed'       => __( 'The planner request could not be completed. Refresh the page and try again.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'resultsUpdated'      => __( 'Results updated.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'searchResultsFor'    => __( 'Results for %s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'tripUpdated'         => __( 'Trip updated.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'startingPointUpdated' => __( 'Starting point updated.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'startOptionsExpanded' => __( 'Starting point options expanded.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'startOptionsCollapsed' => __( 'Starting point options collapsed.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'openMapsDisabled'   => __( 'Add at least one waypoint before opening the trip in Google Maps.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'viewInGoogleMaps'   => __( 'View in Google Maps', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'addToTrip'          => __( 'Add to trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'inTrip'             => __( 'In trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'alreadyInTripAria'  => __( '%s is already in the trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'tripEmptyHeading'   => __( 'Start building the trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'tripEmptyBody'      => __( 'Search Google by category, then add the exact places you want as walking-trip waypoints.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'moveUp'             => __( 'Move up', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'moveDown'           => __( 'Move down', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'removeWaypointLabel' => __( 'Remove %s', PLAN_YOUR_DAY_TEXT_DOMAIN ),
-				'clearTrip'          => __( 'Clear trip', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+			'hydration'       => [
+				'shouldHydrateOnLoad' => $should_hydrate_on_load,
 			],
+			'strings'         => [
+				'requestFailed'       => __( 'The planner request could not be completed. Refresh the page and try again.', 'plan-your-day' ),
+				'resultsUpdated'      => __( 'Results updated.', 'plan-your-day' ),
+				'searchResultsFor'    =>
+					/* translators: %s is a search label. */
+					__( 'Results for %s', 'plan-your-day' ),
+				'categoryResultsExpanded' =>
+					/* translators: %s is a category label. */
+					__( '%s results expanded.', 'plan-your-day' ),
+				'categoryResultsCollapsed' =>
+					/* translators: %s is a category label. */
+					__( '%s results collapsed.', 'plan-your-day' ),
+				'customSearchResultsDescription' => __( 'Custom category search results.', 'plan-your-day' ),
+				'customResultsExpanded' => __( 'Custom search results expanded.', 'plan-your-day' ),
+				'customResultsCollapsed' => __( 'Custom search results collapsed.', 'plan-your-day' ),
+				'tripUpdated'         => __( 'Trip updated.', 'plan-your-day' ),
+				'startingPointUpdated' => __( 'Starting point updated.', 'plan-your-day' ),
+				'startOptionsExpanded' => __( 'Starting point options expanded.', 'plan-your-day' ),
+				'startOptionsCollapsed' => __( 'Starting point options collapsed.', 'plan-your-day' ),
+				'openMapsDisabled'   => __( 'Add at least one waypoint before opening the trip in Google Maps.', 'plan-your-day' ),
+				'viewInGoogleMaps'   => __( 'View in Google Maps', 'plan-your-day' ),
+				'viewPlaceInGoogleMapsLabel' =>
+					/* translators: %s is a place label. */
+					__( 'View %s in Google Maps', 'plan-your-day' ),
+				'addToTrip'          => __( 'Add to trip', 'plan-your-day' ),
+				'addWaypointLabel'   =>
+					/* translators: %s is a place label. */
+					__( 'Add %s to trip', 'plan-your-day' ),
+				'inTrip'             => __( 'In trip', 'plan-your-day' ),
+				'alreadyInTripAria'  =>
+					/* translators: %s is a place label. */
+					__( '%s is already in the trip', 'plan-your-day' ),
+				'tripEmptyHeading'   => __( 'Start building the trip', 'plan-your-day' ),
+				'tripEmptyBody'      => __( 'Search Google by category, then add the exact places you want as walking-trip waypoints.', 'plan-your-day' ),
+				'moveUp'             => __( 'Move up', 'plan-your-day' ),
+				'moveDown'           => __( 'Move down', 'plan-your-day' ),
+				'moveWaypointUpLabel' =>
+					/* translators: %s is a place label. */
+					__( 'Move %s up in the trip', 'plan-your-day' ),
+				'moveWaypointDownLabel' =>
+					/* translators: %s is a place label. */
+					__( 'Move %s down in the trip', 'plan-your-day' ),
+				'removeWaypointLabel' =>
+					/* translators: %s is a place label. */
+					__( 'Remove %s', 'plan-your-day' ),
+				'clearTrip'          => __( 'Clear trip', 'plan-your-day' ),
+			],
+			'debug'           => defined( 'WP_DEBUG' ) && true === WP_DEBUG,
 			'initialState'    => [
 				'category'            => $planner_state['category_key'],
 				'categorySearch'      => $planner_state['category_search'],
@@ -603,8 +742,8 @@ final class PlannerRenderer {
 				'customStart'         => $planner_state['custom_start'],
 			],
 			'initialData'     => [
-				'browse' => $this->planner_payload_builder->build_browse_payload( $planner_state ),
-				'route'  => $this->planner_payload_builder->build_route_payload( $planner_state ),
+				'browse' => $browse_payload,
+				'route'  => $route_payload,
 			],
 		];
 	}

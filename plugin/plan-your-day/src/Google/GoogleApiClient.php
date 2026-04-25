@@ -5,6 +5,7 @@ namespace Acodebeard\PlanYourDay\Google;
 
 use Acodebeard\PlanYourDay\Planner\PlaceParser;
 use Acodebeard\PlanYourDay\Settings\Settings;
+use Acodebeard\PlanYourDay\Support\DebugLogger;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -41,7 +42,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		if ( '' === $api_key ) {
 			return GoogleApiResult::failure(
 				'missing_places_api_key',
-				__( 'Add a valid Google Places API key to load Google place results.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Add a valid Google Places API key to load Google place results.', 'plan-your-day' ),
 				0,
 				false
 			);
@@ -65,6 +66,16 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 			];
 		}
 
+		DebugLogger::log(
+			'google.text_search.request',
+			[
+				'query'            => $query,
+				'origin_latitude'  => $origin_latitude,
+				'origin_longitude' => $origin_longitude,
+				'request_body'     => $request_body,
+			]
+		);
+
 		$response = $this->transport->post(
 			self::TEXT_SEARCH_ENDPOINT,
 			[
@@ -80,7 +91,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		$decoded  = $this->decode_response(
 			$response,
 			'places_unavailable',
-			__( 'Google place results are unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+			__( 'Google place results are unavailable right now.', 'plan-your-day' )
 		);
 
 		if ( $decoded instanceof GoogleApiResult ) {
@@ -108,13 +119,13 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		);
 	}
 
-	public function place_details( string $place_id ): GoogleApiResult {
+	public function place_details( string $place_id, ?int $timeout = null ): GoogleApiResult {
 		$place_id = PlaceParser::sanitize_place_id( $place_id );
 
 		if ( '' === $place_id ) {
 			return GoogleApiResult::failure(
 				'invalid_place_id',
-				__( 'Google place details are unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Google place details are unavailable right now.', 'plan-your-day' ),
 				0,
 				false
 			);
@@ -125,16 +136,23 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		if ( '' === $api_key ) {
 			return GoogleApiResult::failure(
 				'missing_places_api_key',
-				__( 'Add a valid Google Places API key to load exact Google place details.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Add a valid Google Places API key to load exact Google place details.', 'plan-your-day' ),
 				0,
 				false
 			);
 		}
 
+		DebugLogger::log(
+			'google.place_details.request',
+			[
+				'place_id' => $place_id,
+			]
+		);
+
 		$response = $this->transport->get(
 			self::PLACE_DETAILS_ENDPOINT . rawurlencode( $place_id ),
 			[
-				'timeout' => $this->settings->get_google_api_timeout(),
+				'timeout' => $this->resolve_timeout( $timeout ),
 				'headers' => [
 					'X-Goog-Api-Key'   => $api_key,
 					'X-Goog-FieldMask' => self::PLACE_DETAILS_FIELD_MASK,
@@ -144,7 +162,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		$decoded  = $this->decode_response(
 			$response,
 			'place_details_unavailable',
-			__( 'Google place details are unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+			__( 'Google place details are unavailable right now.', 'plan-your-day' )
 		);
 
 		if ( $decoded instanceof GoogleApiResult ) {
@@ -156,7 +174,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		if ( ! $place['is_valid'] ) {
 			return GoogleApiResult::failure(
 				'place_details_unavailable',
-				__( 'Google place details are unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Google place details are unavailable right now.', 'plan-your-day' ),
 				$decoded['status_code'],
 				false
 			);
@@ -172,13 +190,23 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		);
 	}
 
+	private function resolve_timeout( ?int $timeout_override = null ): int {
+		$timeout = $this->settings->get_google_api_timeout();
+
+		if ( null === $timeout_override || $timeout_override < 1 ) {
+			return $timeout;
+		}
+
+		return min( $timeout, $timeout_override );
+	}
+
 	public function geocode( string $address ): GoogleApiResult {
 		$address = trim( sanitize_text_field( $address ) );
 
 		if ( '' === $address ) {
 			return GoogleApiResult::failure(
 				'empty_geocode_address',
-				__( 'Google geocoding is unavailable for this address.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Google geocoding is unavailable for this address.', 'plan-your-day' ),
 				0,
 				false
 			);
@@ -189,11 +217,18 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		if ( '' === $api_key ) {
 			return GoogleApiResult::failure(
 				'missing_geocoding_api_key',
-				__( 'Add a valid Google Geocoding API key or Places API key to geocode starting locations.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Add a valid Google Geocoding API key or Places API key to geocode starting locations.', 'plan-your-day' ),
 				0,
 				false
 			);
 		}
+
+		DebugLogger::log(
+			'google.geocode.request',
+			[
+				'address' => $address,
+			]
+		);
 
 		$response = $this->transport->get(
 			add_query_arg(
@@ -210,7 +245,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		$decoded  = $this->decode_response(
 			$response,
 			'geocoding_unavailable',
-			__( 'Google geocoding is unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN )
+			__( 'Google geocoding is unavailable right now.', 'plan-your-day' )
 		);
 
 		if ( $decoded instanceof GoogleApiResult ) {
@@ -231,7 +266,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		) {
 			return GoogleApiResult::failure(
 				'geocoding_unavailable',
-				__( 'Google geocoding is unavailable right now.', PLAN_YOUR_DAY_TEXT_DOMAIN ),
+				__( 'Google geocoding is unavailable right now.', 'plan-your-day' ),
 				$decoded['status_code'],
 				$this->is_retryable_status( $decoded['status_code'] )
 			);
@@ -251,10 +286,24 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 	 */
 	private function decode_response( mixed $response, string $error_code, string $message ): array|GoogleApiResult {
 		if ( is_wp_error( $response ) ) {
+			DebugLogger::log(
+				'google.response.wp_error',
+				[
+					'error_code' => $error_code,
+					'response'   => $response,
+				]
+			);
 			return GoogleApiResult::failure( $error_code, $message );
 		}
 
 		if ( ! is_array( $response ) ) {
+			DebugLogger::log(
+				'google.response.invalid_transport',
+				[
+					'error_code'    => $error_code,
+					'response_type' => gettype( $response ),
+				]
+			);
 			return GoogleApiResult::failure( $error_code, $message );
 		}
 
@@ -262,6 +311,14 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		$body        = json_decode( (string) wp_remote_retrieve_body( $response ), true );
 
 		if ( $status_code < 200 || $status_code >= 300 || ! is_array( $body ) ) {
+			DebugLogger::log(
+				'google.response.error',
+				[
+					'error_code'   => $error_code,
+					'status_code'  => $status_code,
+					'body_excerpt' => wp_remote_retrieve_body( $response ),
+				]
+			);
 			return GoogleApiResult::failure(
 				$error_code,
 				$message,
@@ -269,6 +326,15 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 				$this->is_retryable_status( $status_code )
 			);
 		}
+
+		DebugLogger::log(
+			'google.response.success',
+			[
+				'error_code'  => $error_code,
+				'status_code' => $status_code,
+				'body_keys'   => array_keys( $body ),
+			]
+		);
 
 		return [
 			'body'        => $body,

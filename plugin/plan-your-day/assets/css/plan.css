@@ -27,7 +27,7 @@
 .plan-your-day input,
 .plan-your-day select,
 .plan-your-day textarea {
-  font: inherit;
+  touch-action: manipulation;
 }
 
 .plan-your-day button {
@@ -396,7 +396,7 @@
 }
 
 .plan-your-day__custom-search-header {
-  margin-bottom: 0.75rem;
+  margin: 0;
 }
 
 .plan-your-day__custom-search-header h4 {
@@ -637,10 +637,6 @@
   font-weight: 700;
   line-height: 1.2;
   pointer-events: none;
-}
-
-.plan-your-day.is-enhanced .plan-your-day__trip-item {
-  cursor: grab;
 }
 
 .plan-your-day.is-enhanced .plan-your-day__trip-item:hover {
