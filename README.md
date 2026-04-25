@@ -35,6 +35,15 @@ Completed foundation work includes:
 Migration helpers, CI, block-editor support, configurable categories/copy, and
 production documentation are still tracked in GitHub issues.
 
+## Standalone Upgrade Note
+
+Upgrading from the older standalone DKC runtime is currently a **manual**
+migration. The plugin does not import legacy `dkc_plan_*` options or the old
+standalone config file automatically.
+
+Use [docs/MIGRATION-FROM-DKC-STANDALONE.md](docs/MIGRATION-FROM-DKC-STANDALONE.md)
+before replacing an existing standalone deployment.
+
 ## Requirements
 
 - WordPress 6.8 or newer
