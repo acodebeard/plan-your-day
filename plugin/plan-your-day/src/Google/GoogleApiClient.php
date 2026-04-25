@@ -15,6 +15,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 	private const GEOCODE_ENDPOINT = 'https://maps.googleapis.com/maps/api/geocode/json';
 	private const TEXT_SEARCH_FIELD_MASK = 'places.id,places.displayName,places.formattedAddress,places.googleMapsUri,places.location';
 	private const PLACE_DETAILS_FIELD_MASK = 'id,displayName,formattedAddress,googleMapsUri';
+	public const TEXT_SEARCH_LOCATION_BIAS_RADIUS_METERS = 15000.0;
 
 	private Settings $settings;
 	private GoogleHttpTransportInterface $transport;
@@ -61,7 +62,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 						'latitude'  => $origin_latitude,
 						'longitude' => $origin_longitude,
 					],
-					'radius' => 15000.0,
+					'radius' => self::TEXT_SEARCH_LOCATION_BIAS_RADIUS_METERS,
 				],
 			];
 		}

@@ -21,11 +21,7 @@ final class CachedGoogleApiClient implements GoogleApiClientInterface {
 	public function text_search( string $query, ?float $origin_latitude = null, ?float $origin_longitude = null ): GoogleApiResult {
 		$cache_key = $this->cache->build_key(
 			'text_search',
-			[
-				'query'            => trim( sanitize_text_field( $query ) ),
-				'origin_latitude'  => $this->normalize_coordinate( $origin_latitude ),
-				'origin_longitude' => $this->normalize_coordinate( $origin_longitude ),
-			],
+			$this->build_text_search_cache_parts( $query, $origin_latitude, $origin_longitude ),
 			$this->settings->get_google_places_api_key()
 		);
 
@@ -34,6 +30,29 @@ final class CachedGoogleApiClient implements GoogleApiClientInterface {
 			$this->settings->get_google_text_search_cache_ttl(),
 			fn (): GoogleApiResult => $this->client->text_search( $query, $origin_latitude, $origin_longitude )
 		);
+	}
+
+	private function build_text_search_cache_parts( string $query, ?float $origin_latitude, ?float $origin_longitude ): array {
+		$parts = [
+			'query'           => trim( sanitize_text_field( $query ) ),
+			'result_count'    => $this->settings->get_result_count(),
+			'rank_preference' => 'DISTANCE',
+			'location_bias'   => null,
+		];
+
+		if ( $this->is_valid_coordinate( $origin_latitude, -90, 90 ) && $this->is_valid_coordinate( $origin_longitude, -180, 180 ) ) {
+			$parts['location_bias'] = [
+				'circle' => [
+					'center' => [
+						'latitude'  => $this->normalize_coordinate( $origin_latitude ),
+						'longitude' => $this->normalize_coordinate( $origin_longitude ),
+					],
+					'radius' => GoogleApiClient::TEXT_SEARCH_LOCATION_BIAS_RADIUS_METERS,
+				],
+			];
+		}
+
+		return $parts;
 	}
 
 	public function place_details( string $place_id, ?int $timeout = null ): GoogleApiResult {
@@ -85,6 +104,10 @@ final class CachedGoogleApiClient implements GoogleApiClientInterface {
 
 	private function normalize_coordinate( ?float $coordinate ): ?string {
 		return null === $coordinate ? null : sprintf( '%.6F', $coordinate );
+	}
+
+	private function is_valid_coordinate( ?float $coordinate, float $minimum, float $maximum ): bool {
+		return null !== $coordinate && $coordinate >= $minimum && $coordinate <= $maximum;
 	}
 
 	private function sanitize_place_id( string $place_id ): string {
