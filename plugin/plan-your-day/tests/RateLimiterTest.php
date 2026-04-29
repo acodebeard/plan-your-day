@@ -111,20 +111,24 @@ final class RateLimiterTest extends TestCase {
 		$GLOBALS['plan_your_day_use_ext_object_cache'] = true;
 
 		$now = 200.0;
-		$key = hash( 'sha256', 'browse|198.51.100.10' );
-		$GLOBALS['plan_your_day_test_object_cache']['plan-your-day'][ 'plan_your_day_rate_lock_' . $key ] = 150.0;
+		update_option(
+			'plan_your_day_rate_lock_' . hash( 'sha256', 'browse|198.51.100.10' ),
+			150.0
+		);
 
 		$limiter = $this->build_limiter( 2, $now );
 		$result  = $limiter->enforce( 'browse', [ 'REMOTE_ADDR' => '198.51.100.10' ] );
 
 		self::assertNull( $result );
 		self::assertArrayHasKey(
-			'plan_your_day_rate_' . $key,
+			'plan_your_day_rate_' . hash( 'sha256', 'browse|198.51.100.10' ),
 			$GLOBALS['plan_your_day_test_object_cache']['plan-your-day']
 		);
-		self::assertArrayNotHasKey(
-			'plan_your_day_rate_lock_' . $key,
-			$GLOBALS['plan_your_day_test_object_cache']['plan-your-day']
+		self::assertFalse(
+			array_key_exists(
+				'plan_your_day_rate_lock_' . hash( 'sha256', 'browse|198.51.100.10' ),
+				$GLOBALS['plan_your_day_test_options']
+			)
 		);
 	}
 
