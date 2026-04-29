@@ -8,7 +8,7 @@ progress.
 
 ## Current Documents
 
-- [Installation](INSTALLATION.md): source checkout setup, local DKC install,
+- [Installation](INSTALLATION.md): source checkout setup, local WordPress test install,
   activation checks, and release zip expectations.
 - [Architecture](ARCHITECTURE.md): plugin layers, current service boundaries,
   and what remains in the standalone runtime.

@@ -35,37 +35,29 @@ Then activate the plugin from the WordPress admin Plugins screen or with WP-CLI:
 wp --path=/path/to/wordpress plugin activate plan-your-day
 ```
 
-## Local DKC Test Install
+## Local Test Install
 
-The current local target test install is:
-
-```text
-/opt/lampp/htdocs/dkc
-```
-
-The local plugin install is a symlink:
+One local development setup can look like this:
 
 ```text
-/opt/lampp/htdocs/dkc/wp-content/plugins/plan-your-day
-  -> /opt/lampp/htdocs/plan-your-day/plugin/plan-your-day
+/path/to/wordpress
+/path/to/wordpress/wp-content/plugins/plan-your-day
+  -> /path/to/plan-your-day/plugin/plan-your-day
 ```
 
 Useful local commands:
 
 ```sh
-sudo /opt/lampp/lampp start
-
-/opt/lampp/bin/php /usr/local/bin/wp \
-  --path=/opt/lampp/htdocs/dkc \
-  --url=http://localhost/dkc \
+wp \
+  --path=/path/to/wordpress \
+  --url=https://example.test \
   plugin status plan-your-day \
-  --allow-root
 ```
 
 The admin settings screen is:
 
 ```text
-http://localhost/dkc/wp-admin/options-general.php?page=plan-your-day
+https://example.test/wp-admin/options-general.php?page=plan-your-day
 ```
 
 If the target WordPress runtime has legacy planner settings to preserve, define

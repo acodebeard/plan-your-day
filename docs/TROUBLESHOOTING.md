@@ -13,30 +13,28 @@ Release zips should already include `vendor/autoload.php`.
 
 ## WP-CLI Cannot Connect To Database
 
-For XAMPP installs, make sure Apache and MySQL are running:
+Make sure the target WordPress environment and database are actually running.
+For example, on a XAMPP install:
 
 ```sh
 sudo /opt/lampp/lampp start
 ```
 
-Use XAMPP PHP when testing the DKC install:
+If your WP-CLI setup depends on a non-default PHP binary, call that PHP
+explicitly:
 
 ```sh
-/opt/lampp/bin/php /usr/local/bin/wp \
-  --path=/opt/lampp/htdocs/dkc \
-  --url=http://localhost/dkc \
+php /path/to/wp \
+  --path=/path/to/wordpress \
+  --url=https://example.test \
   plugin status plan-your-day \
-  --allow-root
 ```
 
 ## WordPress Says The Site Is Not Installed
 
-The generic `/opt/lampp/htdocs/wordpress` directory may have WordPress files but
-no installed database tables. The current target test site is:
-
-```text
-/opt/lampp/htdocs/dkc
-```
+Your target directory may contain WordPress core files but still have no
+installed database tables. Confirm that the `--path` you pass to WP-CLI points
+to the actual installed site, not just an unpacked WordPress checkout.
 
 ## Settings Page Does Not Appear In A WP-CLI Smoke Test
 
@@ -44,11 +42,10 @@ no installed database tables. The current target test site is:
 WP-CLI, set an administrator user first:
 
 ```sh
-/opt/lampp/bin/php /usr/local/bin/wp \
-  --path=/opt/lampp/htdocs/dkc \
-  --url=http://localhost/dkc \
+php /path/to/wp \
+  --path=/path/to/wordpress \
+  --url=https://example.test \
   eval 'wp_set_current_user(1); do_action("admin_menu"); global $submenu; var_export($submenu["options-general.php"] ?? []);' \
-  --allow-root
 ```
 
 ## Composer Emits Deprecation Notices
@@ -75,7 +72,7 @@ validated through WP-CLI or future REST/renderer work.
 Open the plugin settings screen:
 
 ```text
-http://localhost/dkc/wp-admin/options-general.php?page=plan-your-day
+https://example.test/wp-admin/options-general.php?page=plan-your-day
 ```
 
 If you are upgrading from an earlier standalone planner, expose its settings to
