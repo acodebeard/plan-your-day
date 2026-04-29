@@ -343,6 +343,32 @@ final class SettingsPage {
 				<?php wp_nonce_field( 'plan_your_day_clear_google_cache' ); ?>
 				<?php submit_button( __( 'Clear Google API cache', 'plan-your-day' ), 'secondary', 'submit', false ); ?>
 			</form>
+			<h3><?php esc_html_e( 'Targeted Cache Tools', 'plan-your-day' ); ?></h3>
+			<p><?php esc_html_e( 'Clear cached entries for one Google API scope or one place ID without dropping the full cache.', 'plan-your-day' ); ?></p>
+			<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post" style="margin-bottom:1rem;">
+				<input type="hidden" name="action" value="plan_your_day_clear_google_cache_scope" />
+				<?php wp_nonce_field( 'plan_your_day_clear_google_cache_scope' ); ?>
+				<label for="plan-your-day-cache-scope"><strong><?php esc_html_e( 'Cache scope', 'plan-your-day' ); ?></strong></label>
+				<select id="plan-your-day-cache-scope" name="plan_your_day_cache_scope">
+					<?php foreach ( $this->google_cache_scope_choices() as $scope_value => $scope_label ) : ?>
+						<option value="<?php echo esc_attr( $scope_value ); ?>"><?php echo esc_html( $scope_label ); ?></option>
+					<?php endforeach; ?>
+				</select>
+				<?php submit_button( __( 'Clear selected scope', 'plan-your-day' ), 'secondary', 'submit', false ); ?>
+			</form>
+			<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post">
+				<input type="hidden" name="action" value="plan_your_day_clear_google_cache_place" />
+				<?php wp_nonce_field( 'plan_your_day_clear_google_cache_place' ); ?>
+				<label for="plan-your-day-cache-place-id"><strong><?php esc_html_e( 'Google Place ID', 'plan-your-day' ); ?></strong></label>
+				<input
+					type="text"
+					id="plan-your-day-cache-place-id"
+					name="plan_your_day_cache_place_id"
+					class="regular-text"
+					placeholder="<?php echo esc_attr__( 'Enter a Google Place ID', 'plan-your-day' ); ?>"
+				/>
+				<?php submit_button( __( 'Clear this place', 'plan-your-day' ), 'secondary', 'submit', false ); ?>
+			</form>
 			<hr />
 			<h2><?php esc_html_e( 'Google API Test', 'plan-your-day' ); ?></h2>
 			<p><?php esc_html_e( 'Run a lightweight admin-only probe using the configured default location, categories, and server-side Google keys.', 'plan-your-day' ); ?></p>
@@ -555,6 +581,50 @@ final class SettingsPage {
 			[
 				'page'                        => Settings::PAGE_SLUG,
 				'plan_your_day_cache_cleared' => $cleared,
+			],
+			admin_url( 'options-general.php' )
+		);
+
+		wp_safe_redirect( $redirect_url );
+		exit;
+	}
+
+	public function handle_clear_google_cache_scope(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to manage Plan Your Day settings.', 'plan-your-day' ) );
+		}
+
+		check_admin_referer( 'plan_your_day_clear_google_cache_scope' );
+
+		$scope        = isset( $_POST['plan_your_day_cache_scope'] ) ? sanitize_key( wp_unslash( $_POST['plan_your_day_cache_scope'] ) ) : '';
+		$cleared      = $this->google_api_cache->clear_for_scope( $scope );
+		$redirect_url = add_query_arg(
+			[
+				'page'                              => Settings::PAGE_SLUG,
+				'plan_your_day_cache_scope'         => $scope,
+				'plan_your_day_cache_scope_cleared' => $cleared,
+			],
+			admin_url( 'options-general.php' )
+		);
+
+		wp_safe_redirect( $redirect_url );
+		exit;
+	}
+
+	public function handle_clear_google_cache_place(): void {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to manage Plan Your Day settings.', 'plan-your-day' ) );
+		}
+
+		check_admin_referer( 'plan_your_day_clear_google_cache_place' );
+
+		$place_id     = isset( $_POST['plan_your_day_cache_place_id'] ) ? sanitize_text_field( wp_unslash( $_POST['plan_your_day_cache_place_id'] ) ) : '';
+		$cleared      = $this->google_api_cache->clear_for_place( $place_id );
+		$redirect_url = add_query_arg(
+			[
+				'page'                              => Settings::PAGE_SLUG,
+				'plan_your_day_cache_place_id'      => $place_id,
+				'plan_your_day_cache_place_cleared' => $cleared,
 			],
 			admin_url( 'options-general.php' )
 		);
@@ -1035,6 +1105,8 @@ final class SettingsPage {
 
 	private function render_cache_notice(): void {
 		if ( ! isset( $_GET['plan_your_day_cache_cleared'] ) ) {
+			$this->render_scope_cache_notice();
+			$this->render_place_cache_notice();
 			return;
 		}
 
@@ -1044,15 +1116,92 @@ final class SettingsPage {
 
 		$cleared = absint( wp_unslash( $_GET['plan_your_day_cache_cleared'] ) );
 
-			printf(
-				'<div class="notice notice-success is-dismissible"><p>%s</p></div>',
-				esc_html(
-					sprintf(
-						/* translators: %d is the number of cleared cache items. */
-						_n( 'Cleared %d Google API cache item.', 'Cleared %d Google API cache items.', $cleared, 'plan-your-day' ),
-						$cleared
-					)
+		printf(
+			'<div class="notice notice-success is-dismissible"><p>%s</p></div>',
+			esc_html(
+				sprintf(
+					/* translators: %d is the number of cleared cache items. */
+					_n( 'Cleared %d Google API cache item.', 'Cleared %d Google API cache items.', $cleared, 'plan-your-day' ),
+					$cleared
 				)
-			);
+			)
+		);
+
+		$this->render_scope_cache_notice();
+		$this->render_place_cache_notice();
+	}
+
+	private function render_scope_cache_notice(): void {
+		if ( ! isset( $_GET['plan_your_day_cache_scope_cleared'] ) || is_array( $_GET['plan_your_day_cache_scope_cleared'] ) ) {
+			return;
+		}
+
+		$scope = isset( $_GET['plan_your_day_cache_scope'] ) && ! is_array( $_GET['plan_your_day_cache_scope'] )
+			? sanitize_key( wp_unslash( $_GET['plan_your_day_cache_scope'] ) )
+			: '';
+
+		if ( '' === $scope ) {
+			return;
+		}
+
+		$cleared = absint( wp_unslash( $_GET['plan_your_day_cache_scope_cleared'] ) );
+
+		printf(
+			'<div class="notice notice-success is-dismissible"><p>%s</p></div>',
+			esc_html(
+				sprintf(
+					/* translators: 1: cache scope, 2: number of cleared cache items. */
+					_n(
+						'Cleared %2$d Google API cache item for the %1$s scope.',
+						'Cleared %2$d Google API cache items for the %1$s scope.',
+						$cleared,
+						'plan-your-day'
+					),
+					$scope,
+					$cleared
+				)
+			)
+		);
+	}
+
+	private function render_place_cache_notice(): void {
+		if ( ! isset( $_GET['plan_your_day_cache_place_cleared'] ) || is_array( $_GET['plan_your_day_cache_place_cleared'] ) ) {
+			return;
+		}
+
+		$place_id = isset( $_GET['plan_your_day_cache_place_id'] ) && ! is_array( $_GET['plan_your_day_cache_place_id'] )
+			? sanitize_text_field( wp_unslash( $_GET['plan_your_day_cache_place_id'] ) )
+			: '';
+
+		if ( '' === $place_id ) {
+			return;
+		}
+
+		$cleared = absint( wp_unslash( $_GET['plan_your_day_cache_place_cleared'] ) );
+
+		printf(
+			'<div class="notice notice-success is-dismissible"><p>%s</p></div>',
+			esc_html(
+				sprintf(
+					/* translators: 1: place ID, 2: number of cleared cache items. */
+					_n(
+						'Cleared %2$d Google API cache item for place ID %1$s.',
+						'Cleared %2$d Google API cache items for place ID %1$s.',
+						$cleared,
+						'plan-your-day'
+					),
+					$place_id,
+					$cleared
+				)
+			)
+		);
+	}
+
+	private function google_cache_scope_choices(): array {
+		return [
+			'text_search'   => __( 'Text search', 'plan-your-day' ),
+			'place_details' => __( 'Place details', 'plan-your-day' ),
+			'geocode'       => __( 'Geocoding', 'plan-your-day' ),
+		];
 	}
 }

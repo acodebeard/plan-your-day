@@ -110,6 +110,8 @@ final class Plugin {
 		add_action( 'admin_menu', [ $this->settings_page, 'register' ] );
 		add_action( 'admin_notices', [ $this->settings_page, 'render_missing_required_settings_notice' ] );
 		add_action( 'admin_post_plan_your_day_clear_google_cache', [ $this->settings_page, 'handle_clear_google_cache' ] );
+		add_action( 'admin_post_plan_your_day_clear_google_cache_scope', [ $this->settings_page, 'handle_clear_google_cache_scope' ] );
+		add_action( 'admin_post_plan_your_day_clear_google_cache_place', [ $this->settings_page, 'handle_clear_google_cache_place' ] );
 		add_action( 'admin_post_plan_your_day_test_google_api', [ $this->settings_page, 'handle_test_google_api' ] );
 	}
 
