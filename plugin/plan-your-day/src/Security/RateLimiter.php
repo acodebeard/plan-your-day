@@ -10,6 +10,7 @@ defined( 'ABSPATH' ) || exit;
 
 final class RateLimiter {
 	private const WINDOW_SECONDS = 60;
+	private const CACHE_GROUP = 'plan-your-day';
 	private const STATE_OPTION_PREFIX = 'plan_your_day_rate_';
 	private const LOCK_OPTION_PREFIX = 'plan_your_day_rate_lock_';
 	private const LOCK_TIMEOUT_SECONDS = 5.0;
@@ -82,13 +83,19 @@ final class RateLimiter {
 	}
 
 	private function load_state( string $key ): array {
+		if ( $this->uses_external_object_cache() ) {
+			$state = wp_cache_get( $this->state_option_name( $key ), self::CACHE_GROUP );
+
+			return is_array( $state ) ? $state : [];
+		}
+
 		$state = get_option( $this->state_option_name( $key ), [] );
 
 		return is_array( $state ) ? $state : [];
 	}
 
 	private function persist_state( string $key, array $timestamps ): void {
-		$option_name = $this->state_option_name( $key );
+		$storage_key = $this->state_option_name( $key );
 		$timestamps  = array_values(
 			array_map(
 				static function ( mixed $timestamp ): float {
@@ -99,11 +106,21 @@ final class RateLimiter {
 		);
 
 		if ( [] === $timestamps ) {
-			delete_option( $option_name );
+			if ( $this->uses_external_object_cache() ) {
+				wp_cache_delete( $storage_key, self::CACHE_GROUP );
+				return;
+			}
+
+			delete_option( $storage_key );
 			return;
 		}
 
-		update_option( $option_name, $timestamps, false );
+		if ( $this->uses_external_object_cache() ) {
+			wp_cache_set( $storage_key, $timestamps, self::CACHE_GROUP, self::WINDOW_SECONDS );
+			return;
+		}
+
+		update_option( $storage_key, $timestamps, false );
 	}
 
 	private function acquire_lock( string $key, float $now ): bool {
@@ -132,6 +149,14 @@ final class RateLimiter {
 
 	private function release_lock( string $key ): void {
 		delete_option( $this->lock_option_name( $key ) );
+	}
+
+	private function uses_external_object_cache(): bool {
+		return function_exists( 'wp_using_ext_object_cache' )
+			&& function_exists( 'wp_cache_get' )
+			&& function_exists( 'wp_cache_set' )
+			&& function_exists( 'wp_cache_delete' )
+			&& wp_using_ext_object_cache();
 	}
 
 	private function rate_limited_error(): WP_Error {
