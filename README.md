@@ -121,7 +121,7 @@ find plugin/plan-your-day -name '*.php' -print -exec php -l {} \;
 Search for legacy integration-specific strings in plugin code:
 
 ```sh
-rg "localhost/dkc|DKC|dkc|pier" plugin/plan-your-day
+rg "localhost|example\\.test|Kona|pier" plugin/plan-your-day
 ```
 
 No production test suite is wired yet; automated checks are tracked separately.
