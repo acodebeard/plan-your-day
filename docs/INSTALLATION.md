@@ -68,10 +68,11 @@ The admin settings screen is:
 http://localhost/dkc/wp-admin/options-general.php?page=plan-your-day
 ```
 
-If the legacy DKC theme config is still present, the settings screen now shows a
-`Legacy Migration` panel. Use that tool to copy detected location values, Google
-API keys, and legacy categories into the plugin settings without editing the
-legacy files in place.
+If the target WordPress runtime has legacy planner settings to preserve, define
+`PLAN_YOUR_DAY_LEGACY_CONFIG_FILE` to a PHP file that returns a legacy settings
+array, or provide the same array through the `plan_your_day_legacy_settings`
+filter before activating the plugin. Activation imports those values into the
+plugin settings only when the plugin settings are still effectively empty.
 
 ## Activation Effects
 

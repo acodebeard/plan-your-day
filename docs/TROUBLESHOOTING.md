@@ -70,7 +70,7 @@ Current likely causes:
 The frontend planner is not wired yet, so current Google behavior is mostly
 validated through WP-CLI or future REST/renderer work.
 
-## Plugin Settings Are Empty But Legacy DKC Config Exists
+## Plugin Settings Are Empty But Legacy Planner Settings Exist
 
 Open the plugin settings screen:
 
@@ -78,10 +78,15 @@ Open the plugin settings screen:
 http://localhost/dkc/wp-admin/options-general.php?page=plan-your-day
 ```
 
-If the current WordPress runtime exposes the legacy DKC planner helpers or
-constants, the page shows a `Legacy Migration` panel and an admin notice. Use
-the import action to copy legacy location values, Google API keys, and legacy
-categories into `plan_your_day_settings`.
+If you are upgrading from an earlier standalone planner, expose its settings to
+the plugin before activation. The plugin supports two generic inputs:
+
+- Define `PLAN_YOUR_DAY_LEGACY_CONFIG_FILE` to a PHP file that returns a legacy
+  settings array using plugin setting keys.
+- Or provide the same array through the `plan_your_day_legacy_settings` filter.
+
+Activation imports that legacy data into `plan_your_day_settings` only when the
+plugin settings are still effectively empty.
 
 The importer is conservative:
 

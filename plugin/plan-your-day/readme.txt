@@ -19,8 +19,8 @@ registration, admin settings screen, Google API client abstraction, Google API
 caching, and extracted planner helper services.
 
 The public planner frontend, shortcode, block wrapper, REST endpoints, visitor
-token protection, release build process, migration helper, and production QA
-are still in progress.
+token protection, release build process, and production QA are still in
+progress.
 
 == Installation ==
 

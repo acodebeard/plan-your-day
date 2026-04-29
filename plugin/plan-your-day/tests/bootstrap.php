@@ -28,6 +28,7 @@ if ( ! defined( 'COOKIE_DOMAIN' ) ) {
 $GLOBALS['plan_your_day_test_options'] = [];
 $GLOBALS['plan_your_day_test_object_cache'] = [];
 $GLOBALS['plan_your_day_use_ext_object_cache'] = false;
+$GLOBALS['plan_your_day_test_filters'] = [];
 
 if ( ! function_exists( '__' ) ) {
 	function __( string $text, ?string $domain = null ): string {
@@ -104,6 +105,38 @@ if ( ! function_exists( 'sanitize_title' ) ) {
 if ( ! function_exists( 'get_option' ) ) {
 	function get_option( string $option_name, mixed $default = false ): mixed {
 		return $GLOBALS['plan_your_day_test_options'][ $option_name ] ?? $default;
+	}
+}
+
+if ( ! function_exists( 'add_filter' ) ) {
+	function add_filter( string $hook_name, callable $callback, int $priority = 10 ): bool {
+		$GLOBALS['plan_your_day_test_filters'][ $hook_name ][ $priority ][] = $callback;
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'apply_filters' ) ) {
+	function apply_filters( string $hook_name, mixed $value, mixed ...$args ): mixed {
+		$callbacks_by_priority = $GLOBALS['plan_your_day_test_filters'][ $hook_name ] ?? [];
+
+		if ( ! is_array( $callbacks_by_priority ) ) {
+			return $value;
+		}
+
+		ksort( $callbacks_by_priority );
+
+		foreach ( $callbacks_by_priority as $callbacks ) {
+			if ( ! is_array( $callbacks ) ) {
+				continue;
+			}
+
+			foreach ( $callbacks as $callback ) {
+				$value = $callback( $value, ...$args );
+			}
+		}
+
+		return $value;
 	}
 }
 
