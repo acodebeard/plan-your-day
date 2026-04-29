@@ -9,6 +9,8 @@ use PHPUnit\Framework\TestCase;
 final class SettingsTest extends TestCase {
 	protected function setUp(): void {
 		$GLOBALS['plan_your_day_test_options'] = [];
+		$GLOBALS['plan_your_day_test_actions'] = [];
+		$GLOBALS['plan_your_day_test_option_reads'] = [];
 	}
 
 	public function test_sanitize_normalizes_settings_values(): void {
@@ -122,5 +124,53 @@ final class SettingsTest extends TestCase {
 		);
 
 		self::assertSame( '10.0.0.0/8', $sanitized );
+	}
+
+	public function test_getters_reuse_memoized_settings_for_the_same_request(): void {
+		update_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				Settings::defaults(),
+				[
+					'default_location_label'   => 'Harbor Start',
+					'default_location_address' => '123 Main St',
+				]
+			)
+		);
+
+		$settings = new Settings();
+
+		self::assertSame( 'Harbor Start', $settings->get_default_location_label() );
+		self::assertSame( '123 Main St', $settings->get_default_location_address() );
+		self::assertSame( 1, $GLOBALS['plan_your_day_test_option_reads'][ Settings::OPTION_NAME ] ?? 0 );
+	}
+
+	public function test_settings_cache_is_flushed_when_the_option_changes(): void {
+		update_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				Settings::defaults(),
+				[
+					'default_location_label' => 'Before',
+				]
+			)
+		);
+
+		$settings = new Settings();
+
+		self::assertSame( 'Before', $settings->get_default_location_label() );
+
+		update_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				Settings::defaults(),
+				[
+					'default_location_label' => 'After',
+				]
+			)
+		);
+
+		self::assertSame( 'After', $settings->get_default_location_label() );
+		self::assertSame( 2, $GLOBALS['plan_your_day_test_option_reads'][ Settings::OPTION_NAME ] ?? 0 );
 	}
 }

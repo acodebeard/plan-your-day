@@ -14,6 +14,13 @@ final class Settings {
 	public const START_MODE_CUSTOM = 'custom';
 	public const DISTANCE_UNIT_MILES = 'miles';
 	public const DISTANCE_UNIT_KILOMETERS = 'kilometers';
+	private ?array $cached_settings = null;
+
+	public function __construct() {
+		add_action( 'update_option_' . self::OPTION_NAME, [ $this, 'flush_cache' ], 10, 0 );
+		add_action( 'add_option_' . self::OPTION_NAME, [ $this, 'flush_cache' ], 10, 0 );
+		add_action( 'delete_option_' . self::OPTION_NAME, [ $this, 'flush_cache' ], 10, 0 );
+	}
 
 	public static function defaults(): array {
 		return [
@@ -343,10 +350,20 @@ final class Settings {
 	}
 
 	public function get_all(): array {
+		if ( null !== $this->cached_settings ) {
+			return $this->cached_settings;
+		}
+
 		$settings = get_option( self::OPTION_NAME, [] );
 		$settings = is_array( $settings ) ? $settings : [];
 
-		return array_merge( self::defaults(), self::sanitize( $settings ) );
+		$this->cached_settings = array_merge( self::defaults(), self::sanitize( $settings ) );
+
+		return $this->cached_settings;
+	}
+
+	public function flush_cache(): void {
+		$this->cached_settings = null;
 	}
 
 	public function get_missing_required_settings(): array {
