@@ -3,6 +3,7 @@ declare( strict_types=1 );
 
 namespace Acodebeard\PlanYourDay\Tests;
 
+use Acodebeard\PlanYourDay\Frontend\InterfaceCopy;
 use Acodebeard\PlanYourDay\Google\GoogleApiClientInterface;
 use Acodebeard\PlanYourDay\Google\GoogleApiResult;
 use Acodebeard\PlanYourDay\Planner\CategoryCatalog;
@@ -205,6 +206,112 @@ final class PlannerStateBuilderTest extends TestCase {
 		self::assertSame( [ 'place-a' ], $state['selected_waypoint_ids'] );
 	}
 
+	public function test_build_uses_custom_interface_copy_for_trip_labels_and_warnings(): void {
+		update_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				Settings::defaults(),
+				[
+					'default_location_label'   => 'Downtown',
+					'default_location_address' => '123 Main St',
+					'map_preview_enabled'      => false,
+					'maps_handoff_enabled'     => false,
+					'google_api_timeout'       => 15,
+					'interface_copy'           => array_merge(
+						InterfaceCopy::defaults(),
+						[
+							'trip_timeout_warning' => 'Custom timeout warning.',
+							'trip_count_plural'    => '{count} saved stops',
+						]
+					),
+				]
+			)
+		);
+
+		$google_api_client = new FakePlannerGoogleApiClient(
+			[
+				'place-a' => GoogleApiResult::success(
+					[
+						'place' => $this->place( 'place-a', 'Alpha' ),
+					]
+				),
+				'place-b' => GoogleApiResult::success(
+					[
+						'place' => $this->place( 'place-b', 'Beta' ),
+					]
+				),
+			]
+		);
+		$builder           = $this->planner_state_builder( $google_api_client );
+
+		$warning_state = $builder->build(
+			[
+				'selected_waypoint_ids' => [ 'place-a', 'place-b' ],
+				'start_mode'            => Settings::START_MODE_DEFAULT,
+			],
+			[
+				'include_results'        => false,
+				'include_trip_waypoints' => true,
+				'trip_waypoint_deadline_at' => microtime( true ) - 1,
+			]
+		);
+		$count_state   = $builder->build(
+			[
+				'selected_waypoint_ids' => [ 'place-a', 'place-b' ],
+				'start_mode'            => Settings::START_MODE_DEFAULT,
+			],
+			[
+				'include_results'        => false,
+				'include_trip_waypoints' => true,
+			]
+		);
+
+		self::assertSame( 'Custom timeout warning.', $warning_state['messages'][0]['text'] ?? '' );
+		self::assertSame( '2 saved stops', $count_state['trip_count_label'] );
+	}
+
+	public function test_build_uses_saved_category_label_and_query_for_category_searches(): void {
+		update_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				Settings::defaults(),
+				[
+					'default_location_label'   => 'Downtown',
+					'default_location_address' => '123 Main St',
+					'map_preview_enabled'      => false,
+					'maps_handoff_enabled'     => false,
+					'categories'               => Settings::sanitize_categories(
+						[
+							[
+								'label'       => 'Tea',
+								'description' => 'Tea houses and lounges',
+								'text_query'  => 'tea houses',
+								'slug'        => 'tea',
+								'enabled'     => true,
+								'sort_order'  => 10,
+							],
+						]
+					),
+				]
+			)
+		);
+
+		$google_api_client = new FakePlannerGoogleApiClient( [] );
+		$builder           = $this->planner_state_builder( $google_api_client );
+		$state             = $builder->build(
+			[
+				'category_key' => 'tea',
+				'start_mode'   => Settings::START_MODE_DEFAULT,
+			]
+		);
+
+		self::assertSame( 'Tea', $state['active_search_label'] );
+		self::assertSame( 'tea houses near 123 Main St', $state['search_query'] );
+		self::assertSame( 'tea', $state['category_key'] );
+		self::assertSame( 'Tea', $state['category_catalog']['tea']['label'] ?? null );
+		self::assertSame( 'tea houses near 123 Main St', $google_api_client->last_text_search_query );
+	}
+
 	private function planner_state_builder( GoogleApiClientInterface $google_api_client ): PlannerStateBuilder {
 		$settings = new Settings();
 
@@ -243,6 +350,8 @@ final class FakePlannerGoogleApiClient implements GoogleApiClientInterface {
 
 	public int $geocode_calls = 0;
 
+	public string $last_text_search_query = '';
+
 	/**
 	 * @param array<string, GoogleApiResult> $place_details_results
 	 */
@@ -252,6 +361,7 @@ final class FakePlannerGoogleApiClient implements GoogleApiClientInterface {
 
 	public function text_search( string $query, ?float $origin_latitude = null, ?float $origin_longitude = null ): GoogleApiResult {
 		++$this->text_search_calls;
+		$this->last_text_search_query = $query;
 
 		return GoogleApiResult::success(
 			[

@@ -3,6 +3,7 @@ declare( strict_types=1 );
 
 namespace Acodebeard\PlanYourDay\Planner;
 
+use Acodebeard\PlanYourDay\Frontend\InterfaceCopy;
 use Acodebeard\PlanYourDay\Settings\Settings;
 
 defined( 'ABSPATH' ) || exit;
@@ -10,6 +11,11 @@ defined( 'ABSPATH' ) || exit;
 final class DistanceFormatter {
 	private const EARTH_RADIUS_MILES = 3958.8;
 	private const MILES_TO_KILOMETERS = 1.609344;
+	private ?Settings $settings;
+
+	public function __construct( ?Settings $settings = null ) {
+		$this->settings = $settings;
+	}
 
 	public function calculate_miles(
 		float $origin_latitude,
@@ -40,18 +46,20 @@ final class DistanceFormatter {
 
 		if ( $distance < 0.1 ) {
 			if ( '' === $reference_label ) {
-				return sprintf(
-					/* translators: %s is a distance unit abbreviation, such as mi or km. */
-					__( 'Less than 0.1 %s away', 'plan-your-day' ),
-					$unit_label
+				return $this->format_copy(
+					'distance_under_threshold_without_reference',
+					[
+						'unit' => $unit_label,
+					]
 				);
 			}
 
-			return sprintf(
-				/* translators: 1: distance unit abbreviation, 2: starting point label. */
-				__( 'Less than 0.1 %1$s from %2$s', 'plan-your-day' ),
-				$unit_label,
-				$reference_label
+			return $this->format_copy(
+				'distance_under_threshold_with_reference',
+				[
+					'unit'  => $unit_label,
+					'start' => $reference_label,
+				]
 			);
 		}
 
@@ -60,20 +68,30 @@ final class DistanceFormatter {
 			: number_format_i18n( $distance, 1 );
 
 		if ( '' === $reference_label ) {
-			return sprintf(
-				/* translators: 1: rounded distance, 2: distance unit abbreviation. */
-				__( 'Approx. %1$s %2$s away', 'plan-your-day' ),
-				$rounded_distance,
-				$unit_label
+			return $this->format_copy(
+				'distance_approx_without_reference',
+				[
+					'distance' => $rounded_distance,
+					'unit'     => $unit_label,
+				]
 			);
 		}
 
-		return sprintf(
-			/* translators: 1: rounded distance, 2: distance unit abbreviation, 3: starting point label. */
-			__( 'Approx. %1$s %2$s from %3$s', 'plan-your-day' ),
-			$rounded_distance,
-			$unit_label,
-			$reference_label
+		return $this->format_copy(
+			'distance_approx_with_reference',
+			[
+				'distance' => $rounded_distance,
+				'unit'     => $unit_label,
+				'start'    => $reference_label,
+			]
 		);
+	}
+
+	private function format_copy( string $key, array $tokens ): string {
+		if ( $this->settings instanceof Settings ) {
+			return $this->settings->format_frontend_copy( $key, $tokens );
+		}
+
+		return InterfaceCopy::format( InterfaceCopy::default_value( $key ), $tokens );
 	}
 }

@@ -162,7 +162,7 @@ final class RateLimiter {
 	private function rate_limited_error(): WP_Error {
 		return new WP_Error(
 			'plan_your_day_rate_limited',
-			__( 'Planner requests are temporarily limited. Please wait a minute and try again.', 'plan-your-day' ),
+			$this->settings->get_frontend_copy_value( 'rate_limited' ),
 			[
 				'status' => 429,
 			]

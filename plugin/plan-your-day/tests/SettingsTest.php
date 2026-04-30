@@ -107,6 +107,68 @@ final class SettingsTest extends TestCase {
 		self::assertSame( 'places-key', $settings->get_google_geocoding_api_key() );
 	}
 
+	public function test_get_categories_returns_starter_rows_when_saved_list_is_empty_and_fallback_is_enabled(): void {
+		update_option( Settings::OPTION_NAME, Settings::defaults() );
+
+		$settings = new Settings();
+
+		self::assertSame( Settings::default_categories(), $settings->get_categories() );
+	}
+
+	public function test_get_categories_returns_empty_when_saved_list_is_empty_and_fallback_is_disabled(): void {
+		update_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				Settings::defaults(),
+				[
+					'use_preset_categories' => false,
+				]
+			)
+		);
+
+		$settings = new Settings();
+
+		self::assertSame( [], $settings->get_categories() );
+	}
+
+	public function test_seed_default_categories_if_needed_materializes_starter_rows_once(): void {
+		update_option( Settings::OPTION_NAME, Settings::defaults() );
+
+		$settings = new Settings();
+
+		self::assertTrue( $settings->seed_default_categories_if_needed() );
+		self::assertSame( Settings::default_categories(), get_option( Settings::OPTION_NAME )['categories'] ?? [] );
+		self::assertFalse( $settings->seed_default_categories_if_needed() );
+	}
+
+	public function test_seed_default_categories_if_needed_skips_when_fallback_is_disabled(): void {
+		update_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				Settings::defaults(),
+				[
+					'use_preset_categories' => false,
+				]
+			)
+		);
+
+		$settings = new Settings();
+
+		self::assertFalse( $settings->seed_default_categories_if_needed() );
+		self::assertSame( [], get_option( Settings::OPTION_NAME )['categories'] ?? [] );
+	}
+
+	public function test_maybe_upgrade_seeds_default_categories_and_updates_schema_version_for_existing_empty_installs(): void {
+		update_option( Settings::OPTION_NAME, Settings::defaults() );
+		update_option( 'plan_your_day_schema_version', 1 );
+
+		$settings = new Settings();
+		$settings->maybe_upgrade();
+
+		self::assertSame( Settings::default_categories(), get_option( Settings::OPTION_NAME )['categories'] ?? [] );
+		self::assertSame( 2, get_option( 'plan_your_day_schema_version' ) );
+	}
+
 	public function test_sanitize_trusted_proxy_cidrs_accepts_ipv4_and_ipv6_edge_masks(): void {
 		$sanitized = Settings::sanitize_trusted_proxy_cidrs(
 			" 0.0.0.0/0,\n192.0.2.10/32\n2001:DB8::/32\n::/0\n2001:db8::1/128\nfe80::/10 "
@@ -172,5 +234,35 @@ final class SettingsTest extends TestCase {
 
 		self::assertSame( 'After', $settings->get_default_location_label() );
 		self::assertSame( 2, $GLOBALS['plan_your_day_test_option_reads'][ Settings::OPTION_NAME ] ?? 0 );
+	}
+
+	public function test_frontend_copy_getters_apply_saved_values_and_named_tokens(): void {
+		update_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				Settings::defaults(),
+				[
+					'interface_copy' => array_merge(
+						Settings::defaults()['interface_copy'],
+						[
+							'hero_title'             => 'Build Your Route',
+							'setup_notice_body'      => 'Missing: {settings}.',
+							'category_card_help'     => '',
+							'update_results_button'  => '',
+						]
+					),
+				]
+			)
+		);
+
+		$settings = new Settings();
+
+		self::assertSame( 'Build Your Route', $settings->get_frontend_copy_value( 'hero_title' ) );
+		self::assertSame( '', $settings->get_frontend_copy_value( 'category_card_help' ) );
+		self::assertSame( 'Update results', $settings->get_frontend_copy_value( 'update_results_button' ) );
+		self::assertSame(
+			'Missing: Default location label.',
+			$settings->format_frontend_copy( 'setup_notice_body', [ 'settings' => 'Default location label' ] )
+		);
 	}
 }

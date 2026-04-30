@@ -69,12 +69,12 @@ final class Plugin {
 		$this->request_state_parser     = new RequestStateParser( $this->waypoint_list );
 		$this->start_context_resolver   = new StartContextResolver( $this->settings );
 		$this->map_url_builder          = new MapUrlBuilder();
-		$this->distance_formatter       = new DistanceFormatter();
+		$this->distance_formatter       = new DistanceFormatter( $this->settings );
 		$this->request_origin_validator = new RequestOriginValidator();
 		$this->visitor_token_manager    = new VisitorTokenManager();
 		$this->client_ip_resolver       = new ClientIpResolver( $this->settings );
 		$this->rate_limiter             = new RateLimiter( $this->settings, $this->client_ip_resolver );
-		$this->planner_payload_builder  = new PlannerPayloadBuilder();
+		$this->planner_payload_builder  = new PlannerPayloadBuilder( $this->settings );
 		$this->settings_page            = new SettingsPage(
 			$this->settings,
 			$this->google_api_cache,
@@ -97,17 +97,20 @@ final class Plugin {
 			$this->planner_payload_builder,
 			$this->request_origin_validator,
 			$this->visitor_token_manager,
-			$this->rate_limiter
+			$this->rate_limiter,
+			$this->settings
 		);
 	}
 
 	public function init(): void {
 		add_action( 'init', [ $this, 'load_textdomain' ], 0 );
+		add_action( 'init', [ $this->settings, 'maybe_upgrade' ], 1 );
 		add_action( 'init', [ $this->planner_shortcode, 'register' ] );
 		add_action( 'rest_api_init', [ $this->planner_routes, 'register' ] );
 		add_action( 'wp_enqueue_scripts', [ $this->frontend_assets, 'register' ] );
 		add_action( 'admin_init', [ $this->settings, 'register' ] );
 		add_action( 'admin_menu', [ $this->settings_page, 'register' ] );
+		add_action( 'admin_enqueue_scripts', [ $this->settings_page, 'enqueue_assets' ] );
 		add_action( 'admin_notices', [ $this->settings_page, 'render_missing_required_settings_notice' ] );
 		add_action( 'admin_post_plan_your_day_clear_google_cache', [ $this->settings_page, 'handle_clear_google_cache' ] );
 		add_action( 'admin_post_plan_your_day_clear_google_cache_scope', [ $this->settings_page, 'handle_clear_google_cache_scope' ] );

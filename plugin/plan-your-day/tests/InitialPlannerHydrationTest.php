@@ -81,4 +81,32 @@ final class InitialPlannerHydrationTest extends TestCase {
 		self::assertSame( 'Loading trip preview', $planner_state['preview_empty_state']['heading'] );
 		self::assertSame( 'Loading planner state through a verified request.', $planner_state['messages'][0]['text'] );
 	}
+
+	public function test_apply_loading_placeholders_uses_custom_copy_overrides(): void {
+		$planner_state = InitialPlannerHydration::apply_loading_placeholders(
+			[
+				'has_search'            => true,
+				'selected_waypoint_ids' => [],
+				'search_results_label'  => '',
+				'overview'              => '',
+				'preview_mode_label'    => '',
+				'messages'              => [],
+			],
+			[
+				'hydration_loading_message' => 'Loading saved planner state.',
+				'loading_results_label'     => 'Loading places...',
+				'loading_results_heading'   => 'Loading places',
+				'loading_results_body'      => 'Saved places are loading now.',
+				'loading_search_preview_mode' => 'Loading map preview',
+				'loading_search_preview_heading' => 'Loading map preview',
+				'loading_search_preview_body' => 'Saved map preview is loading now.',
+			]
+		);
+
+		self::assertSame( 'Loading places...', $planner_state['search_results_label'] );
+		self::assertSame( 'Loading places', $planner_state['results_empty_state']['heading'] );
+		self::assertSame( 'Saved places are loading now.', $planner_state['overview'] );
+		self::assertSame( 'Loading map preview', $planner_state['preview_mode_label'] );
+		self::assertSame( 'Loading saved planner state.', $planner_state['messages'][0]['text'] );
+	}
 }

@@ -92,6 +92,8 @@ managed through the WordPress Settings API. Current settings include:
 - Maximum waypoints and result count.
 - Distance unit.
 - Map preview and Google Maps handoff toggles.
+- Editable category buttons with label, description, Google search query,
+  enabled state, and sort order.
 - Browser-facing Maps Embed API key.
 - Server-side Places and Geocoding API keys.
 - Google API timeout and cache TTLs.

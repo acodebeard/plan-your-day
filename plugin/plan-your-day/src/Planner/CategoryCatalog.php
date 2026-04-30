@@ -15,20 +15,10 @@ final class CategoryCatalog {
 	}
 
 	public function get_all(): array {
-		$stored_categories = $this->normalize_rows( $this->settings->get_categories() );
-
-		if ( [] !== $stored_categories ) {
-			return $stored_categories;
-		}
-
-		if ( ! $this->settings->use_preset_categories() ) {
-			return [];
-		}
-
-		return $this->normalize_rows( self::preset_rows() );
+		return $this->normalize_rows( $this->settings->get_categories() );
 	}
 
-	public static function preset_rows(): array {
+	public static function default_rows(): array {
 		return [
 			[
 				'slug'        => 'coffee',
@@ -87,6 +77,10 @@ final class CategoryCatalog {
 				'sort_order'  => 70,
 			],
 		];
+	}
+
+	public static function preset_rows(): array {
+		return self::default_rows();
 	}
 
 	private function normalize_rows( array $rows ): array {

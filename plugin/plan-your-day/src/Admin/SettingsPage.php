@@ -3,6 +3,7 @@ declare( strict_types=1 );
 
 namespace Acodebeard\PlanYourDay\Admin;
 
+use Acodebeard\PlanYourDay\Frontend\InterfaceCopy;
 use Acodebeard\PlanYourDay\Google\GoogleApiCache;
 use Acodebeard\PlanYourDay\Google\GoogleApiClientInterface;
 use Acodebeard\PlanYourDay\Planner\CategoryCatalog;
@@ -173,6 +174,13 @@ final class SettingsPage {
 		);
 
 		add_settings_section(
+			'plan_your_day_interface_copy',
+			__( 'Interface Copy', 'plan-your-day' ),
+			[ $this, 'render_interface_copy_section' ],
+			Settings::PAGE_SLUG
+		);
+
+		add_settings_section(
 			'plan_your_day_categories',
 			__( 'Categories', 'plan-your-day' ),
 			[ $this, 'render_categories_section' ],
@@ -181,8 +189,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'use_preset_categories',
-			__( 'Preset category fallback', 'plan-your-day' ),
-			__( 'When no enabled custom categories are saved, show the built-in preset categories. Disable this to display no preset categories.', 'plan-your-day' ),
+			__( 'Starter category fallback', 'plan-your-day' ),
+			__( 'When the saved category list is empty, show the built-in starter categories instead of no category buttons.', 'plan-your-day' ),
 			'checkbox',
 			[],
 			'plan_your_day_categories'
@@ -190,8 +198,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'categories',
-			__( 'Custom categories', 'plan-your-day' ),
-			__( 'Manage the category list shown to visitors. The Google search query is the phrase sent to Google Places.', 'plan-your-day' ),
+			__( 'Categories', 'plan-your-day' ),
+			__( 'Manage the category buttons shown to visitors. The Google search query is the phrase sent to Google Places.', 'plan-your-day' ),
 			'categories',
 			[],
 			'plan_your_day_categories'
@@ -323,8 +331,8 @@ final class SettingsPage {
 		}
 
 		?>
-		<div class="wrap">
-			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+		<div class="wrap plan-your-day-admin-page" id="plan-your-day-settings-top">
+			<h1 id="plan-your-day-settings-title" tabindex="-1"><?php echo esc_html( get_admin_page_title() ); ?></h1>
 			<?php $this->render_cache_notice(); ?>
 			<?php $this->render_google_test_notice(); ?>
 			<?php $this->render_setup_status_panel(); ?>
@@ -378,8 +386,35 @@ final class SettingsPage {
 				<?php submit_button( __( 'Run Google API test', 'plan-your-day' ), 'secondary', 'submit', false ); ?>
 			</form>
 			<?php $this->render_google_test_results_panel(); ?>
+			<button type="button" class="button button-secondary plan-your-day-admin-back-to-top" data-plan-back-to-top hidden>
+				<?php esc_html_e( 'Back to top', 'plan-your-day' ); ?>
+			</button>
 		</div>
 		<?php
+	}
+
+	public function enqueue_assets( string $hook_suffix ): void {
+		if ( ! $this->is_settings_screen( $hook_suffix ) ) {
+			return;
+		}
+
+		wp_enqueue_style(
+			'plan-your-day-admin-settings',
+			PLAN_YOUR_DAY_PLUGIN_URL . 'assets/css/admin-settings.css',
+			[],
+			PLAN_YOUR_DAY_VERSION
+		);
+
+		wp_enqueue_script(
+			'plan-your-day-admin-settings',
+			PLAN_YOUR_DAY_PLUGIN_URL . 'assets/js/admin-settings.js',
+			[],
+			PLAN_YOUR_DAY_VERSION,
+			[
+				'in_footer' => true,
+				'strategy'  => 'defer',
+			]
+		);
 	}
 
 	private function render_setup_status_panel(): void {
@@ -436,7 +471,7 @@ final class SettingsPage {
 	}
 
 	private function build_setup_status_checks(): array {
-		$custom_categories = $this->settings->get_categories();
+		$saved_categories  = $this->settings->get_saved_categories();
 		$active_categories = $this->category_catalog->get_all();
 		$missing_required  = $this->settings->get_missing_required_settings();
 		$embed_key         = $this->settings->get_google_maps_embed_api_key();
@@ -487,12 +522,12 @@ final class SettingsPage {
 				'status' => [] !== $active_categories ? __( 'Ready', 'plan-your-day' ) : __( 'Needs setup', 'plan-your-day' ),
 				'detail' => [] !== $active_categories
 					? sprintf(
-						/* translators: 1: active category count, 2: custom category count. */
-						__( '%1$d active categories are available. %2$d custom categories are saved.', 'plan-your-day' ),
+						/* translators: 1: active category count, 2: saved category count. */
+						__( '%1$d active categories are available. %2$d categories are saved in settings.', 'plan-your-day' ),
 						count( $active_categories ),
-						count( $custom_categories )
+						count( $saved_categories )
 					)
-					: __( 'No active categories are available. Add at least one custom category or re-enable the preset fallback.', 'plan-your-day' ),
+					: __( 'No active categories are available. Add at least one category or re-enable the starter category fallback.', 'plan-your-day' ),
 				'type'   => [] !== $active_categories ? 'success' : 'warning',
 			],
 		];
@@ -519,10 +554,19 @@ final class SettingsPage {
 		);
 	}
 
+	public function render_interface_copy_section(): void {
+		printf(
+			'<p>%s</p>',
+			esc_html__( 'Edit the public planner copy here. Button labels and accessible labels fall back to defaults if saved blank. Optional helper text fields can be saved blank to hide them. Dynamic tokens such as {count}, {search}, {place}, and {start} are replaced automatically.', 'plan-your-day' )
+		);
+
+		$this->render_interface_copy_accordion();
+	}
+
 	public function render_categories_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Use custom categories to replace the temporary built-in set. Disable the preset fallback if you want the public planner to show no preset categories until custom ones are saved.', 'plan-your-day' )
+			esc_html__( 'Edit the category buttons shown on the public planner. You can add, disable, remove, and reorder rows here. Fresh installs start from the built-in starter list, and the fallback toggle only applies when the saved list is empty.', 'plan-your-day' )
 		);
 	}
 
@@ -904,6 +948,8 @@ final class SettingsPage {
 			$this->render_select( $name, $id, (string) $value, $attributes );
 		} elseif ( 'categories' === $type ) {
 			$this->render_categories_editor( $name );
+		} elseif ( 'interface_copy_group' === $type ) {
+			$this->render_interface_copy_group( (string) ( $attributes['group'] ?? '' ) );
 		} else {
 			printf(
 				'<input id="%1$s" name="%2$s" type="%3$s" value="%4$s" class="regular-text" autocomplete="off" spellcheck="false" />',
@@ -919,10 +965,99 @@ final class SettingsPage {
 		}
 	}
 
+	private function render_interface_copy_group( string $group ): void {
+		$definitions = InterfaceCopy::definitions_for_group( $group );
+		$copy        = $this->settings->get_frontend_copy();
+
+		if ( [] === $definitions ) {
+			return;
+		}
+		?>
+		<div class="plan-your-day-interface-copy-group">
+			<?php foreach ( $definitions as $key => $definition ) : ?>
+				<?php
+				$id          = 'plan_your_day_interface_copy_' . $key;
+				$name        = Settings::OPTION_NAME . '[interface_copy][' . $key . ']';
+				$value       = $copy[ $key ] ?? '';
+				$type        = (string) $definition['type'];
+				$description = (string) $definition['description'];
+				?>
+				<div>
+					<label for="<?php echo esc_attr( $id ); ?>" class="plan-your-day-interface-copy-field-label">
+						<?php echo esc_html( (string) $definition['label'] ); ?>
+					</label>
+					<?php if ( 'textarea' === $type ) : ?>
+						<textarea
+							id="<?php echo esc_attr( $id ); ?>"
+							name="<?php echo esc_attr( $name ); ?>"
+							rows="<?php echo esc_attr( (string) ( $definition['rows'] ?? 3 ) ); ?>"
+							class="large-text"
+						><?php echo esc_textarea( (string) $value ); ?></textarea>
+					<?php else : ?>
+						<input
+							id="<?php echo esc_attr( $id ); ?>"
+							name="<?php echo esc_attr( $name ); ?>"
+							type="text"
+							value="<?php echo esc_attr( (string) $value ); ?>"
+							class="regular-text"
+							autocomplete="off"
+							spellcheck="true"
+						/>
+					<?php endif; ?>
+					<?php if ( '' !== $description ) : ?>
+						<p class="description"><?php echo esc_html( $description ); ?></p>
+					<?php endif; ?>
+				</div>
+			<?php endforeach; ?>
+		</div>
+		<?php
+	}
+
+	private function render_interface_copy_accordion(): void {
+		$groups = InterfaceCopy::groups();
+
+		if ( [] === $groups ) {
+			return;
+		}
+		?>
+		<div class="plan-your-day-admin-accordion">
+			<?php $is_first_group = true; ?>
+			<?php foreach ( $groups as $group_key => $group ) : ?>
+				<details class="plan-your-day-admin-accordion__item"<?php echo $is_first_group ? ' open' : ''; ?>>
+					<summary class="plan-your-day-admin-accordion__summary">
+						<span class="plan-your-day-admin-accordion__summary-copy">
+							<span class="plan-your-day-admin-accordion__title"><?php echo esc_html( (string) $group['label'] ); ?></span>
+							<?php if ( '' !== (string) $group['description'] ) : ?>
+								<span class="plan-your-day-admin-accordion__description"><?php echo esc_html( (string) $group['description'] ); ?></span>
+							<?php endif; ?>
+						</span>
+					</summary>
+					<div class="plan-your-day-admin-accordion__panel">
+						<?php $this->render_interface_copy_group( $group_key ); ?>
+					</div>
+				</details>
+				<?php $is_first_group = false; ?>
+			<?php endforeach; ?>
+		</div>
+		<?php
+	}
+
+	private function is_settings_screen( string $hook_suffix ): bool {
+		if ( 'settings_page_' . Settings::PAGE_SLUG === $hook_suffix ) {
+			return true;
+		}
+
+		$page = isset( $_GET['page'] ) && ! is_array( $_GET['page'] )
+			? sanitize_key( wp_unslash( $_GET['page'] ) )
+			: '';
+
+		return Settings::PAGE_SLUG === $page;
+	}
+
 	private function render_categories_editor( string $name ): void {
 		$categories  = $this->settings->get_categories();
 		$row_index   = 0;
-		$seed_rows   = CategoryCatalog::preset_rows();
+		$seed_rows   = CategoryCatalog::default_rows();
 		$next_sort   = ( count( $categories ) + 1 ) * 10;
 		?>
 		<div class="plan-your-day-categories-editor" data-plan-category-editor>
@@ -961,10 +1096,10 @@ final class SettingsPage {
 				<button type="button" class="button" data-plan-add-category><?php esc_html_e( 'Add category', 'plan-your-day' ); ?></button>
 			</p>
 			<p class="description">
-				<?php esc_html_e( 'Leave a row empty to ignore it. Use the sort number to control the public order. Built-in presets remain available only through the fallback toggle above.', 'plan-your-day' ); ?>
+				<?php esc_html_e( 'Leave a row empty to ignore it. Use Enabled to hide a category without deleting it, Remove to delete it on save, and Sort to control the public order. The starter category fallback above is only used when this saved list is empty.', 'plan-your-day' ); ?>
 			</p>
 			<details>
-				<summary><?php esc_html_e( 'View built-in preset categories', 'plan-your-day' ); ?></summary>
+				<summary><?php esc_html_e( 'View built-in starter categories', 'plan-your-day' ); ?></summary>
 				<ul>
 					<?php foreach ( $seed_rows as $seed_row ) : ?>
 						<li>

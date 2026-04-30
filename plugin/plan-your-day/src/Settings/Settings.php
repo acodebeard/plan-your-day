@@ -3,9 +3,13 @@ declare( strict_types=1 );
 
 namespace Acodebeard\PlanYourDay\Settings;
 
+use Acodebeard\PlanYourDay\Frontend\InterfaceCopy;
+use Acodebeard\PlanYourDay\Planner\CategoryCatalog;
+
 defined( 'ABSPATH' ) || exit;
 
 final class Settings {
+	private const EDITABLE_CATEGORY_SCHEMA_VERSION = 2;
 	public const OPTION_NAME = 'plan_your_day_settings';
 	public const OPTION_GROUP = 'plan_your_day_settings';
 	public const PAGE_SLUG = 'plan-your-day';
@@ -49,7 +53,12 @@ final class Settings {
 			'google_geocoding_cache_ttl'     => 86400,
 			'rate_limit_per_minute'           => 60,
 			'trusted_proxy_cidrs'             => '',
+			'interface_copy'                  => InterfaceCopy::defaults(),
 		];
+	}
+
+	public static function default_categories(): array {
+		return self::sanitize_categories( CategoryCatalog::default_rows() );
 	}
 
 	public static function start_mode_choices(): array {
@@ -113,6 +122,7 @@ final class Settings {
 			'google_geocoding_cache_ttl'     => self::sanitize_cache_ttl( $raw_settings['google_geocoding_cache_ttl'] ?? 86400 ),
 			'rate_limit_per_minute'           => self::sanitize_integer( $raw_settings['rate_limit_per_minute'] ?? $defaults['rate_limit_per_minute'], 1, 600, $defaults['rate_limit_per_minute'] ),
 			'trusted_proxy_cidrs'             => self::sanitize_trusted_proxy_cidrs( $raw_settings['trusted_proxy_cidrs'] ?? $defaults['trusted_proxy_cidrs'] ),
+			'interface_copy'                  => InterfaceCopy::sanitize( $raw_settings['interface_copy'] ?? $defaults['interface_copy'] ),
 		];
 	}
 
@@ -366,6 +376,31 @@ final class Settings {
 		$this->cached_settings = null;
 	}
 
+	public function maybe_upgrade(): void {
+		$current_schema_version = (int) get_option( 'plan_your_day_schema_version', 0 );
+
+		if ( $current_schema_version >= self::EDITABLE_CATEGORY_SCHEMA_VERSION ) {
+			return;
+		}
+
+		$this->seed_default_categories_if_needed();
+		update_option( 'plan_your_day_schema_version', self::EDITABLE_CATEGORY_SCHEMA_VERSION );
+	}
+
+	public function seed_default_categories_if_needed(): bool {
+		$settings = get_option( self::OPTION_NAME, [] );
+		$settings = is_array( $settings ) ? $settings : [];
+
+		if ( ! $this->should_seed_default_categories( $settings ) ) {
+			return false;
+		}
+
+		$settings['categories'] = self::default_categories();
+		update_option( self::OPTION_NAME, self::sanitize( array_merge( self::defaults(), $settings ) ) );
+
+		return true;
+	}
+
 	public function get_missing_required_settings(): array {
 		$settings = $this->get_all();
 		$missing  = [];
@@ -457,10 +492,25 @@ final class Settings {
 		return $settings['use_preset_categories'];
 	}
 
-	public function get_categories(): array {
+	public function get_saved_categories(): array {
 		$settings = $this->get_all();
 
 		return is_array( $settings['categories'] ) ? array_values( $settings['categories'] ) : [];
+	}
+
+	public function get_categories(): array {
+		$settings   = $this->get_all();
+		$categories = $this->get_saved_categories();
+
+		if ( [] !== $categories ) {
+			return $categories;
+		}
+
+		if ( ! $settings['use_preset_categories'] ) {
+			return [];
+		}
+
+		return self::default_categories();
 	}
 
 	public function get_google_maps_embed_api_key(): string {
@@ -518,5 +568,30 @@ final class Settings {
 		$cidrs    = preg_split( '/\r\n|\r|\n/', $settings['trusted_proxy_cidrs'] );
 
 		return is_array( $cidrs ) ? array_values( array_filter( $cidrs ) ) : [];
+	}
+
+	public function get_frontend_copy(): array {
+		$settings = $this->get_all();
+
+		return InterfaceCopy::resolve_values( $settings['interface_copy'] ?? [] );
+	}
+
+	public function get_frontend_copy_value( string $key ): string {
+		$copy = $this->get_frontend_copy();
+
+		return isset( $copy[ $key ] ) ? (string) $copy[ $key ] : InterfaceCopy::default_value( $key );
+	}
+
+	public function format_frontend_copy( string $key, array $tokens = [] ): string {
+		return InterfaceCopy::format( $this->get_frontend_copy_value( $key ), $tokens );
+	}
+
+	private function should_seed_default_categories( array $settings ): bool {
+		$saved_categories = self::sanitize_categories( $settings['categories'] ?? [] );
+		$use_fallback     = array_key_exists( 'use_preset_categories', $settings )
+			? self::sanitize_boolean( $settings['use_preset_categories'] )
+			: self::defaults()['use_preset_categories'];
+
+		return [] === $saved_categories && $use_fallback;
 	}
 }
