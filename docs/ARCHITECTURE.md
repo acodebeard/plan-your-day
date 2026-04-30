@@ -50,8 +50,21 @@ Settings > Plan Your Day
 ```
 
 The admin screen currently exposes required default location fields, planner
-behavior settings, Google API keys, cache TTLs, rate-limit configuration, trusted
-proxy CIDRs, and a Google API cache clear tool.
+behavior settings, editable planner categories, Google API keys, cache TTLs,
+rate-limit configuration, trusted proxy CIDRs, frontend interface copy
+controls, and a Google API cache clear tool.
+
+Editable frontend copy defaults and field metadata live in:
+
+```text
+plugin/plan-your-day/src/Frontend/InterfaceCopy.php
+```
+
+`Settings` stores those values inside the main option under `interface_copy`,
+and renderer/state classes read them through
+`Settings::get_frontend_copy_value()` and `Settings::format_frontend_copy()`.
+That keeps first-paint HTML, REST responses, and JavaScript runtime strings on
+one source of truth.
 
 ## Google API Layer
 
@@ -82,13 +95,16 @@ Maps Embed key is separate.
 
 Planner helpers extracted so far:
 
-- `CategoryCatalog`: provides generic seed categories until configurable
-  categories land.
+- `CategoryCatalog`: owns the built-in starter category list for fresh installs
+  and empty saved-category fallbacks, then filters the saved category rows down
+  to the enabled frontend catalog.
 - `PlaceParser`: shapes Google place responses and sanitizes Place IDs / HTTPS
   map URLs.
 - `WaypointList`: normalizes, deduplicates, caps, and reorders waypoint IDs.
 - `DistanceFormatter`: calculates straight-line distance hints and formats
   labels in miles or kilometers.
+- `InterfaceCopy`: centralizes editable frontend copy defaults, field metadata,
+  blank/fallback rules, and named-token formatting.
 - `MapUrlBuilder`: builds Google Maps search, directions, and embed URLs.
 - `StartContextResolver`: resolves default/current/custom start behavior using
   plugin settings instead of hardcoded destination defaults.
@@ -100,6 +116,29 @@ Planner helpers extracted so far:
 
 These services are exposed from `Plugin` so the shortcode renderer and REST
 routes share one implementation.
+
+## Category Defaults
+
+Editable categories are stored inside `plan_your_day_settings[categories]`.
+Each row contains:
+
+- `slug`
+- `label`
+- `description`
+- `text_query`
+- `enabled`
+- `sort_order`
+
+Built-in starter rows for fresh installs live in:
+
+```text
+plugin/plan-your-day/src/Planner/CategoryCatalog.php
+```
+
+Use `CategoryCatalog::default_rows()` when changing the starter list for new or
+empty installs. `Settings::get_categories()` resolves the saved rows first and
+falls back to that starter list only when the saved category list is empty and
+the fallback toggle remains enabled.
 
 ## Security Helpers
 

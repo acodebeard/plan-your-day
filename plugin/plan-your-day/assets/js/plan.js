@@ -24,7 +24,15 @@
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
 
-  const formatString = (template, value) => String(template || '').replace('%s', String(value ?? ''));
+  const formatTemplate = (template, replacements = {}) => {
+    let output = String(template || '');
+
+    Object.entries(replacements || {}).forEach(([key, value]) => {
+      output = output.split(`{${key}}`).join(String(value ?? ''));
+    });
+
+    return output;
+  };
   const redactDebugValue = (value, key = '') => {
     if (Array.isArray(value)) {
       return value.map((item) => redactDebugValue(item));
@@ -167,15 +175,17 @@
                 <div class="plan-your-day__result-tools">
                   ${mapsUri
                     ? `<a class="plan-your-day__result-link" href="${escapeHtml(mapsUri)}" target="_blank" rel="noopener noreferrer" aria-label="${escapeHtml(
-                        formatString(strings.viewPlaceInGoogleMapsLabel || '', label)
+                        formatTemplate(strings.viewPlaceInGoogleMapsLabel || '', { place: label })
                       )}">${escapeHtml(strings.viewInGoogleMaps || '')}</a>`
                     : ''}
                   ${isInTrip
-                    ? `<span class="plan-your-day__result-added" aria-label="${escapeHtml(formatString(strings.alreadyInTripAria, label))}">${escapeHtml(strings.inTrip || '')}</span>`
+                    ? `<span class="plan-your-day__result-added" aria-label="${escapeHtml(
+                        formatTemplate(strings.alreadyInTripAria || '', { place: label })
+                      )}">${escapeHtml(strings.inTrip || '')}</span>`
                     : `<button class="plan-your-day__result-add" type="submit" name="waypoints[]" value="${escapeHtml(
                         placeId
                       )}" data-plan-action="add-waypoint" data-plan-route-mutation data-place-id="${escapeHtml(placeId)}" aria-label="${escapeHtml(
-                        formatString(strings.addWaypointLabel || '', label)
+                        formatTemplate(strings.addWaypointLabel || '', { place: label })
                       )}">${escapeHtml(
                         strings.addToTrip || ''
                       )}</button>`}
@@ -244,7 +254,7 @@
                     name="move_waypoint"
                     value="${escapeHtml(`${placeId}:up`)}"
                     data-plan-route-mutation
-                    aria-label="${escapeHtml(formatString(strings.moveWaypointUpLabel || '', label))}"
+                    aria-label="${escapeHtml(formatTemplate(strings.moveWaypointUpLabel || '', { place: label }))}"
                     ${canMoveUp ? '' : 'disabled'}>
                     ${escapeHtml(strings.moveUp || '')}
                   </button>
@@ -254,14 +264,14 @@
                     name="move_waypoint"
                     value="${escapeHtml(`${placeId}:down`)}"
                     data-plan-route-mutation
-                    aria-label="${escapeHtml(formatString(strings.moveWaypointDownLabel || '', label))}"
+                    aria-label="${escapeHtml(formatTemplate(strings.moveWaypointDownLabel || '', { place: label }))}"
                     ${canMoveDown ? '' : 'disabled'}>
                     ${escapeHtml(strings.moveDown || '')}
                   </button>
                   <button type="submit" name="remove_waypoint" value="${escapeHtml(
                     placeId
                   )}" data-plan-action="remove-waypoint" data-plan-route-mutation data-place-id="${escapeHtml(placeId)}">
-                    ${escapeHtml(formatString(strings.removeWaypointLabel, label))}
+                    ${escapeHtml(formatTemplate(strings.removeWaypointLabel || '', { place: label }))}
                   </button>
                 </div>
               </li>
@@ -352,7 +362,7 @@
 
     if (refs.customResultsHeading) {
       refs.customResultsHeading.textContent = hasCustomSearch
-        ? formatString(strings.searchResultsFor || '', browseData.categoryLabel || '')
+        ? formatTemplate(strings.searchResultsFor || '', { search: browseData.categoryLabel || '' })
         : String(browseData?.resultsEmptyState?.heading || '');
     }
 
@@ -393,7 +403,7 @@
     const routeData = state.route || {};
     const iframeSrc = String(routeData.iframeSrc || '');
     const emptyPreviewState = routeData.emptyPreviewState || {};
-    const categoryLabel = String(routeData.categoryLabel || browseData.categoryLabel || 'Not selected');
+    const categoryLabel = String(routeData.categoryLabel || browseData.categoryLabel || strings.notSelected || '');
     const mapsUrl = String(routeData.mapsUrl || '');
 
     renderMessages(refs, routeData.messages);
@@ -846,8 +856,8 @@
             announce(
               refs.liveRegion,
               state.expandedCategory === nextCategory
-                ? formatString(strings.categoryResultsExpanded || '', categoryLabel)
-                : formatString(strings.categoryResultsCollapsed || '', categoryLabel)
+                ? formatTemplate(strings.categoryResultsExpanded || '', { category: categoryLabel })
+                : formatTemplate(strings.categoryResultsCollapsed || '', { category: categoryLabel })
             );
             return;
           }

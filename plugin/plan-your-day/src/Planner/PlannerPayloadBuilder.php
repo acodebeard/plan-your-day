@@ -3,14 +3,23 @@ declare( strict_types=1 );
 
 namespace Acodebeard\PlanYourDay\Planner;
 
+use Acodebeard\PlanYourDay\Frontend\InterfaceCopy;
+use Acodebeard\PlanYourDay\Settings\Settings;
+
 defined( 'ABSPATH' ) || exit;
 
 final class PlannerPayloadBuilder {
+	private ?Settings $settings;
+
+	public function __construct( ?Settings $settings = null ) {
+		$this->settings = $settings;
+	}
+
 	public function build_browse_payload( array $planner_state ): array {
 		return [
 			'categoryKey'        => $planner_state['category_key'],
 			'categorySearch'     => $planner_state['category_search'],
-			'categoryLabel'      => $planner_state['has_search'] ? $planner_state['active_search_label'] : __( 'Not selected', 'plan-your-day' ),
+			'categoryLabel'      => $planner_state['has_search'] ? $planner_state['active_search_label'] : $this->copy_value( 'not_selected' ),
 			'hasCategory'        => $planner_state['has_category'],
 			'hasCategories'      => $planner_state['has_categories'],
 			'hasSearch'          => $planner_state['has_search'],
@@ -26,7 +35,7 @@ final class PlannerPayloadBuilder {
 		return [
 			'categoryKey'         => $planner_state['category_key'],
 			'categorySearch'      => $planner_state['category_search'],
-			'categoryLabel'       => $planner_state['has_search'] ? $planner_state['active_search_label'] : __( 'Not selected', 'plan-your-day' ),
+			'categoryLabel'       => $planner_state['has_search'] ? $planner_state['active_search_label'] : $this->copy_value( 'not_selected' ),
 			'hasSearch'           => $planner_state['has_search'],
 			'selectedWaypointIds' => array_values( $planner_state['selected_waypoint_ids'] ),
 			'tripWaypoints'       => array_values( $planner_state['trip_waypoints'] ),
@@ -48,46 +57,54 @@ final class PlannerPayloadBuilder {
 	public function get_empty_results_state( array $planner_state ): array {
 		if ( ! empty( $planner_state['search_results_error'] ) ) {
 			return [
-				'heading' => __( 'Google results unavailable', 'plan-your-day' ),
-				'body'    => __( 'Google place results are unavailable right now. Try again later or open the Google Maps handoff link.', 'plan-your-day' ),
+				'heading' => $this->copy_value( 'search_results_unavailable_heading' ),
+				'body'    => $this->copy_value( 'search_results_unavailable_body' ),
 			];
 		}
 
 		if ( ! $planner_state['has_search'] ) {
 			return [
-				'heading' => __( 'Search for any category', 'plan-your-day' ),
+				'heading' => $this->copy_value( 'search_results_prompt_heading' ),
 				'body'    => $planner_state['has_categories']
-					? __( 'Use the search box or choose a preset category to load real place results.', 'plan-your-day' )
-					: __( 'Use the search box to load real place results.', 'plan-your-day' ),
+					? $this->copy_value( 'search_results_prompt_body_with_categories' )
+					: $this->copy_value( 'search_results_prompt_body_no_categories' ),
 			];
 		}
 
 		return [
-			'heading' => __( 'No matching Google results', 'plan-your-day' ),
-			'body'    => __( 'Try a different search or change the starting area.', 'plan-your-day' ),
+			'heading' => $this->copy_value( 'no_matching_results_heading' ),
+			'body'    => $this->copy_value( 'no_matching_results_body' ),
 		];
 	}
 
 	public function get_empty_preview_state( array $planner_state ): array {
 		if ( ! $planner_state['has_search'] && ! $planner_state['has_trip'] ) {
 			return [
-				'heading' => __( 'Start with a category search', 'plan-your-day' ),
+				'heading' => $this->copy_value( 'preview_prompt_heading' ),
 				'body'    => $planner_state['has_categories']
-					? __( 'Use the search box or choose a preset category to load Google results, then add the places you want to turn into trip waypoints.', 'plan-your-day' )
-					: __( 'Use the search box to load Google results, then add the places you want to turn into trip waypoints.', 'plan-your-day' ),
+					? $this->copy_value( 'preview_prompt_body_with_categories' )
+					: $this->copy_value( 'preview_prompt_body_no_categories' ),
 			];
 		}
 
 		if ( $planner_state['has_search'] && ! $planner_state['has_trip'] ) {
 			return [
-				'heading' => __( 'Search preview unavailable', 'plan-your-day' ),
-				'body'    => __( 'The on-page map preview needs a valid Google Maps Embed API key. The Google Maps search link still works.', 'plan-your-day' ),
+				'heading' => $this->copy_value( 'search_preview_unavailable_heading' ),
+				'body'    => $this->copy_value( 'search_preview_unavailable_body' ),
 			];
 		}
 
 		return [
-			'heading' => __( 'Trip preview unavailable', 'plan-your-day' ),
-			'body'    => __( 'The on-page trip preview needs a valid Google Maps Embed API key. The Google Maps handoff link still works.', 'plan-your-day' ),
+			'heading' => $this->copy_value( 'trip_preview_unavailable_heading' ),
+			'body'    => $this->copy_value( 'trip_preview_unavailable_body' ),
 		];
+	}
+
+	private function copy_value( string $key ): string {
+		if ( $this->settings instanceof Settings ) {
+			return $this->settings->get_frontend_copy_value( $key );
+		}
+
+		return InterfaceCopy::default_value( $key );
 	}
 }

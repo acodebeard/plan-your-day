@@ -26,7 +26,7 @@ namespace Acodebeard\PlanYourDay\Tests {
 			}
 
 			if ( ! defined( 'PLAN_YOUR_DAY_SCHEMA_VERSION' ) ) {
-				define( 'PLAN_YOUR_DAY_SCHEMA_VERSION', 1 );
+				define( 'PLAN_YOUR_DAY_SCHEMA_VERSION', 2 );
 			}
 
 			if ( ! defined( 'PLAN_YOUR_DAY_LEGACY_CONFIG_FILE' ) ) {
@@ -65,7 +65,7 @@ namespace Acodebeard\PlanYourDay\Tests {
 			$settings = get_option( Settings::OPTION_NAME );
 
 			self::assertSame( 'test-version', get_option( 'plan_your_day_version' ) );
-			self::assertSame( 1, get_option( 'plan_your_day_schema_version' ) );
+			self::assertSame( 2, get_option( 'plan_your_day_schema_version' ) );
 			self::assertSame( 'Harbor Start', $settings['default_location_label'] );
 			self::assertSame( '123 Ocean View Ave', $settings['default_location_address'] );
 			self::assertSame( '19.639994', $settings['default_location_latitude'] );
@@ -76,6 +76,14 @@ namespace Acodebeard\PlanYourDay\Tests {
 			self::assertSame( 'places-key_456', $settings['google_places_api_key'] );
 			self::assertSame( 'geocode-key_789', $settings['google_geocoding_api_key'] );
 			self::assertSame( 'beaches', $settings['categories'][0]['slug'] ?? null );
+		}
+
+		public function test_activate_seeds_default_categories_when_no_legacy_categories_are_available(): void {
+			Activator::activate();
+
+			$settings = get_option( Settings::OPTION_NAME );
+
+			self::assertSame( Settings::default_categories(), $settings['categories'] ?? [] );
 		}
 
 		public function test_activate_does_not_overwrite_existing_plugin_settings(): void {

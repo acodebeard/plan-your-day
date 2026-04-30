@@ -9,6 +9,7 @@ use Acodebeard\PlanYourDay\Planner\RequestStateParser;
 use Acodebeard\PlanYourDay\Security\RateLimiter;
 use Acodebeard\PlanYourDay\Security\RequestOriginValidator;
 use Acodebeard\PlanYourDay\Security\VisitorTokenManager;
+use Acodebeard\PlanYourDay\Settings\Settings;
 use Acodebeard\PlanYourDay\Support\DebugLogger;
 use WP_Error;
 use WP_REST_Request;
@@ -31,6 +32,7 @@ final class PlannerRoutes {
 	private RequestOriginValidator $request_origin_validator;
 	private VisitorTokenManager $visitor_token_manager;
 	private RateLimiter $rate_limiter;
+	private ?Settings $settings;
 
 	public function __construct(
 		RequestStateParser $request_state_parser,
@@ -38,7 +40,8 @@ final class PlannerRoutes {
 		PlannerPayloadBuilder $planner_payload_builder,
 		RequestOriginValidator $request_origin_validator,
 		VisitorTokenManager $visitor_token_manager,
-		RateLimiter $rate_limiter
+		RateLimiter $rate_limiter,
+		?Settings $settings = null
 	) {
 		$this->request_state_parser     = $request_state_parser;
 		$this->planner_state_builder    = $planner_state_builder;
@@ -46,6 +49,7 @@ final class PlannerRoutes {
 		$this->request_origin_validator = $request_origin_validator;
 		$this->visitor_token_manager    = $visitor_token_manager;
 		$this->rate_limiter             = $rate_limiter;
+		$this->settings                 = $settings;
 	}
 
 	public function register(): void {
@@ -151,7 +155,7 @@ final class PlannerRoutes {
 		if ( ! $this->request_origin_validator->is_same_site_request( $_SERVER ) ) {
 			$error = new WP_Error(
 				'plan_your_day_invalid_origin',
-				__( 'The planner request could not be verified. Refresh the page and try again.', 'plan-your-day' ),
+				$this->request_verification_failed_message(),
 				[
 					'status' => 403,
 				]
@@ -177,7 +181,7 @@ final class PlannerRoutes {
 		if ( ! $this->visitor_token_manager->validate_endpoint_token( $endpoint_token ) ) {
 			$error = new WP_Error(
 				'plan_your_day_invalid_token',
-				__( 'The planner request could not be verified. Refresh the page and try again.', 'plan-your-day' ),
+				$this->request_verification_failed_message(),
 				[
 					'status' => 403,
 				]
@@ -219,6 +223,12 @@ final class PlannerRoutes {
 			'trip_waypoint_place_details_timeout' => self::PUBLIC_TRIP_WAYPOINT_PLACE_DETAILS_TIMEOUT,
 			'trip_waypoint_max_failures'         => self::PUBLIC_TRIP_WAYPOINT_MAX_FAILURES,
 		];
+	}
+
+	private function request_verification_failed_message(): string {
+		return $this->settings instanceof Settings
+			? $this->settings->get_frontend_copy_value( 'request_verification_failed' )
+			: __( 'The planner request could not be verified. Refresh the page and try again.', 'plan-your-day' );
 	}
 
 	private function get_rate_limit_cost( string $scope, array $request_state ): int {

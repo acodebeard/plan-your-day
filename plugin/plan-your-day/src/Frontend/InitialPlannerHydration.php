@@ -30,7 +30,8 @@ final class InitialPlannerHydration {
 		return '' !== $category_key || '' !== $category_search || [] !== $selected_waypoints;
 	}
 
-	public static function apply_loading_placeholders( array $planner_state ): array {
+	public static function apply_loading_placeholders( array $planner_state, array $copy = [] ): array {
+		$copy                   = InterfaceCopy::resolve_values( $copy );
 		$has_search             = ! empty( $planner_state['has_search'] );
 		$has_selected_waypoints = [] !== array_filter(
 			array_map(
@@ -44,40 +45,40 @@ final class InitialPlannerHydration {
 
 		$messages[] = [
 			'type' => 'note',
-			'text' => __( 'Loading planner state through a verified request.', 'plan-your-day' ),
+			'text' => $copy['hydration_loading_message'],
 		];
 
 		$planner_state['messages'] = $messages;
 
 		if ( $has_search ) {
-			$planner_state['search_results_label'] = __( 'Loading Google results...', 'plan-your-day' );
+			$planner_state['search_results_label'] = $copy['loading_results_label'];
 			$planner_state['results_empty_state']  = [
-				'heading' => __( 'Loading Google results', 'plan-your-day' ),
-				'body'    => __( 'The planner is loading your saved search through the secure request path.', 'plan-your-day' ),
+				'heading' => $copy['loading_results_heading'],
+				'body'    => $copy['loading_results_body'],
 			];
-			$planner_state['overview']             = __( 'The planner is loading your saved search through the secure request path.', 'plan-your-day' );
+			$planner_state['overview']             = $copy['loading_results_body'];
 		}
 
 		if ( $has_selected_waypoints ) {
-			$planner_state['trip_count_label'] = __( 'Loading trip waypoints...', 'plan-your-day' );
+			$planner_state['trip_count_label'] = $copy['loading_trip_count'];
 			$planner_state['trip_empty_state'] = [
-				'heading' => __( 'Loading trip waypoints', 'plan-your-day' ),
-				'body'    => __( 'The planner is loading your saved trip through the secure request path.', 'plan-your-day' ),
+				'heading' => $copy['loading_trip_heading'],
+				'body'    => $copy['loading_trip_body'],
 			];
-			$planner_state['overview']         = __( 'The planner is loading your saved trip through the secure request path.', 'plan-your-day' );
+			$planner_state['overview']         = $copy['loading_trip_body'];
 		}
 
 		if ( $has_selected_waypoints ) {
-			$planner_state['preview_mode_label']  = __( 'Loading trip preview', 'plan-your-day' );
+			$planner_state['preview_mode_label']  = $copy['loading_trip_preview_mode'];
 			$planner_state['preview_empty_state'] = [
-				'heading' => __( 'Loading trip preview', 'plan-your-day' ),
-				'body'    => __( 'The planner is loading your saved trip through the secure request path.', 'plan-your-day' ),
+				'heading' => $copy['loading_trip_preview_heading'],
+				'body'    => $copy['loading_trip_preview_body'],
 			];
 		} elseif ( $has_search ) {
-			$planner_state['preview_mode_label']  = __( 'Loading search preview', 'plan-your-day' );
+			$planner_state['preview_mode_label']  = $copy['loading_search_preview_mode'];
 			$planner_state['preview_empty_state'] = [
-				'heading' => __( 'Loading search preview', 'plan-your-day' ),
-				'body'    => __( 'The planner is loading your saved search through the secure request path.', 'plan-your-day' ),
+				'heading' => $copy['loading_search_preview_heading'],
+				'body'    => $copy['loading_search_preview_body'],
 			];
 		}
 

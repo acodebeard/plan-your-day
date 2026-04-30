@@ -85,10 +85,10 @@ final class PlannerStateBuilder {
 		$resolved_waypoints   = [];
 		$iframe_src           = '';
 		$maps_url             = '';
-		$maps_link_label      = __( 'Explore in Google Maps', 'plan-your-day' );
-		$preview_mode_label   = __( 'Google place search', 'plan-your-day' );
-		$overview             = __( 'Search for any category or pick one below to load Google results, then add exact places to your trip.', 'plan-your-day' );
-		$trip_count_label     = __( 'Trip not started', 'plan-your-day' );
+		$maps_link_label      = $this->settings->get_frontend_copy_value( 'maps_link_label_search' );
+		$preview_mode_label   = $this->settings->get_frontend_copy_value( 'preview_mode_label_search' );
+		$overview             = $this->settings->get_frontend_copy_value( 'overview_initial_with_categories' );
+		$trip_count_label     = $this->settings->get_frontend_copy_value( 'trip_not_started_label' );
 
 		if ( $include_results && '' !== $search_query ) {
 			$search_origin_coordinates = $this->geocode_search_area( $search_context['search_area'] );
@@ -140,29 +140,26 @@ final class PlannerStateBuilder {
 		$has_trip             = [] !== $trip_waypoints;
 		$search_results_count = count( $search_results );
 		$search_results_label = $has_search
-			? sprintf(
-				/* translators: %d is the number of Google results. */
-				_n( '%d Google result', '%d Google results', $search_results_count, 'plan-your-day' ),
-				$search_results_count
-			)
-			: __( 'No Google results loaded', 'plan-your-day' );
+			? $this->count_copy( 'search_results_count_single', 'search_results_count_plural', $search_results_count )
+			: $this->settings->get_frontend_copy_value( 'no_results_loaded_label' );
 
 		if ( $has_trip ) {
 			$route_state = $this->build_trip_route_state( $trip_waypoints, $resolved_waypoints, $search_context );
 			$messages    = array_merge( $messages, $route_state['messages'] );
 
 			$trip_count_label   = $route_state['trip_count_label'];
-			$preview_mode_label = __( 'Walking directions', 'plan-your-day' );
-			$maps_link_label    = __( 'Open trip in Google Maps', 'plan-your-day' );
+			$preview_mode_label = $this->settings->get_frontend_copy_value( 'preview_mode_label_trip' );
+			$maps_link_label    = $this->settings->get_frontend_copy_value( 'maps_link_label_trip' );
 			$overview           = $route_state['overview'];
 			$iframe_src         = $route_state['iframe_src'];
 			$maps_url           = $route_state['maps_url'];
 		} elseif ( $has_search ) {
-			$overview = sprintf(
-				/* translators: 1: search label, 2: start summary. */
-				__( 'Browsing Google results for %1$s near %2$s. Add any result to start building a walking trip.', 'plan-your-day' ),
-				$active_search_label,
-				$search_context['handoff_summary']
+			$overview = $this->settings->format_frontend_copy(
+				'overview_browse_search',
+				[
+					'search' => $active_search_label,
+					'start'  => $search_context['handoff_summary'],
+				]
 			);
 
 			if ( $this->settings->is_map_preview_enabled() ) {
@@ -174,7 +171,7 @@ final class PlannerStateBuilder {
 				if ( '' === $iframe_src ) {
 					$messages[] = [
 						'type' => 'warning',
-						'text' => __( 'Add a valid Google Maps Embed API key before relying on the on-site search preview.', 'plan-your-day' ),
+						'text' => $this->settings->get_frontend_copy_value( 'search_preview_key_warning' ),
 					];
 				}
 			}
@@ -183,7 +180,7 @@ final class PlannerStateBuilder {
 				$maps_url = $this->map_url_builder->build_search_handoff_url( $handoff_search_query );
 			}
 		} elseif ( ! $has_categories ) {
-			$overview = __( 'Search for any category to load Google results, then add exact places to your trip.', 'plan-your-day' );
+			$overview = $this->settings->get_frontend_copy_value( 'overview_initial_no_categories' );
 		}
 
 		return [
@@ -291,7 +288,7 @@ final class PlannerStateBuilder {
 				$is_partial = true;
 				$messages[] = [
 					'type' => 'warning',
-					'text' => __( 'The trip preview stopped loading more places before the request timed out. Try again or remove a few stops.', 'plan-your-day' ),
+					'text' => $this->settings->get_frontend_copy_value( 'trip_timeout_warning' ),
 				];
 				DebugLogger::log(
 					'planner.trip_waypoints.deadline_reached',
@@ -321,14 +318,14 @@ final class PlannerStateBuilder {
 				);
 				$messages[] = [
 					'type' => 'warning',
-					'text' => __( 'One selected place could not be loaded from Google and was skipped.', 'plan-your-day' ),
+					'text' => $this->settings->get_frontend_copy_value( 'trip_place_skipped_warning' ),
 				];
 
 				if ( null !== $max_failures && $failure_count >= $max_failures ) {
 					$is_partial = true;
 					$messages[] = [
 						'type' => 'warning',
-						'text' => __( 'The trip preview stopped loading more places after repeated Google place errors. Try again later or remove any invalid stops.', 'plan-your-day' ),
+						'text' => $this->settings->get_frontend_copy_value( 'trip_repeated_errors_warning' ),
 					];
 					DebugLogger::log(
 						'planner.trip_waypoints.failure_limit_reached',
@@ -374,8 +371,8 @@ final class PlannerStateBuilder {
 	private function build_unresolved_trip_waypoint( string $waypoint_id ): array {
 		return [
 			'id'         => $waypoint_id,
-			'label'      => __( 'Selected place needs attention', 'plan-your-day' ),
-			'address'    => __( 'Google could not load this place right now. It is still selected and can be retried, moved, or removed.', 'plan-your-day' ),
+			'label'      => $this->settings->get_frontend_copy_value( 'unresolved_waypoint_label' ),
+			'address'    => $this->settings->get_frontend_copy_value( 'unresolved_waypoint_address' ),
 			'unresolved' => true,
 		];
 	}
@@ -433,27 +430,18 @@ final class PlannerStateBuilder {
 	private function build_trip_route_state( array $trip_waypoints, array $resolved_waypoints, array $search_context ): array {
 		$messages            = [];
 		$trip_count          = count( $trip_waypoints );
-		$trip_count_label    = sprintf(
-			/* translators: %d is the number of selected waypoints. */
-			_n( '%d waypoint selected', '%d waypoints selected', $trip_count, 'plan-your-day' ),
-			$trip_count
-		);
+		$trip_count_label    = $this->count_copy( 'trip_count_single', 'trip_count_plural', $trip_count );
 		$route_description   = [] !== $resolved_waypoints
 			? $this->build_route_description( $resolved_waypoints, $search_context['handoff_summary'] )
-			: __( 'One or more selected places still need to load before the walking trip can be previewed.', 'plan-your-day' );
-		$overview            = sprintf(
-			/* translators: 1: waypoint count label, 2: route description. */
-			__( '%1$s. %2$s', 'plan-your-day' ),
-			$trip_count_label,
-			$route_description
-		);
+			: $this->settings->get_frontend_copy_value( 'trip_route_unresolved' );
+		$overview            = $this->build_trip_overview( $trip_count_label, $route_description );
 		$iframe_src          = '';
 		$maps_url            = '';
 
 		if ( count( $resolved_waypoints ) !== count( $trip_waypoints ) ) {
 			$messages[] = [
 				'type' => 'warning',
-				'text' => __( 'The trip preview and Google Maps handoff will stay unavailable until every selected place loads successfully.', 'plan-your-day' ),
+				'text' => $this->settings->get_frontend_copy_value( 'trip_unavailable_until_loaded_warning' ),
 			];
 
 			return [
@@ -475,7 +463,7 @@ final class PlannerStateBuilder {
 			if ( '' === $iframe_src ) {
 				$messages[] = [
 					'type' => 'warning',
-					'text' => __( 'Add a valid Google Maps Embed API key before relying on the on-site trip preview.', 'plan-your-day' ),
+					'text' => $this->settings->get_frontend_copy_value( 'trip_preview_key_warning' ),
 				];
 			}
 		}
@@ -501,11 +489,12 @@ final class PlannerStateBuilder {
 		$intermediates = count( $trip_waypoints ) > 1 ? array_slice( $trip_waypoints, 0, -1 ) : [];
 
 		if ( [] === $intermediates ) {
-			return sprintf(
-				/* translators: 1: start summary, 2: destination label. */
-				__( 'Walking directions run from %1$s to %2$s.', 'plan-your-day' ),
-				$handoff_summary,
-				$destination['label']
+			return $this->settings->format_frontend_copy(
+				'route_description_direct',
+				[
+					'start'       => $handoff_summary,
+					'destination' => (string) $destination['label'],
+				]
 			);
 		}
 
@@ -520,12 +509,13 @@ final class PlannerStateBuilder {
 				)
 			);
 
-		return sprintf(
-			/* translators: 1: start summary, 2: destination label, 3: via stop labels. */
-			__( 'Walking directions run from %1$s to %2$s via %3$s.', 'plan-your-day' ),
-			$handoff_summary,
-			$destination['label'],
-			$via_label
+		return $this->settings->format_frontend_copy(
+			'route_description_via',
+			[
+				'start'       => $handoff_summary,
+				'destination' => (string) $destination['label'],
+				'via'         => $via_label,
+			]
 		);
 	}
 
@@ -551,21 +541,52 @@ final class PlannerStateBuilder {
 		}
 
 		if ( 2 === $label_count ) {
-			return sprintf(
-				/* translators: 1: first label, 2: second label. */
-				__( '%1$s and %2$s', 'plan-your-day' ),
-				$labels[0],
-				$labels[1]
+			return $this->settings->format_frontend_copy(
+				'label_list_pair',
+				[
+					'first'  => $labels[0],
+					'second' => $labels[1],
+				]
 			);
 		}
 
 		$last_label = array_pop( $labels );
 
-		return sprintf(
-			/* translators: 1: comma-separated label list, 2: final label. */
-			__( '%1$s, and %2$s', 'plan-your-day' ),
-			implode( ', ', $labels ),
-			$last_label
+		return $this->settings->format_frontend_copy(
+			'label_list_many',
+			[
+				'list' => implode( ', ', $labels ),
+				'last' => (string) $last_label,
+			]
+		);
+	}
+
+	private function count_copy( string $single_key, string $plural_key, int $count ): string {
+		$template_key = 1 === $count ? $single_key : $plural_key;
+
+		return $this->settings->format_frontend_copy(
+			$template_key,
+			[
+				'count' => (string) $count,
+			]
+		);
+	}
+
+	private function build_trip_overview( string $trip_count_label, string $route_description ): string {
+		$template = $this->settings->get_frontend_copy_value( 'trip_overview_template' );
+
+		if ( '' === $template ) {
+			return '';
+		}
+
+		return trim(
+			$this->settings->format_frontend_copy(
+				'trip_overview_template',
+				[
+					'trip_count'        => $trip_count_label,
+					'route_description' => $route_description,
+				]
+			)
 		);
 	}
 }

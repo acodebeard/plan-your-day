@@ -42,6 +42,83 @@ defaults.
 - `map_preview_enabled`: allows future on-page Maps Embed previews.
 - `maps_handoff_enabled`: allows future outbound Google Maps links.
 
+## Categories
+
+Editable categories are stored as:
+
+```text
+plan_your_day_settings[categories]
+```
+
+Each saved category row includes:
+
+- `slug`
+- `label`
+- `description`
+- `text_query`
+- `enabled`
+- `sort_order`
+
+Built-in starter rows for fresh installs and empty-list fallbacks live in:
+
+```text
+plugin/plan-your-day/src/Planner/CategoryCatalog.php
+```
+
+Important behavior:
+
+- `Settings::get_categories()` returns the saved category rows when any exist.
+- If the saved list is empty and `use_preset_categories` remains enabled, the
+  plugin falls back to the built-in starter rows.
+- `CategoryCatalog` filters those rows down to enabled frontend categories and
+  keys them by slug for renderer and planner-state use.
+- `Settings::sanitize_categories()` trims text fields, strips HTML/JS, creates
+  safe unique slugs, drops malformed rows, and sorts by `sort_order`.
+
+To change the starter categories for a fresh install:
+
+1. Update `CategoryCatalog::default_rows()`.
+2. Keep each row generic to the plugin.
+3. Preserve `label`, `description`, `text_query`, `enabled`, and `sort_order`.
+4. Update tests that assert the default/frontend category list.
+
+## Frontend Interface Copy
+
+Frontend interface copy is stored inside the main plugin option as:
+
+```text
+plan_your_day_settings[interface_copy]
+```
+
+Default copy definitions live in:
+
+```text
+plugin/plan-your-day/src/Frontend/InterfaceCopy.php
+```
+
+Important behavior:
+
+- Required labels, buttons, accessible names, and system messages fall back to
+  their default copy when saved blank.
+- Optional helper text and descriptive text can be saved blank to suppress the
+  visible text output.
+- Dynamic copy uses named tokens such as `{count}`, `{search}`, `{place}`,
+  `{start}`, and `{settings}` instead of raw `sprintf()` placeholders.
+- Frontend runtime code receives the same saved/default values through the
+  renderer config JSON, so initial HTML and JavaScript updates stay aligned.
+
+To add a new editable frontend string in the future:
+
+1. Add the string definition to `InterfaceCopy::definitions()` with its default,
+   group, field type, and required/optional rule.
+2. Read it through `Settings::get_frontend_copy_value()` or
+   `Settings::format_frontend_copy()` in the renderer or planner service that
+   outputs the text.
+3. If JavaScript needs the string, add it to the renderer config in
+   `PlannerRenderer::build_config()`.
+4. Add or update tests for fallback, blank handling, and any dynamic token
+   replacement.
+
 ## Google API Keys
 
 - `google_maps_embed_api_key`: browser-facing Maps Embed API key. This key can

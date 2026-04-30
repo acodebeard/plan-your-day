@@ -1,0 +1,119 @@
+.plan-your-day-admin-page {
+	scroll-behavior: smooth;
+}
+
+.plan-your-day-admin-accordion {
+	display: grid;
+	gap: 1rem;
+	max-width: 72rem;
+	margin-top: 1rem;
+}
+
+.plan-your-day-admin-accordion__item {
+	margin: 0;
+	border: 1px solid #ccd0d4;
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+	overflow: hidden;
+}
+
+.plan-your-day-admin-accordion__summary {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 1rem 1.25rem;
+	cursor: pointer;
+	list-style: none;
+}
+
+.plan-your-day-admin-accordion__summary::-webkit-details-marker {
+	display: none;
+}
+
+.plan-your-day-admin-accordion__summary::after {
+	content: "+";
+	flex: 0 0 auto;
+	font-size: 1.5rem;
+	font-weight: 400;
+	line-height: 1;
+	color: #1d2327;
+}
+
+.plan-your-day-admin-accordion__item[open] .plan-your-day-admin-accordion__summary::after {
+	content: "-";
+}
+
+.plan-your-day-admin-accordion__summary-copy {
+	display: grid;
+	gap: 0.35rem;
+}
+
+.plan-your-day-admin-accordion__title {
+	display: block;
+	font-size: 1rem;
+	font-weight: 600;
+	line-height: 1.35;
+	color: #1d2327;
+}
+
+.plan-your-day-admin-accordion__description {
+	display: block;
+	font-size: 0.875rem;
+	line-height: 1.5;
+	color: #50575e;
+}
+
+.plan-your-day-admin-accordion__panel {
+	padding: 0 1.25rem 1.25rem;
+	border-top: 1px solid #e2e4e7;
+}
+
+.plan-your-day-interface-copy-group {
+	display: grid;
+	gap: 1rem;
+	max-width: 56rem;
+	padding-top: 1rem;
+}
+
+.plan-your-day-interface-copy-field-label {
+	display: block;
+	margin-bottom: 0.35rem;
+	font-weight: 600;
+}
+
+.plan-your-day-categories-editor .widefat th:first-child,
+.plan-your-day-categories-editor .widefat td:first-child {
+	padding-left: 1rem;
+}
+
+.plan-your-day-admin-back-to-top {
+	position: fixed;
+	right: 1.5rem;
+	bottom: 1.5rem;
+	z-index: 1000;
+	opacity: 0;
+	transform: translateY(0.75rem);
+	pointer-events: none;
+	transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.plan-your-day-admin-back-to-top.is-visible {
+	opacity: 1;
+	transform: translateY(0);
+	pointer-events: auto;
+}
+
+@media (max-width: 782px) {
+	.plan-your-day-admin-accordion__summary,
+	.plan-your-day-admin-accordion__panel {
+		padding-right: 1rem;
+		padding-left: 1rem;
+	}
+
+	.plan-your-day-admin-back-to-top {
+		right: 1rem;
+		bottom: 1rem;
+	}
+}
