@@ -482,10 +482,6 @@
       isLoadingMore: Boolean(options.isLoadingMore),
     };
 
-    if (refs.resultsCount) {
-      refs.resultsCount.textContent = String(browseData.searchResultsLabel || '');
-    }
-
     refs.categoryButtons.forEach((button) => {
       const categoryKey = button.getAttribute('data-category-key') || '';
       const isActive = categoryKey === activeCategory && categoryKey === expandedCategory;
@@ -566,12 +562,11 @@
   };
 
   const renderPreview = (refs, state, strings) => {
-    const browseData = state.browse || {};
     const routeData = state.route || {};
     const iframeSrc = String(routeData.iframeSrc || '');
     const emptyPreviewState = routeData.emptyPreviewState || {};
-    const categoryLabel = String(routeData.categoryLabel || browseData.categoryLabel || strings.notSelected || '');
     const mapsUrl = String(routeData.mapsUrl || '');
+    const hasSelectedWaypoints = toStringArray(routeData.selectedWaypointIds).length > 0;
 
     renderMessages(refs, routeData.messages);
 
@@ -597,26 +592,7 @@
 
     if (refs.summaryCount) {
       refs.summaryCount.textContent = String(routeData.tripCountLabel || '');
-    }
-
-    if (refs.summaryOverview) {
-      refs.summaryOverview.textContent = String(routeData.overview || '');
-    }
-
-    if (refs.summaryCategory) {
-      refs.summaryCategory.textContent = categoryLabel;
-    }
-
-    if (refs.summaryResults) {
-      refs.summaryResults.textContent = String(browseData.searchResultsLabel || '');
-    }
-
-    if (refs.summaryHandoffStart) {
-      refs.summaryHandoffStart.textContent = String(routeData.handoffStartLabel || '');
-    }
-
-    if (refs.summaryMode) {
-      refs.summaryMode.textContent = String(routeData.previewModeLabel || '');
+      refs.summaryCount.hidden = hasSelectedWaypoints;
     }
 
     if (refs.openLinkLabel) {
@@ -624,6 +600,7 @@
     }
 
     if (refs.openLink) {
+      refs.openLink.hidden = !hasSelectedWaypoints;
       refs.openLink.classList.toggle('is-disabled', mapsUrl === '');
 
       if (mapsUrl) {
@@ -761,7 +738,6 @@
       startToggle: root.querySelector('[data-plan-start-toggle]'),
       startToggleLabel: root.querySelector('[data-plan-start-toggle-label]'),
       startPanel: root.querySelector('[data-plan-start-panel]'),
-      resultsCount: root.querySelector('[data-plan-results-count]'),
       tripHeaderActions: root.querySelector('[data-plan-trip-header-actions]'),
       tripRegion: root.querySelector('[data-plan-trip-region]'),
       messages: root.querySelector('[data-plan-messages]'),
@@ -772,11 +748,6 @@
       previewEmptyHeading: root.querySelector('[data-plan-preview-empty-heading]'),
       previewEmptyBody: root.querySelector('[data-plan-preview-empty-body]'),
       summaryCount: root.querySelector('[data-plan-summary-count]'),
-      summaryOverview: root.querySelector('[data-plan-summary-overview]'),
-      summaryCategory: root.querySelector('[data-plan-summary-category]'),
-      summaryResults: root.querySelector('[data-plan-summary-results]'),
-      summaryHandoffStart: root.querySelector('[data-plan-summary-handoff-start]'),
-      summaryMode: root.querySelector('[data-plan-summary-mode]'),
       openLink: root.querySelector('[data-plan-open-link]'),
       openLinkLabel: root.querySelector('[data-plan-open-link-label]'),
     };

@@ -234,7 +234,6 @@ final class PlannerRenderer {
 						<p id="<?php echo esc_attr( $category_help_id ); ?>"><?php echo esc_html( $category_help_text ); ?></p>
 					<?php endif; ?>
 				</div>
-				<span class="plan-your-day__count-pill" data-plan-results-count><?php echo esc_html( $planner_state['search_results_label'] ); ?></span>
 			</div>
 
 			<div class="plan-your-day__category-search">
@@ -543,9 +542,8 @@ final class PlannerRenderer {
 	}
 
 	private function render_preview_card( string $instance_id, array $planner_state, array $preview_empty_state, bool $maps_link_enabled ): void {
-		$heading_id     = $instance_id . '-preview-heading';
-		$maps_label_id  = $instance_id . '-maps-label';
-		$category_label = $planner_state['has_search'] ? (string) $planner_state['active_search_label'] : $this->settings->get_frontend_copy_value( 'not_selected' );
+		$heading_id             = $instance_id . '-preview-heading';
+		$has_selected_waypoints = [] !== (array) $planner_state['selected_waypoint_ids'];
 		?>
 		<section class="plan-your-day__card plan-your-day__preview-card" aria-labelledby="<?php echo esc_attr( $heading_id ); ?>" data-plan-preview-card>
 			<div class="plan-your-day__card-header">
@@ -577,44 +575,17 @@ final class PlannerRenderer {
 			</div>
 
 			<div class="plan-your-day__summary" data-plan-summary>
-				<div class="plan-your-day__summary-top">
-					<?php if ( '' !== $this->settings->get_frontend_copy_value( 'summary_eyebrow' ) ) : ?>
-						<p class="plan-your-day__summary-eyebrow"><?php echo esc_html( $this->settings->get_frontend_copy_value( 'summary_eyebrow' ) ); ?></p>
-					<?php endif; ?>
-					<p class="plan-your-day__summary-count" data-plan-summary-count><?php echo esc_html( $planner_state['trip_count_label'] ); ?></p>
-				</div>
-				<p class="plan-your-day__summary-overview" data-plan-summary-overview><?php echo esc_html( $planner_state['overview'] ); ?></p>
-				<dl class="plan-your-day__summary-grid">
-					<div>
-						<dt><?php echo esc_html( $this->settings->get_frontend_copy_value( 'summary_active_search_label' ) ); ?></dt>
-						<dd data-plan-summary-category><?php echo esc_html( $category_label ); ?></dd>
-					</div>
-					<div>
-						<dt><?php echo esc_html( $this->settings->get_frontend_copy_value( 'summary_results_label' ) ); ?></dt>
-						<dd data-plan-summary-results><?php echo esc_html( $planner_state['search_results_label'] ); ?></dd>
-					</div>
-					<div>
-						<dt><?php echo esc_html( $this->settings->get_frontend_copy_value( 'summary_start_label' ) ); ?></dt>
-						<dd data-plan-summary-handoff-start><?php echo esc_html( $planner_state['handoff_start_label'] ); ?></dd>
-					</div>
-					<div>
-						<dt><?php echo esc_html( $this->settings->get_frontend_copy_value( 'summary_map_mode_label' ) ); ?></dt>
-						<dd data-plan-summary-mode><?php echo esc_html( $planner_state['preview_mode_label'] ); ?></dd>
-					</div>
-				</dl>
-
-				<div class="plan-your-day__summary-handoff">
-					<p class="plan-your-day__summary-handoff-label" id="<?php echo esc_attr( $maps_label_id ); ?>"><?php echo esc_html( $this->settings->get_frontend_copy_value( 'summary_open_maps_label' ) ); ?></p>
-					<a
-						class="plan-your-day__maps-link plan-your-day__maps-link--summary<?php echo $maps_link_enabled ? '' : ' is-disabled'; ?>"
-						<?php echo $maps_link_enabled ? 'href="' . esc_url( $planner_state['maps_url'] ) . '"' : ''; ?>
-						target="_blank"
-						rel="noopener noreferrer"
-						data-plan-open-link
-						<?php echo $maps_link_enabled ? '' : 'aria-disabled="true"'; ?>>
-						<span data-plan-open-link-label><?php echo esc_html( $planner_state['maps_link_label'] ); ?></span>
-					</a>
-				</div>
+				<p class="plan-your-day__summary-count" data-plan-summary-count <?php echo $has_selected_waypoints ? 'hidden' : ''; ?>><?php echo esc_html( $planner_state['trip_count_label'] ); ?></p>
+				<a
+					class="plan-your-day__maps-link plan-your-day__maps-link--summary<?php echo $maps_link_enabled ? '' : ' is-disabled'; ?>"
+					<?php echo $maps_link_enabled ? 'href="' . esc_url( $planner_state['maps_url'] ) . '"' : ''; ?>
+					target="_blank"
+					rel="noopener noreferrer"
+					data-plan-open-link
+					<?php echo $has_selected_waypoints ? '' : 'hidden'; ?>
+					<?php echo $maps_link_enabled ? '' : 'aria-disabled="true"'; ?>>
+					<span data-plan-open-link-label><?php echo esc_html( $planner_state['maps_link_label'] ); ?></span>
+				</a>
 			</div>
 		</section>
 		<?php
