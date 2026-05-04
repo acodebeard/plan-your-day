@@ -38,7 +38,7 @@ final class Settings {
 				self::START_MODE_CUSTOM,
 			],
 			'max_waypoints'                   => 8,
-			'result_count'                    => 16,
+			'result_count'                    => 8,
 			'distance_unit'                   => self::DISTANCE_UNIT_MILES,
 			'map_preview_enabled'             => true,
 			'maps_handoff_enabled'            => true,

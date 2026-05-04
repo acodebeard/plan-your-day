@@ -13,7 +13,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 	private const TEXT_SEARCH_ENDPOINT = 'https://places.googleapis.com/v1/places:searchText';
 	private const PLACE_DETAILS_ENDPOINT = 'https://places.googleapis.com/v1/places/';
 	private const GEOCODE_ENDPOINT = 'https://maps.googleapis.com/maps/api/geocode/json';
-	private const TEXT_SEARCH_FIELD_MASK = 'places.id,places.displayName,places.formattedAddress,places.googleMapsUri,places.location';
+	private const TEXT_SEARCH_FIELD_MASK = 'places.id,places.displayName,places.formattedAddress,places.googleMapsUri,places.location,nextPageToken';
 	private const PLACE_DETAILS_FIELD_MASK = 'id,displayName,formattedAddress,googleMapsUri';
 	public const TEXT_SEARCH_LOCATION_BIAS_RADIUS_METERS = 15000.0;
 
@@ -27,8 +27,9 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		$this->place_parser = $place_parser ?? new PlaceParser();
 	}
 
-	public function text_search( string $query, ?float $origin_latitude = null, ?float $origin_longitude = null ): GoogleApiResult {
-		$query = trim( sanitize_text_field( $query ) );
+	public function text_search( string $query, ?float $origin_latitude = null, ?float $origin_longitude = null, string $page_token = '' ): GoogleApiResult {
+		$query      = trim( sanitize_text_field( $query ) );
+		$page_token = trim( sanitize_text_field( $page_token ) );
 
 		if ( '' === $query ) {
 			return GoogleApiResult::success(
@@ -55,6 +56,16 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 			'rankPreference' => 'DISTANCE',
 		];
 
+		if ( '' !== $page_token ) {
+			/*
+			 * Google issues a new page token for each additional result page. The
+			 * planner keeps that token in client-side request state so public
+			 * browse requests can ask for the next page without persisting any
+			 * visitor session state on the server.
+			 */
+			$request_body['pageToken'] = $page_token;
+		}
+
 		if ( $this->is_valid_coordinate( $origin_latitude, -90, 90 ) && $this->is_valid_coordinate( $origin_longitude, -180, 180 ) ) {
 			$request_body['locationBias'] = [
 				'circle' => [
@@ -73,6 +84,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 				'query'            => $query,
 				'origin_latitude'  => $origin_latitude,
 				'origin_longitude' => $origin_longitude,
+				'page_token'       => $page_token,
 				'request_body'     => $request_body,
 			]
 		);
@@ -114,7 +126,8 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 
 		return GoogleApiResult::success(
 			[
-				'places' => $places,
+				'places'         => $places,
+				'nextPageToken' => trim( sanitize_text_field( (string) ( $decoded['body']['nextPageToken'] ?? '' ) ) ),
 			],
 			$decoded['status_code']
 		);

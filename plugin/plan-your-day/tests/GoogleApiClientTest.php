@@ -49,6 +49,54 @@ final class GoogleApiClientTest extends TestCase {
 		self::assertSame( 15, $transport->last_get_args['timeout'] ?? null );
 	}
 
+	public function test_text_search_first_page_search_still_works_without_sending_page_token(): void {
+		$transport                  = new RecordingGoogleHttpTransport();
+		$transport->post_response_body = wp_json_encode(
+			[
+				'places' => [
+					[
+						'id'               => 'place-1',
+						'displayName'      => [
+							'text' => 'Test Place',
+						],
+						'formattedAddress' => '123 Test St',
+						'googleMapsUri'    => 'https://maps.google.com/?q=place-1',
+						'location'         => [
+							'latitude'  => 19.64,
+							'longitude' => -155.99,
+						],
+					],
+				],
+			]
+		);
+		$client                     = new GoogleApiClient( new Settings(), $transport, new PlaceParser() );
+
+		$result = $client->text_search( 'coffee shops', 19.64, -155.99 );
+
+		self::assertTrue( $result->is_success() );
+		self::assertSame( '', $result->data()['nextPageToken'] ?? '' );
+		self::assertCount( 1, $result->data()['places'] ?? [] );
+		self::assertSame( 8, $transport->last_post_body['pageSize'] ?? null );
+		self::assertArrayNotHasKey( 'pageToken', $transport->last_post_body );
+	}
+
+	public function test_text_search_sends_page_token_and_exposes_next_page_token(): void {
+		$transport                    = new RecordingGoogleHttpTransport();
+		$transport->post_response_body = wp_json_encode(
+			[
+				'places'        => [],
+				'nextPageToken' => 'page-3',
+			]
+		);
+		$client                       = new GoogleApiClient( new Settings(), $transport, new PlaceParser() );
+
+		$result = $client->text_search( 'coffee shops', 19.64, -155.99, 'page-2' );
+
+		self::assertTrue( $result->is_success() );
+		self::assertSame( 'page-2', $transport->last_post_body['pageToken'] ?? '' );
+		self::assertSame( 'page-3', $result->data()['nextPageToken'] ?? '' );
+	}
+
 	public function test_cached_text_search_key_includes_request_shaping_settings(): void {
 		$cache            = new GoogleApiCache();
 		$recording_client = new RecordingGoogleApiClient();
@@ -64,7 +112,8 @@ final class GoogleApiClientTest extends TestCase {
 			'text_search',
 			[
 				'query'           => 'Beaches',
-				'result_count'    => 16,
+				'page_token'      => '',
+				'result_count'    => 8,
 				'rank_preference' => 'DISTANCE',
 				'location_bias'   => [
 					'circle' => [
@@ -106,17 +155,33 @@ final class GoogleApiClientTest extends TestCase {
 		$client->text_search( 'coffee', 19.64, -155.99 );
 
 		$settings = $GLOBALS['plan_your_day_test_options'][ Settings::OPTION_NAME ];
-		$settings['result_count'] = 8;
+		$settings['result_count'] = 9;
 		update_option( Settings::OPTION_NAME, $settings );
 
 		$client->text_search( 'coffee', 19.64, -155.99 );
 
 		self::assertSame( 2, $recording_client->text_search_calls );
 	}
+
+	public function test_cached_text_search_key_changes_when_page_token_changes(): void {
+		$recording_client = new RecordingGoogleApiClient();
+		$client           = new CachedGoogleApiClient( $recording_client, new Settings(), new GoogleApiCache() );
+
+		$client->text_search( 'coffee', 19.64, -155.99 );
+		$client->text_search( 'coffee', 19.64, -155.99 );
+		$client->text_search( 'coffee', 19.64, -155.99, 'page-2' );
+		$client->text_search( 'coffee', 19.64, -155.99, 'page-2' );
+
+		self::assertSame( 2, $recording_client->text_search_calls );
+		self::assertSame( [ '', 'page-2' ], $recording_client->text_search_page_tokens );
+	}
 }
 
 final class RecordingGoogleHttpTransport implements GoogleHttpTransportInterface {
 	public array $last_get_args = [];
+	public array $last_post_args = [];
+	public array $last_post_body = [];
+	public string $post_response_body = '{}';
 
 	public function get( string $url, array $args = [] ) {
 		$this->last_get_args = $args;
@@ -139,20 +204,25 @@ final class RecordingGoogleHttpTransport implements GoogleHttpTransportInterface
 	}
 
 	public function post( string $url, array $args = [] ) {
+		$this->last_post_args = $args;
+		$this->last_post_body = json_decode( (string) ( $args['body'] ?? '{}' ), true ) ?: [];
+
 		return [
 			'response' => [
 				'code' => 200,
 			],
-			'body'     => '{}',
+			'body'     => $this->post_response_body,
 		];
 	}
 }
 
 final class RecordingGoogleApiClient implements GoogleApiClientInterface {
 	public int $text_search_calls = 0;
+	public array $text_search_page_tokens = [];
 
-	public function text_search( string $query, ?float $origin_latitude = null, ?float $origin_longitude = null ): GoogleApiResult {
+	public function text_search( string $query, ?float $origin_latitude = null, ?float $origin_longitude = null, string $page_token = '' ): GoogleApiResult {
 		++$this->text_search_calls;
+		$this->text_search_page_tokens[] = $page_token;
 
 		return GoogleApiResult::success(
 			[

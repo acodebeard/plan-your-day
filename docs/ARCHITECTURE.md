@@ -109,7 +109,8 @@ Planner helpers extracted so far:
 - `StartContextResolver`: resolves default/current/custom start behavior using
   plugin settings instead of hardcoded destination defaults.
 - `RequestStateParser`: normalizes request-style category, start, and waypoint
-  state.
+  state, including the browse-pagination fields passed through the shared
+  `/browse` endpoint.
 - `PlannerStateBuilder`: builds the plugin-native planner state shape used by
   shared renderers and REST endpoints.
 - `PlannerPayloadBuilder`: shapes browse and route payloads from planner state.
@@ -158,6 +159,15 @@ scope, client IP, and minute bucket.
 `PlannerRoutes` registers the public WordPress REST browse and route endpoints.
 Those callbacks reuse `RequestStateParser`, `PlannerStateBuilder`, and
 `PlannerPayloadBuilder` before returning structured route/browse payloads.
+
+The browse endpoint remains the single search-results entrypoint for both
+initial category/custom searches and the frontend More Results flow. Pagination
+state stays request- and client-state based: the frontend sends `page_token`,
+`append_results`, and `loaded_result_ids`, then keeps the accumulated result
+list in `plan.js` while the browse payload returns `nextPageToken`,
+`hasMoreResults`, `searchContextKey`, and `searchResultsError`. That keeps
+selected waypoints and route state aligned without introducing stored sessions
+or server-side persistence for pagination.
 
 ## Still In The Standalone Runtime
 

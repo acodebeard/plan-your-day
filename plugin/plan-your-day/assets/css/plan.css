@@ -264,10 +264,12 @@
 .plan-your-day__category-trigger:focus-visible,
 .plan-your-day__category-search input:focus-visible,
 .plan-your-day__category-search-button:focus-visible,
+.plan-your-day__load-more-button:focus-visible,
 .plan-your-day__start-option input:focus-visible + .plan-your-day__start-option-body,
 .plan-your-day__start-toggle:focus-visible,
 .plan-your-day__custom-start input:focus-visible,
 .plan-your-day__submit:focus-visible,
+.plan-your-day__load-more-button:focus-visible,
 .plan-your-day__maps-link:focus-visible,
 .plan-your-day__clear-link:focus-visible,
 .plan-your-day__result-add:focus-visible,
@@ -502,6 +504,12 @@
   list-style: none;
 }
 
+.plan-your-day__load-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.85rem;
+}
+
 .plan-your-day__result-item,
 .plan-your-day__trip-item {
   display:flex;
@@ -539,12 +547,14 @@
 
 .plan-your-day__result-link,
 .plan-your-day__result-add,
+.plan-your-day__load-more-button,
 .plan-your-day__trip-tools a,
 .plan-your-day__trip-tools button,
 .plan-your-day__reorder-disabled,
 .plan-your-day__submit,
 .plan-your-day__maps-link,
 .plan-your-day__clear-link,
+.plan-your-day__load-more-button,
 .plan-your-day__category-search-button {
   display: inline-flex;
   align-items: center;
@@ -570,6 +580,7 @@
 }
 
 .plan-your-day__result-link,
+.plan-your-day__load-more-button,
 .plan-your-day__trip-tools a,
 .plan-your-day__trip-tools button,
 .plan-your-day__maps-link {
@@ -580,6 +591,8 @@
 
 .plan-your-day__result-link:hover,
 .plan-your-day__result-link:active,
+.plan-your-day__load-more-button:hover:not(:disabled),
+.plan-your-day__load-more-button:active:not(:disabled),
 .plan-your-day__trip-tools a:hover,
 .plan-your-day__trip-tools a:active,
 .plan-your-day__trip-tools button:hover:not(:disabled),
@@ -593,6 +606,7 @@
 
 .plan-your-day__result-add,
 .plan-your-day__submit,
+.plan-your-day__load-more-button,
 .plan-your-day__category-search-button {
   background: #173038;
   color: #fffdf7;
@@ -600,12 +614,25 @@
 
 .plan-your-day__result-add:hover,
 .plan-your-day__result-add:active,
+.plan-your-day__load-more-button:hover:not(:disabled),
+.plan-your-day__load-more-button:active:not(:disabled),
 .plan-your-day__category-search-button:hover,
 .plan-your-day__category-search-button:active,
 .plan-your-day__submit:hover,
 .plan-your-day__submit:active {
   transform: translateY(-1px);
   background: #0f2228;
+}
+
+.plan-your-day__load-more-button {
+  min-width: 11rem;
+}
+
+.plan-your-day__load-more-button.is-loading,
+.plan-your-day__load-more-button:disabled {
+  cursor: progress;
+  opacity: 0.82;
+  transform: none;
 }
 
 .plan-your-day__result-added {
@@ -619,6 +646,19 @@
   color: #173038;
   font-size: 0.9rem;
   font-weight: 700;
+}
+
+.plan-your-day__load-more {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 0.9rem;
+}
+
+.plan-your-day__load-more-button:disabled,
+.plan-your-day__load-more-button.is-loading {
+  opacity: 0.72;
+  cursor: progress;
+  transform: none;
 }
 
 .plan-your-day__waypoint-feedback {

@@ -18,10 +18,10 @@ final class CachedGoogleApiClient implements GoogleApiClientInterface {
 		$this->cache    = $cache;
 	}
 
-	public function text_search( string $query, ?float $origin_latitude = null, ?float $origin_longitude = null ): GoogleApiResult {
+	public function text_search( string $query, ?float $origin_latitude = null, ?float $origin_longitude = null, string $page_token = '' ): GoogleApiResult {
 		$cache_key = $this->cache->build_key(
 			'text_search',
-			$this->build_text_search_cache_parts( $query, $origin_latitude, $origin_longitude ),
+			$this->build_text_search_cache_parts( $query, $origin_latitude, $origin_longitude, $page_token ),
 			$this->settings->get_google_places_api_key()
 		);
 
@@ -30,13 +30,14 @@ final class CachedGoogleApiClient implements GoogleApiClientInterface {
 			$this->settings->get_google_text_search_cache_ttl(),
 			'text_search',
 			'',
-			fn (): GoogleApiResult => $this->client->text_search( $query, $origin_latitude, $origin_longitude )
+			fn (): GoogleApiResult => $this->client->text_search( $query, $origin_latitude, $origin_longitude, $page_token )
 		);
 	}
 
-	private function build_text_search_cache_parts( string $query, ?float $origin_latitude, ?float $origin_longitude ): array {
+	private function build_text_search_cache_parts( string $query, ?float $origin_latitude, ?float $origin_longitude, string $page_token ): array {
 		$parts = [
 			'query'           => trim( sanitize_text_field( $query ) ),
+			'page_token'      => trim( sanitize_text_field( $page_token ) ),
 			'result_count'    => $this->settings->get_result_count(),
 			'rank_preference' => 'DISTANCE',
 			'location_bias'   => null,

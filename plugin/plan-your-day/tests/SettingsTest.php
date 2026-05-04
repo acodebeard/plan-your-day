@@ -53,6 +53,10 @@ final class SettingsTest extends TestCase {
 		self::assertSame( "10.0.0.0/8\n2001:db8::/32", $sanitized['trusted_proxy_cidrs'] );
 	}
 
+	public function test_defaults_use_eight_google_results(): void {
+		self::assertSame( 8, Settings::defaults()['result_count'] );
+	}
+
 	public function test_sanitize_categories_discards_invalid_rows_and_makes_unique_slugs(): void {
 		$sanitized = Settings::sanitize_categories(
 			[

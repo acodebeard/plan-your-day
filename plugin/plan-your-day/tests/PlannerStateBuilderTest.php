@@ -312,6 +312,142 @@ final class PlannerStateBuilderTest extends TestCase {
 		self::assertSame( 'tea houses near 123 Main St', $google_api_client->last_text_search_query );
 	}
 
+	public function test_build_append_mode_dedupes_loaded_results_and_preserves_trip_state(): void {
+		$google_api_client = new FakePlannerGoogleApiClient(
+			[
+				'trip-1' => GoogleApiResult::success(
+					[
+						'place' => $this->place( 'trip-1', 'Trip Stop' ),
+					]
+				),
+			],
+			GoogleApiResult::success(
+				[
+					'places'        => [
+						[
+							'id'      => 'loaded-1',
+							'label'   => 'Already Loaded',
+							'address' => 'Loaded address',
+						],
+						[
+							'id'      => 'loaded-2',
+							'label'   => 'New Result',
+							'address' => 'New address',
+						],
+					],
+					'nextPageToken' => 'page-3',
+				]
+			)
+		);
+		$builder           = $this->planner_state_builder( $google_api_client );
+
+		$state = $builder->build(
+			[
+				'category_search'       => 'coffee',
+				'page_token'            => 'page-2',
+				'append_results'        => true,
+				'loaded_result_ids'     => [ 'loaded-1' ],
+				'selected_waypoint_ids' => [ 'trip-1' ],
+				'start_mode'            => Settings::START_MODE_DEFAULT,
+			],
+			[
+				'include_trip_waypoints' => true,
+			]
+		);
+
+		self::assertSame( 'page-2', $google_api_client->last_text_search_page_token );
+		self::assertSame( [ 'loaded-2' ], array_column( $state['search_results'], 'id' ) );
+		self::assertSame( '2 Google results', $state['search_results_label'] );
+		self::assertSame( 'page-3', $state['next_page_token'] );
+		self::assertTrue( $state['has_more_results'] );
+		self::assertSame( [ 'trip-1' ], $state['selected_waypoint_ids'] );
+		self::assertCount( 1, $state['trip_waypoints'] );
+		self::assertSame( 'trip-1', $state['trip_waypoints'][0]['id'] ?? '' );
+	}
+
+	public function test_build_search_context_key_changes_when_search_context_changes(): void {
+		update_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				$GLOBALS['plan_your_day_test_options'][ Settings::OPTION_NAME ],
+				[
+					'categories' => Settings::sanitize_categories(
+						[
+							[
+								'label'       => 'Coffee',
+								'description' => 'Coffee stops',
+								'text_query'  => 'coffee shops',
+								'slug'        => 'coffee',
+								'enabled'     => true,
+								'sort_order'  => 10,
+							],
+							[
+								'label'       => 'Tea',
+								'description' => 'Tea stops',
+								'text_query'  => 'tea houses',
+								'slug'        => 'tea',
+								'enabled'     => true,
+								'sort_order'  => 20,
+							],
+						]
+					),
+				]
+			)
+		);
+
+		$builder = $this->planner_state_builder( new FakePlannerGoogleApiClient( [] ) );
+
+		$category_base = $builder->build(
+			[
+				'category_key' => 'coffee',
+				'start_mode'   => Settings::START_MODE_DEFAULT,
+			]
+		);
+		$category_changed = $builder->build(
+			[
+				'category_key' => 'tea',
+				'start_mode'   => Settings::START_MODE_DEFAULT,
+			]
+		);
+		$custom_search_base = $builder->build(
+			[
+				'category_search' => 'coffee',
+				'start_mode'      => Settings::START_MODE_DEFAULT,
+			]
+		);
+		$custom_search_changed = $builder->build(
+			[
+				'category_search' => 'tea',
+				'start_mode'      => Settings::START_MODE_DEFAULT,
+			]
+		);
+		$start_mode_changed = $builder->build(
+			[
+				'category_search' => 'coffee',
+				'start_mode'      => Settings::START_MODE_CURRENT,
+			]
+		);
+		$custom_start_base = $builder->build(
+			[
+				'category_search' => 'coffee',
+				'start_mode'      => Settings::START_MODE_CUSTOM,
+				'custom_start'    => 'Hotel One',
+			]
+		);
+		$custom_start_changed = $builder->build(
+			[
+				'category_search' => 'coffee',
+				'start_mode'      => Settings::START_MODE_CUSTOM,
+				'custom_start'    => 'Hotel Two',
+			]
+		);
+
+		self::assertNotSame( $category_base['search_context_key'], $category_changed['search_context_key'] );
+		self::assertNotSame( $custom_search_base['search_context_key'], $custom_search_changed['search_context_key'] );
+		self::assertNotSame( $custom_search_base['search_context_key'], $start_mode_changed['search_context_key'] );
+		self::assertNotSame( $custom_start_base['search_context_key'], $custom_start_changed['search_context_key'] );
+	}
+
 	private function planner_state_builder( GoogleApiClientInterface $google_api_client ): PlannerStateBuilder {
 		$settings = new Settings();
 
@@ -352,22 +488,28 @@ final class FakePlannerGoogleApiClient implements GoogleApiClientInterface {
 
 	public string $last_text_search_query = '';
 
+	public string $last_text_search_page_token = '';
+
+	private GoogleApiResult $text_search_result;
+
 	/**
 	 * @param array<string, GoogleApiResult> $place_details_results
 	 */
-	public function __construct( array $place_details_results ) {
+	public function __construct( array $place_details_results, ?GoogleApiResult $text_search_result = null ) {
 		$this->place_details_results = $place_details_results;
-	}
-
-	public function text_search( string $query, ?float $origin_latitude = null, ?float $origin_longitude = null ): GoogleApiResult {
-		++$this->text_search_calls;
-		$this->last_text_search_query = $query;
-
-		return GoogleApiResult::success(
+		$this->text_search_result    = $text_search_result ?? GoogleApiResult::success(
 			[
 				'places' => [],
 			]
 		);
+	}
+
+	public function text_search( string $query, ?float $origin_latitude = null, ?float $origin_longitude = null, string $page_token = '' ): GoogleApiResult {
+		++$this->text_search_calls;
+		$this->last_text_search_query = $query;
+		$this->last_text_search_page_token = $page_token;
+
+		return $this->text_search_result;
 	}
 
 	public function place_details( string $place_id, ?int $timeout = null ): GoogleApiResult {

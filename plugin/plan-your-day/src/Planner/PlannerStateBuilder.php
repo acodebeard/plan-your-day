@@ -45,6 +45,9 @@ final class PlannerStateBuilder {
 		$requested_category        = sanitize_key( (string) ( $request_state['category_key'] ?? '' ) );
 		$requested_category_search = trim( sanitize_text_field( (string) ( $request_state['category_search'] ?? '' ) ) );
 		$category_key              = '' === $requested_category_search && isset( $category_catalog[ $requested_category ] ) ? $requested_category : '';
+		$page_token                = trim( sanitize_text_field( (string) ( $request_state['page_token'] ?? '' ) ) );
+		$append_results            = ! empty( $request_state['append_results'] );
+		$loaded_result_ids         = $this->normalize_loaded_result_ids( (array) ( $request_state['loaded_result_ids'] ?? [] ) );
 		$selected_waypoint_ids     = $this->waypoint_list->normalize_ids( (array) ( $request_state['selected_waypoint_ids'] ?? [] ) );
 		$start_mode                = sanitize_key( (string) ( $request_state['start_mode'] ?? Settings::START_MODE_DEFAULT ) );
 		$custom_start              = trim( sanitize_text_field( (string) ( $request_state['custom_start'] ?? '' ) ) );
@@ -81,6 +84,8 @@ final class PlannerStateBuilder {
 		];
 		$search_results       = [];
 		$search_results_error = '';
+		$next_page_token      = '';
+		$has_more_results     = false;
 		$trip_waypoints       = [];
 		$resolved_waypoints   = [];
 		$iframe_src           = '';
@@ -89,13 +94,15 @@ final class PlannerStateBuilder {
 		$preview_mode_label   = $this->settings->get_frontend_copy_value( 'preview_mode_label_search' );
 		$overview             = $this->settings->get_frontend_copy_value( 'overview_initial_with_categories' );
 		$trip_count_label     = $this->settings->get_frontend_copy_value( 'trip_not_started_label' );
+		$search_results_count = 0;
 
 		if ( $include_results && '' !== $search_query ) {
 			$search_origin_coordinates = $this->geocode_search_area( $search_context['search_area'] );
 			$text_search_response      = $this->google_api_client->text_search(
 				$search_query,
 				$search_origin_coordinates['latitude'],
-				$search_origin_coordinates['longitude']
+				$search_origin_coordinates['longitude'],
+				$page_token
 			);
 
 			if ( $text_search_response->is_success() ) {
@@ -104,7 +111,17 @@ final class PlannerStateBuilder {
 					0,
 					$this->settings->get_result_count()
 				);
+				$next_page_token = trim( sanitize_text_field( (string) ( $text_search_response->data()['nextPageToken'] ?? '' ) ) );
+				$has_more_results = '' !== $next_page_token;
+
+				if ( $append_results && '' !== $page_token && [] !== $loaded_result_ids ) {
+					$search_results = $this->filter_loaded_results( $search_results, $loaded_result_ids );
+				}
+
 				$this->append_distance_labels( $search_results, $search_origin_coordinates, $search_context['preview_start_label'] );
+				$search_results_count = $append_results && [] !== $loaded_result_ids
+					? count( $loaded_result_ids ) + count( $search_results )
+					: count( $search_results );
 			} else {
 				$search_results_error = $text_search_response->message();
 				$messages[]           = [
@@ -122,6 +139,9 @@ final class PlannerStateBuilder {
 					'search_query'         => $search_query,
 					'search_results_count' => count( $search_results ),
 					'search_results_error' => $search_results_error,
+					'page_token'           => $page_token,
+					'next_page_token'      => $next_page_token,
+					'append_results'       => $append_results,
 				]
 			);
 		}
@@ -138,7 +158,9 @@ final class PlannerStateBuilder {
 		$has_search           = '' !== $search_query;
 		$is_custom_search     = '' !== $requested_category_search;
 		$has_trip             = [] !== $trip_waypoints;
-		$search_results_count = count( $search_results );
+		$search_context_key   = $has_search
+			? $this->build_search_context_key( $category_key, $requested_category_search, $start_mode, $custom_start, $search_context['search_area'] )
+			: '';
 		$search_results_label = $has_search
 			? $this->count_copy( 'search_results_count_single', 'search_results_count_plural', $search_results_count )
 			: $this->settings->get_frontend_copy_value( 'no_results_loaded_label' );
@@ -193,9 +215,12 @@ final class PlannerStateBuilder {
 			'has_search'            => $has_search,
 			'is_custom_search'      => $is_custom_search,
 			'active_search_label'   => $active_search_label,
+			'search_context_key'    => $search_context_key,
 			'search_query'          => $search_query,
 			'handoff_search_query'  => $handoff_search_query,
 			'search_results'        => $search_results,
+			'next_page_token'       => $next_page_token,
+			'has_more_results'      => $has_more_results,
 			'search_results_error'  => $search_results_error,
 			'search_results_label'  => $search_results_label,
 			'selected_waypoint_ids' => array_values( $selected_waypoint_ids ),
@@ -214,6 +239,62 @@ final class PlannerStateBuilder {
 			'trip_count_label'      => $trip_count_label,
 			'messages'              => $messages,
 		];
+	}
+
+	/**
+	 * Loaded result IDs come from client request state, so they must be
+	 * sanitized and deduplicated without being capped by the max selected-trip
+	 * waypoint limit.
+	 *
+	 * @param array<int, mixed> $loaded_result_ids
+	 * @return array<int, string>
+	 */
+	private function normalize_loaded_result_ids( array $loaded_result_ids ): array {
+		$normalized_loaded_result_ids = [];
+
+		foreach ( $loaded_result_ids as $loaded_result_id ) {
+			$loaded_result_id = PlaceParser::sanitize_place_id( (string) $loaded_result_id );
+
+			if ( '' === $loaded_result_id || in_array( $loaded_result_id, $normalized_loaded_result_ids, true ) ) {
+				continue;
+			}
+
+			$normalized_loaded_result_ids[] = $loaded_result_id;
+		}
+
+		return $normalized_loaded_result_ids;
+	}
+
+	/**
+	 * @param array<int, array<string, mixed>> $search_results
+	 * @param array<int, string>               $loaded_result_ids
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function filter_loaded_results( array $search_results, array $loaded_result_ids ): array {
+		return array_values(
+			array_filter(
+				$search_results,
+				static function ( array $result ) use ( $loaded_result_ids ): bool {
+					$result_id = PlaceParser::sanitize_place_id( (string) ( $result['id'] ?? '' ) );
+
+					return '' !== $result_id && ! in_array( $result_id, $loaded_result_ids, true );
+				}
+			)
+		);
+	}
+
+	private function build_search_context_key( string $category_key, string $category_search, string $start_mode, string $custom_start, string $search_area ): string {
+		return md5(
+			(string) wp_json_encode(
+				[
+					'category_key'    => $category_key,
+					'category_search' => $category_search,
+					'start_mode'      => $start_mode,
+					'custom_start'    => $custom_start,
+					'search_area'     => $search_area,
+				]
+			)
+		);
 	}
 
 	private function geocode_search_area( string $search_area ): array {

@@ -37,7 +37,9 @@ defaults.
   `default`, `custom`, and `current`.
 - `max_waypoints`: maximum selected places a public request may resolve.
 - `result_count`: maximum Google text-search results requested per browse
-  action.
+  action. Fresh/default installs should use `8`, and the same per-page cap is
+  used when the frontend requests additional Google Places pages through the
+  More Results control.
 - `distance_unit`: `miles` or `kilometers`.
 - `map_preview_enabled`: allows future on-page Maps Embed previews.
 - `maps_handoff_enabled`: allows future outbound Google Maps links.
@@ -102,6 +104,9 @@ Important behavior:
   their default copy when saved blank.
 - Optional helper text and descriptive text can be saved blank to suppress the
   visible text output.
+- The search/results group includes the More Results button label, and the
+  status-messages group includes the loading, loaded-count, no-more-results,
+  and load-more error copy used by Google Places pagination.
 - Dynamic copy uses named tokens such as `{count}`, `{search}`, `{place}`,
   `{start}`, and `{settings}` instead of raw `sprintf()` placeholders.
 - Frontend runtime code receives the same saved/default values through the

@@ -301,18 +301,7 @@ final class PlannerRenderer {
 					data-plan-custom-results-region
 					<?php echo $has_custom_search || [] === $category_catalog ? '' : 'hidden'; ?>>
 					<div class="plan-your-day__category-results-scroll" data-plan-custom-results-panel>
-					<?php if ( $planner_state['is_custom_search'] && [] !== (array) $planner_state['search_results'] ) : ?>
-						<ul class="plan-your-day__results-list">
-							<?php foreach ( (array) $planner_state['search_results'] as $result ) : ?>
-								<?php $this->render_search_result( $result, (array) $planner_state['selected_waypoint_ids'] ); ?>
-							<?php endforeach; ?>
-						</ul>
-					<?php else : ?>
-						<div class="plan-your-day__results-empty">
-							<h4><?php echo esc_html( $results_empty_state['heading'] ); ?></h4>
-							<p><?php echo esc_html( $results_empty_state['body'] ); ?></p>
-						</div>
-					<?php endif; ?>
+						<?php $this->render_search_results_panel( $planner_state, $results_empty_state ); ?>
 					</div>
 				</div>
 			</div>
@@ -357,17 +346,8 @@ final class PlannerRenderer {
 								data-category-key="<?php echo esc_attr( (string) $category_key ); ?>"
 								<?php echo $is_active ? '' : 'hidden'; ?>>
 								<div class="plan-your-day__category-results-scroll" data-plan-category-results-panel data-category-key="<?php echo esc_attr( (string) $category_key ); ?>">
-									<?php if ( [] !== $search_result_list ) : ?>
-										<ul class="plan-your-day__results-list">
-											<?php foreach ( $search_result_list as $result ) : ?>
-												<?php $this->render_search_result( $result, (array) $planner_state['selected_waypoint_ids'] ); ?>
-											<?php endforeach; ?>
-										</ul>
-									<?php elseif ( $is_active ) : ?>
-										<div class="plan-your-day__results-empty">
-											<h4><?php echo esc_html( $results_empty_state['heading'] ); ?></h4>
-											<p><?php echo esc_html( $results_empty_state['body'] ); ?></p>
-										</div>
+									<?php if ( $is_active ) : ?>
+										<?php $this->render_search_results_panel( $planner_state, $results_empty_state ); ?>
 									<?php endif; ?>
 								</div>
 							</div>
@@ -376,6 +356,33 @@ final class PlannerRenderer {
 				</div>
 			<?php endif; ?>
 		</section>
+		<?php
+	}
+
+	private function render_search_results_panel( array $planner_state, array $results_empty_state ): void {
+		$search_results = array_values( (array) $planner_state['search_results'] );
+		?>
+		<div class="plan-your-day__results-body" data-plan-results-body>
+			<?php if ( [] !== $search_results ) : ?>
+				<ul class="plan-your-day__results-list" data-plan-results-list>
+					<?php foreach ( $search_results as $result ) : ?>
+						<?php $this->render_search_result( $result, (array) $planner_state['selected_waypoint_ids'] ); ?>
+					<?php endforeach; ?>
+				</ul>
+			<?php else : ?>
+				<div class="plan-your-day__results-empty" data-plan-results-empty>
+					<h4><?php echo esc_html( $results_empty_state['heading'] ); ?></h4>
+					<p><?php echo esc_html( $results_empty_state['body'] ); ?></p>
+				</div>
+			<?php endif; ?>
+		</div>
+		<?php if ( ! empty( $planner_state['has_more_results'] ) ) : ?>
+			<div class="plan-your-day__load-more" data-plan-load-more-wrap>
+				<button class="plan-your-day__load-more-button" type="button" data-plan-load-more-button>
+					<?php echo esc_html( $this->settings->get_frontend_copy_value( 'more_results_button' ) ); ?>
+				</button>
+			</div>
+		<?php endif; ?>
 		<?php
 	}
 
@@ -696,6 +703,11 @@ final class PlannerRenderer {
 				'requestFailed'            => $this->settings->get_frontend_copy_value( 'request_failed' ),
 				'resultsUpdated'           => $this->settings->get_frontend_copy_value( 'results_updated_announcement' ),
 				'searchResultsFor'         => $this->settings->get_frontend_copy_value( 'custom_results_heading' ),
+				'moreResultsButton'        => $this->settings->get_frontend_copy_value( 'more_results_button' ),
+				'loadingMoreResults'       => $this->settings->get_frontend_copy_value( 'loading_more_results_status' ),
+				'loadedMoreResults'        => $this->settings->get_frontend_copy_value( 'loaded_more_results_status' ),
+				'noMoreResults'            => $this->settings->get_frontend_copy_value( 'no_more_results_status' ),
+				'loadMoreError'            => $this->settings->get_frontend_copy_value( 'load_more_results_error_status' ),
 				'categoryResultsExpanded'  => $this->settings->get_frontend_copy_value( 'category_results_expanded_announcement' ),
 				'categoryResultsCollapsed' => $this->settings->get_frontend_copy_value( 'category_results_collapsed_announcement' ),
 				'customSearchResultsDescription' => $this->settings->get_frontend_copy_value( 'custom_results_description' ),

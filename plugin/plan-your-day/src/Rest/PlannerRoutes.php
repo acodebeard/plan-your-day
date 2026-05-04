@@ -101,6 +101,8 @@ final class PlannerRoutes {
 				'category_search'       => $planner_state['category_search'],
 				'search_results_count'  => count( (array) $planner_state['search_results'] ),
 				'search_results_error'  => $planner_state['search_results_error'],
+				'next_page_token'       => $planner_state['next_page_token'],
+				'has_more_results'      => $planner_state['has_more_results'],
 				'selected_waypoint_ids' => $planner_state['selected_waypoint_ids'],
 				'messages'              => $planner_state['messages'],
 			]
@@ -261,6 +263,24 @@ final class PlannerRoutes {
 				'validate_callback' => [ $this, 'validate_loose_scalar' ],
 				'default'           => '',
 			],
+			'page_token'      => [
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'validate_callback' => [ $this, 'validate_loose_scalar' ],
+				'default'           => '',
+			],
+			'append_results'  => [
+				'type'              => 'boolean',
+				'sanitize_callback' => [ $this, 'sanitize_boolean' ],
+				'validate_callback' => [ $this, 'validate_loose_boolean' ],
+				'default'           => false,
+			],
+			'loaded_result_ids' => [
+				'type'              => 'array',
+				'sanitize_callback' => [ $this, 'sanitize_waypoints' ],
+				'validate_callback' => [ $this, 'validate_loose_waypoints' ],
+				'default'           => [],
+			],
 			'waypoints'       => [
 				'type'              => 'array',
 				'sanitize_callback' => [ $this, 'sanitize_waypoints' ],
@@ -400,12 +420,18 @@ final class PlannerRoutes {
 
 	private function request_params_from_request( WP_REST_Request $request ): array {
 		$params = [
-			'category'        => (string) $request->get_param( 'category' ),
-			'category_search' => (string) $request->get_param( 'category_search' ),
-			'waypoints'       => (array) $request->get_param( 'waypoints' ),
-			'start_mode'      => (string) $request->get_param( 'start_mode' ),
-			'custom_start'    => (string) $request->get_param( 'custom_start' ),
+			'category'          => (string) $request->get_param( 'category' ),
+			'category_search'   => (string) $request->get_param( 'category_search' ),
+			'page_token'        => (string) $request->get_param( 'page_token' ),
+			'loaded_result_ids' => (array) $request->get_param( 'loaded_result_ids' ),
+			'waypoints'         => (array) $request->get_param( 'waypoints' ),
+			'start_mode'        => (string) $request->get_param( 'start_mode' ),
+			'custom_start'      => (string) $request->get_param( 'custom_start' ),
 		];
+
+		if ( true === $request->get_param( 'append_results' ) ) {
+			$params['append_results'] = '1';
+		}
 
 		if ( true === $request->get_param( 'clear_trip' ) ) {
 			$params['clear_trip'] = '1';
@@ -433,14 +459,17 @@ final class PlannerRoutes {
 			'method'       => $request->get_method(),
 			'route'        => $request->get_route(),
 			'params'       => [
-				'category'        => $request->get_param( 'category' ),
-				'category_search' => $request->get_param( 'category_search' ),
-				'waypoints'       => $request->get_param( 'waypoints' ),
-				'start_mode'      => $request->get_param( 'start_mode' ),
-				'custom_start'    => $request->get_param( 'custom_start' ),
-				'clear_trip'      => $request->get_param( 'clear_trip' ),
-				'remove_waypoint' => $request->get_param( 'remove_waypoint' ),
-				'move_waypoint'   => $request->get_param( 'move_waypoint' ),
+				'category'          => $request->get_param( 'category' ),
+				'category_search'   => $request->get_param( 'category_search' ),
+				'page_token'        => $request->get_param( 'page_token' ),
+				'append_results'    => $request->get_param( 'append_results' ),
+				'loaded_result_ids' => $request->get_param( 'loaded_result_ids' ),
+				'waypoints'         => $request->get_param( 'waypoints' ),
+				'start_mode'        => $request->get_param( 'start_mode' ),
+				'custom_start'      => $request->get_param( 'custom_start' ),
+				'clear_trip'        => $request->get_param( 'clear_trip' ),
+				'remove_waypoint'   => $request->get_param( 'remove_waypoint' ),
+				'move_waypoint'     => $request->get_param( 'move_waypoint' ),
 			],
 			'has_token'    => '' !== (string) $request->get_param( 'endpoint_token' ),
 			'content_type' => $_SERVER['CONTENT_TYPE'] ?? '',

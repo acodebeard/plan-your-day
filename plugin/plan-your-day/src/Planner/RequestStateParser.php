@@ -17,6 +17,7 @@ final class RequestStateParser {
 	public function parse( array $request ): array {
 		$selected_waypoint_ids = isset( $request['waypoints'] ) ? wp_unslash( (array) $request['waypoints'] ) : [];
 		$selected_waypoint_ids = $this->waypoint_list->normalize_ids( $selected_waypoint_ids );
+		$loaded_result_ids     = $this->normalize_place_ids( isset( $request['loaded_result_ids'] ) ? wp_unslash( (array) $request['loaded_result_ids'] ) : [] );
 
 		if ( isset( $request['clear_trip'] ) ) {
 			$selected_waypoint_ids = [];
@@ -47,9 +48,40 @@ final class RequestStateParser {
 		return [
 			'category_key'          => isset( $request['category'] ) ? sanitize_key( wp_unslash( (string) $request['category'] ) ) : '',
 			'category_search'       => isset( $request['category_search'] ) ? trim( sanitize_text_field( wp_unslash( (string) $request['category_search'] ) ) ) : '',
+			'page_token'            => isset( $request['page_token'] ) ? trim( sanitize_text_field( wp_unslash( (string) $request['page_token'] ) ) ) : '',
+			'append_results'        => isset( $request['append_results'] ) && $this->normalize_boolean( wp_unslash( $request['append_results'] ) ),
+			'loaded_result_ids'     => $loaded_result_ids,
 			'selected_waypoint_ids' => $selected_waypoint_ids,
 			'start_mode'            => isset( $request['start_mode'] ) ? sanitize_key( wp_unslash( (string) $request['start_mode'] ) ) : Settings::START_MODE_DEFAULT,
 			'custom_start'          => isset( $request['custom_start'] ) ? trim( sanitize_text_field( wp_unslash( (string) $request['custom_start'] ) ) ) : '',
 		];
+	}
+
+	/**
+	 * Result IDs need dedupe and sanitization, but unlike trip waypoints they
+	 * must not be capped by the max-waypoint limit because the browse UI can
+	 * legitimately load more visible search results than the selected-trip cap.
+	 *
+	 * @param array<int, mixed> $place_ids
+	 * @return array<int, string>
+	 */
+	private function normalize_place_ids( array $place_ids ): array {
+		$normalized_place_ids = [];
+
+		foreach ( $place_ids as $place_id ) {
+			$place_id = PlaceParser::sanitize_place_id( (string) $place_id );
+
+			if ( '' === $place_id || in_array( $place_id, $normalized_place_ids, true ) ) {
+				continue;
+			}
+
+			$normalized_place_ids[] = $place_id;
+		}
+
+		return $normalized_place_ids;
+	}
+
+	private function normalize_boolean( mixed $value ): bool {
+		return true === $value || 1 === $value || '1' === (string) $value || 'true' === strtolower( trim( (string) $value ) );
 	}
 }
