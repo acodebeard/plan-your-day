@@ -3,6 +3,7 @@ declare( strict_types=1 );
 
 namespace Acodebeard\PlanYourDay\Tests;
 
+use Acodebeard\PlanYourDay\Frontend\InterfaceCopy;
 use Acodebeard\PlanYourDay\Settings\Settings;
 use PHPUnit\Framework\TestCase;
 
@@ -55,6 +56,28 @@ final class SettingsTest extends TestCase {
 
 	public function test_defaults_use_eight_google_results(): void {
 		self::assertSame( 8, Settings::defaults()['result_count'] );
+	}
+
+	public function test_sanitize_interface_copy_drops_removed_start_note_fields(): void {
+		$sanitized = Settings::sanitize(
+			[
+				'interface_copy' => array_merge(
+					InterfaceCopy::defaults(),
+					[
+						'start_default_note'        => 'Old default note',
+						'start_current_note'        => 'Old current note',
+						'start_custom_note'         => 'Old custom note',
+						'start_custom_missing_note' => 'Old missing note',
+					]
+				),
+			]
+		);
+
+		self::assertArrayNotHasKey( 'start_default_note', $sanitized['interface_copy'] );
+		self::assertArrayNotHasKey( 'start_current_note', $sanitized['interface_copy'] );
+		self::assertArrayNotHasKey( 'start_custom_note', $sanitized['interface_copy'] );
+		self::assertArrayNotHasKey( 'start_custom_missing_note', $sanitized['interface_copy'] );
+		self::assertSame( 'Plan Your Day', $sanitized['interface_copy']['hero_title'] );
 	}
 
 	public function test_sanitize_categories_discards_invalid_rows_and_makes_unique_slugs(): void {

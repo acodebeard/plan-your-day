@@ -52,7 +52,6 @@ final class PlannerPayloadBuilder {
 			'overview'            => $planner_state['overview'],
 			'previewStartLabel'   => $planner_state['preview_start_label'],
 			'handoffStartLabel'   => $planner_state['handoff_start_label'],
-			'startNoteText'       => $planner_state['start_note_text'],
 			'emptyPreviewState'   => $this->get_empty_preview_state( $planner_state ),
 			'messages'            => array_values( $planner_state['messages'] ),
 		];

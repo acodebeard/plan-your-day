@@ -1,3 +1,4 @@
+/* TODO: Delete this root script once the standalone index.php page and smoke tests stop depending on it. The active plugin runtime uses plugin/plan-your-day/assets/js/plan.js. */
 (() => {
   const ROOT_SELECTOR = '[data-plan-root]';
   const ENHANCED_FLAG = 'planYourDayEnhanced';

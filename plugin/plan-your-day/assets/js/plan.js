@@ -1,6 +1,7 @@
 (() => {
   const ROOT_SELECTOR = '[data-plan-root]';
   const ENHANCED_FLAG = 'planYourDayEnhanced';
+  const START_PANEL_ANIMATION_MS = 480;
 
   const parseConfig = (root) => {
     const configElement = root.querySelector('[data-plan-config]');
@@ -103,13 +104,6 @@
     const checkedInput = startModeInputs.find((input) => input.checked);
 
     return checkedInput ? checkedInput.value : '';
-  };
-
-  const getStartDescription = (config, routeData, startMode) => {
-    const routeNote = routeData?.startNoteText || '';
-    const configuredDescription = config.startPoints?.[startMode]?.description || '';
-
-    return configuredDescription || routeNote;
   };
 
   const buildPayload = (refs, state) => {
@@ -613,7 +607,7 @@
     }
   };
 
-  const syncStartUi = (refs, config, state) => {
+  const syncStartUi = (refs, state) => {
     refs.startModeInputs.forEach((input) => {
       input.checked = input.value === state.startMode;
     });
@@ -631,10 +625,6 @@
 
     if (refs.customStartInput) {
       refs.customStartInput.disabled = !isCustom;
-    }
-
-    if (refs.startNote) {
-      refs.startNote.textContent = getStartDescription(config, state.route, startMode);
     }
   };
 
@@ -731,10 +721,10 @@
       customResultsDescription: root.querySelector('[data-plan-custom-results-description]'),
       customResultsRegion: root.querySelector('[data-plan-custom-results-region]'),
       customResultsPanel: root.querySelector('[data-plan-custom-results-panel]'),
+      resultsHeading: root.querySelector('[data-plan-results-heading]'),
       startModeInputs: Array.from(root.querySelectorAll('input[name="start_mode"]')),
       customStartWrap: root.querySelector('[data-plan-custom-start-wrap]'),
       customStartInput: root.querySelector('[data-plan-custom-start]'),
-      startNote: root.querySelector('[data-plan-start-note]'),
       startToggle: root.querySelector('[data-plan-start-toggle]'),
       startToggleLabel: root.querySelector('[data-plan-start-toggle-label]'),
       startPanel: root.querySelector('[data-plan-start-panel]'),
@@ -776,6 +766,14 @@
     let isStartPanelOpen = true;
     let activeRequestController = null;
     let activeRequestId = 0;
+    let hasTouchedStartSelection = false;
+    let hasAutoCollapsedDefaultStart = false;
+    const initialWindowScrollY = typeof window === 'undefined' ? 0 : window.scrollY;
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let startPanelAnimationFrame = 0;
 
     const renderAll = () => {
       renderCategoryPanels(refs, state, strings, {
@@ -784,7 +782,7 @@
       renderTrip(refs, state, strings);
       renderPreview(refs, state, strings);
       syncHiddenInputs(refs, state);
-      syncStartUi(refs, config, state);
+      syncStartUi(refs, state);
       syncCategorySearchUi(refs, state);
       setRouteMutationBusyState(root, false);
     };
@@ -800,19 +798,190 @@
       announce(refs.liveRegion, announcementMessage || message || strings.requestFailed || '');
     };
 
-    const updateStartPanelState = () => {
+    const updateStartPanelState = (options = {}) => {
       if (!refs.startToggle || !refs.startPanel) {
         return;
       }
 
+      const syncHidden = options.syncHidden !== false;
+
       refs.startToggle.hidden = false;
       refs.startToggle.setAttribute('aria-expanded', String(isStartPanelOpen));
       refs.startToggle.classList.toggle('is-collapsed', !isStartPanelOpen);
-      refs.startPanel.hidden = !isStartPanelOpen;
+
+      if (syncHidden) {
+        refs.startPanel.hidden = !isStartPanelOpen;
+      }
 
       if (refs.startToggleLabel) {
-        refs.startToggleLabel.textContent = isStartPanelOpen ? 'Hide' : 'Show';
+        refs.startToggleLabel.textContent = isStartPanelOpen
+          ? String(strings.hideStartOptions || 'Hide options')
+          : String(strings.showStartOptions || 'Show options');
       }
+    };
+
+    const easeInOutCubic = (progress) =>
+      progress < 0.5
+        ? 4 * progress * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+    const getViewportTopOffset = () => {
+      const adminBar = document.getElementById('wpadminbar');
+
+      return (adminBar instanceof HTMLElement ? adminBar.offsetHeight : 0) + 16;
+    };
+
+    const getStartSelectionScrollTargetY = (closingHeight) => {
+      if (!(refs.resultsHeading instanceof HTMLElement) || typeof window === 'undefined') {
+        return null;
+      }
+
+      const headingTop = refs.resultsHeading.getBoundingClientRect().top;
+
+      return Math.max(window.scrollY + headingTop - getViewportTopOffset() - closingHeight, 0);
+    };
+
+    const animateStartPanel = (nextOpenState, options = {}) => {
+      if (!(refs.startPanel instanceof HTMLElement) || !refs.startToggle) {
+        isStartPanelOpen = nextOpenState;
+        updateStartPanelState();
+        return;
+      }
+
+      const panel = refs.startPanel;
+      const duration = prefersReducedMotion ? 0 : START_PANEL_ANIMATION_MS;
+      const scrollToY = typeof options.scrollToY === 'number' ? options.scrollToY : null;
+
+      if (startPanelAnimationFrame) {
+        window.cancelAnimationFrame(startPanelAnimationFrame);
+        startPanelAnimationFrame = 0;
+      }
+
+      const panelWasHidden = panel.hidden;
+      const startHeight = panelWasHidden ? 0 : panel.getBoundingClientRect().height;
+
+      panel.hidden = false;
+
+      if (nextOpenState) {
+        panel.style.height = '';
+      }
+
+      const endHeight = nextOpenState ? panel.scrollHeight : 0;
+      const startOpacity = nextOpenState && endHeight > 0 ? Math.max(startHeight / endHeight, 0) : 1;
+      const endOpacity = nextOpenState ? 1 : 0;
+      const initialScrollY = typeof window === 'undefined' ? 0 : window.scrollY;
+
+      isStartPanelOpen = nextOpenState;
+      panel.style.overflow = 'hidden';
+      panel.style.pointerEvents = 'none';
+      panel.style.height = `${startHeight}px`;
+      panel.style.opacity = String(startOpacity);
+      updateStartPanelState({ syncHidden: false });
+
+      if (duration <= 0 || startHeight === endHeight) {
+        panel.style.height = '';
+        panel.style.overflow = '';
+        panel.style.pointerEvents = '';
+        panel.style.opacity = '';
+        panel.hidden = !nextOpenState;
+        updateStartPanelState();
+
+        if (scrollToY !== null && typeof window !== 'undefined') {
+          window.scrollTo({
+            top: scrollToY,
+            behavior: 'auto',
+          });
+        }
+
+        return;
+      }
+
+      const startedAt = performance.now();
+
+      const finishAnimation = () => {
+        panel.style.height = '';
+        panel.style.overflow = '';
+        panel.style.pointerEvents = '';
+        panel.style.opacity = '';
+        panel.hidden = !nextOpenState;
+        updateStartPanelState();
+
+        if (scrollToY !== null && typeof window !== 'undefined') {
+          window.scrollTo({
+            top: scrollToY,
+            behavior: 'auto',
+          });
+        }
+
+        startPanelAnimationFrame = 0;
+      };
+
+      const stepAnimation = (now) => {
+        const rawProgress = Math.min((now - startedAt) / duration, 1);
+        const easedProgress = easeInOutCubic(rawProgress);
+        const currentHeight = startHeight + (endHeight - startHeight) * easedProgress;
+        const currentOpacity = startOpacity + (endOpacity - startOpacity) * easedProgress;
+
+        panel.style.height = `${Math.max(currentHeight, 0)}px`;
+        panel.style.opacity = String(Math.max(Math.min(currentOpacity, 1), 0));
+
+        if (scrollToY !== null && typeof window !== 'undefined') {
+          window.scrollTo({
+            top: initialScrollY + (scrollToY - initialScrollY) * easedProgress,
+            behavior: 'auto',
+          });
+        }
+
+        if (rawProgress < 1) {
+          startPanelAnimationFrame = window.requestAnimationFrame(stepAnimation);
+          return;
+        }
+
+        finishAnimation();
+      };
+
+      startPanelAnimationFrame = window.requestAnimationFrame(stepAnimation);
+    };
+
+    const openStartPanel = () => {
+      if (isStartPanelOpen) {
+        return;
+      }
+
+      animateStartPanel(true);
+    };
+
+    const closeStartPanel = (options = {}) => {
+      if (!isStartPanelOpen) {
+        return;
+      }
+
+      const currentHeight = refs.startPanel instanceof HTMLElement ? refs.startPanel.getBoundingClientRect().height : 0;
+      const scrollToY = options.scrollToResults ? getStartSelectionScrollTargetY(currentHeight) : null;
+
+      animateStartPanel(false, {
+        scrollToY,
+      });
+    };
+
+    const maybeAutoCollapseDefaultStart = () => {
+      if (
+        typeof window === 'undefined' ||
+        hasTouchedStartSelection ||
+        hasAutoCollapsedDefaultStart ||
+        !isStartPanelOpen ||
+        state.startMode !== 'default' ||
+        String(state.customStart || '').trim() !== ''
+      ) {
+        return;
+      }
+
+      if (window.scrollY - initialWindowScrollY < 100) {
+        return;
+      }
+
+      hasAutoCollapsedDefaultStart = true;
+      closeStartPanel();
     };
 
     const sendRequest = async (endpointKey, payload, requestOptions = {}) => {
@@ -926,7 +1095,7 @@
             renderTrip(refs, state, strings);
             renderPreview(refs, state, strings);
             syncHiddenInputs(refs, state);
-            syncStartUi(refs, config, state);
+            syncStartUi(refs, state);
             syncCategorySearchUi(refs, state);
             setRouteMutationBusyState(root, false);
             announce(
@@ -995,7 +1164,12 @@
     refs.startModeInputs.forEach((input) => {
       input.addEventListener('change', () => {
         state.startMode = getCheckedStartMode(refs.startModeInputs) || state.startMode || 'default';
-        syncStartUi(refs, config, state);
+        syncStartUi(refs, state);
+        hasTouchedStartSelection = true;
+
+        if (state.startMode !== 'custom' || state.customStart.trim() !== '') {
+          closeStartPanel({ scrollToResults: true });
+        }
 
         if (!hasRestConfig) {
           announce(refs.liveRegion, strings.startingPointUpdated || '');
@@ -1011,7 +1185,12 @@
     if (refs.customStartInput instanceof HTMLInputElement) {
       refs.customStartInput.addEventListener('change', () => {
         state.customStart = refs.customStartInput.value || '';
-        syncStartUi(refs, config, state);
+        syncStartUi(refs, state);
+        hasTouchedStartSelection = true;
+
+        if (state.startMode === 'custom' && state.customStart.trim() !== '') {
+          closeStartPanel({ scrollToResults: true });
+        }
 
         if (!hasRestConfig) {
           announce(refs.liveRegion, strings.startingPointUpdated || '');
@@ -1022,6 +1201,10 @@
           announcementMessage: strings.startingPointUpdated || '',
         });
       });
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('scroll', maybeAutoCollapseDefaultStart, { passive: true });
     }
 
     if (refs.categorySearchInput instanceof HTMLInputElement) {
@@ -1133,8 +1316,11 @@
 
       if (startToggle instanceof HTMLButtonElement) {
         event.preventDefault();
-        isStartPanelOpen = !isStartPanelOpen;
-        updateStartPanelState();
+        if (isStartPanelOpen) {
+          closeStartPanel();
+        } else {
+          openStartPanel();
+        }
         announce(
           refs.liveRegion,
           isStartPanelOpen ? strings.startOptionsExpanded || '' : strings.startOptionsCollapsed || ''

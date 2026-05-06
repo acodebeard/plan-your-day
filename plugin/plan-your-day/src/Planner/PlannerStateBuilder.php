@@ -230,7 +230,6 @@ final class PlannerStateBuilder {
 			'custom_start'          => $custom_start,
 			'preview_start_label'   => $search_context['preview_start_label'],
 			'handoff_start_label'   => $search_context['handoff_start_label'],
-			'start_note_text'       => $search_context['start_note_text'],
 			'iframe_src'            => $iframe_src,
 			'maps_url'              => $maps_url,
 			'maps_link_label'       => $maps_link_label,

@@ -12,14 +12,14 @@ final class FrontendAssets {
 	public function register(): void {
 		wp_register_style(
 			self::STYLE_HANDLE,
-			PLAN_YOUR_DAY_PLUGIN_URL . 'assets/css/plan.css',
+			PLAN_YOUR_DAY_PLUGIN_URL . 'assets/css/plan.min.css',
 			[],
 			PLAN_YOUR_DAY_VERSION
 		);
 
 		wp_register_script(
 			self::SCRIPT_HANDLE,
-			PLAN_YOUR_DAY_PLUGIN_URL . 'assets/js/plan.js',
+			PLAN_YOUR_DAY_PLUGIN_URL . 'assets/js/plan.min.js',
 			[],
 			PLAN_YOUR_DAY_VERSION,
 			[

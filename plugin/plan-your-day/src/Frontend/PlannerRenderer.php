@@ -161,6 +161,16 @@ final class PlannerRenderer {
 						<p id="<?php echo esc_attr( $start_help_id ); ?>"><?php echo esc_html( $start_help_text ); ?></p>
 					<?php endif; ?>
 				</div>
+				<button
+					class="plan-your-day__start-toggle"
+					type="button"
+					hidden
+					data-plan-start-toggle
+					aria-controls="<?php echo esc_attr( $start_panel_id ); ?>"
+					aria-expanded="true">
+					<span data-plan-start-toggle-label><?php esc_html_e( 'Hide options', 'plan-your-day' ); ?></span>
+					<span class="plan-your-day__start-toggle-icon" aria-hidden="true"></span>
+				</button>
 			</div>
 
 			<div class="plan-your-day__start-panel" id="<?php echo esc_attr( $start_panel_id ); ?>" data-plan-start-panel>
@@ -196,9 +206,6 @@ final class PlannerRenderer {
 							autocomplete="street-address"
 							data-plan-custom-start>
 					</div>
-					<p class="plan-your-day__input-help" data-plan-start-note>
-						<?php echo esc_html( $planner_state['start_note_text'] ); ?>
-					</p>
 				</fieldset>
 
 				<input type="hidden" name="category" value="<?php echo esc_attr( $planner_state['category_key'] ); ?>" data-plan-category-input>
@@ -686,6 +693,8 @@ final class PlannerRenderer {
 				'customResultsCollapsed'   => $this->settings->get_frontend_copy_value( 'custom_results_collapsed_announcement' ),
 				'tripUpdated'              => $this->settings->get_frontend_copy_value( 'trip_updated_announcement' ),
 				'startingPointUpdated'     => $this->settings->get_frontend_copy_value( 'starting_point_updated_announcement' ),
+				'showStartOptions'         => __( 'Show options', 'plan-your-day' ),
+				'hideStartOptions'         => __( 'Hide options', 'plan-your-day' ),
 				'startOptionsExpanded'     => '',
 				'startOptionsCollapsed'    => '',
 				'openMapsDisabled'         => $this->settings->get_frontend_copy_value( 'open_maps_disabled_announcement' ),

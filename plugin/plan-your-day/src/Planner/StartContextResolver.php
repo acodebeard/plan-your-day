@@ -22,7 +22,6 @@ final class StartContextResolver {
 	 *     handoff_summary: string,
 	 *     use_current_handoff: bool,
 	 *     directions_origin: string|null,
-	 *     start_note_text: string,
 	 *     messages: array<int, array{type: string, text: string}>
 	 * }
 	 */
@@ -48,14 +47,12 @@ final class StartContextResolver {
 		$directions_origin   = $default_address;
 		$messages            = [];
 		$use_current_handoff = false;
-		$start_note_text     = $this->settings->get_frontend_copy_value( 'start_default_note' );
 
 		if ( Settings::START_MODE_CURRENT === $start_mode ) {
 			$handoff_start_label = $this->settings->get_frontend_copy_value( 'start_current_handoff_label' );
 			$handoff_summary     = $this->settings->get_frontend_copy_value( 'start_current_handoff_summary' );
 			$directions_origin   = null;
 			$use_current_handoff = true;
-			$start_note_text     = $this->settings->get_frontend_copy_value( 'start_current_note' );
 			$messages[]          = [
 				'type' => 'note',
 				'text' => $this->settings->get_frontend_copy_value( 'start_current_message' ),
@@ -66,11 +63,9 @@ final class StartContextResolver {
 			$handoff_start_label = $custom_start;
 			$handoff_summary     = $custom_start;
 			$directions_origin   = $custom_start;
-			$start_note_text     = $this->settings->get_frontend_copy_value( 'start_custom_note' );
 		} elseif ( Settings::START_MODE_CUSTOM === $start_mode ) {
 			$handoff_start_label = $this->settings->get_frontend_copy_value( 'start_default_fallback_label' );
 			$handoff_summary     = $this->settings->get_frontend_copy_value( 'start_default_fallback_summary' );
-			$start_note_text     = $this->settings->get_frontend_copy_value( 'start_custom_missing_note' );
 			$messages[]          = [
 				'type' => 'warning',
 				'text' => $this->settings->get_frontend_copy_value( 'start_custom_missing_message' ),
@@ -84,7 +79,6 @@ final class StartContextResolver {
 			'handoff_summary'     => $handoff_summary,
 			'use_current_handoff' => $use_current_handoff,
 			'directions_origin'   => $directions_origin,
-			'start_note_text'     => $start_note_text,
 			'messages'            => $messages,
 		];
 	}
