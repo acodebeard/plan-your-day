@@ -89,3 +89,13 @@ should not need to run Composer.
 The source repository ignores `vendor/`, but the release artifact should include
 the built `vendor/autoload.php`. The plugin `.distignore` controls release zip
 exclusions separately from source control ignore rules.
+
+Build the installable artifact from the source checkout with:
+
+```sh
+cd plugin/plan-your-day
+./tools/build-release-zip.sh
+```
+
+The script writes `dist/plan-your-day-0.1.0.zip`, which can be uploaded through
+the WordPress Plugins screen.

@@ -3,7 +3,7 @@
     "slug": "plan-your-day",
     "version": "0.1.0",
     "schemaVersion": 1,
-    "artifact": null,
-    "distribution": "undecided",
-    "notes": "Initial scaffold. Distribution channel (WP.org directory, self-hosted, or both) not yet decided."
+    "artifact": "dist/plan-your-day-0.1.0.zip",
+    "distribution": "github-release-zip",
+    "notes": "Installable WordPress admin zip built from this source repository with Composer production autoload files included."
 }

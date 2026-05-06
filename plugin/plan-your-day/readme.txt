@@ -16,18 +16,18 @@ Plan Your Day is a configurable day planning plugin for WordPress.
 
 Current development builds include the plugin scaffold, Settings API
 registration, admin settings screen, Google API client abstraction, Google API
-caching, and extracted planner helper services.
+caching, frontend planner rendering, REST endpoints, and extracted planner
+helper services.
 
-The public planner frontend, shortcode, block wrapper, REST endpoints, visitor
-token protection, release build process, and production QA are still in
-progress.
+Block wrapper polish and production QA are still in progress.
 
 == Installation ==
 
 Release zip:
 
-1. Upload the built `plan-your-day` release zip through the Plugins screen in WordPress.
-2. Activate the plugin. Release zips include generated Composer autoload files.
+1. Build or download the packaged `plan-your-day` release zip.
+2. Upload it through the Plugins screen in WordPress.
+3. Activate the plugin. Release zips include generated Composer autoload files.
 
 Source checkout:
 
@@ -57,8 +57,9 @@ Current settings include:
 
 = Is this ready for production? =
 
-No. The plugin is installable and the admin/settings/API foundations are in
-place, but the public planner frontend and REST endpoints are not complete.
+Not yet. The plugin is installable and includes the planner frontend, REST
+endpoints, and admin/settings flow, but production QA and release hardening are
+still in progress.
 
 = Where is the developer documentation? =
 
@@ -70,7 +71,8 @@ security, and troubleshooting notes.
 = Unreleased =
 * Added Settings API registration and admin settings screen.
 * Added Google API client abstraction and transient-backed caching.
-* Added extracted planner helper services for future shortcode and REST work.
+* Added extracted planner helper services for shortcode and REST work.
+* Added a reproducible release zip builder for WordPress admin installs.
 
 = 0.1.0 =
 * Initial plugin scaffold (GH issue #20): directory structure, main plugin file, activation / deactivation hooks, uninstall routine, PSR-4 autoloading.

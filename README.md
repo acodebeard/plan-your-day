@@ -81,6 +81,19 @@ so far.
 Release zips should include generated Composer autoload files so production
 sites do not need to run Composer.
 
+## Build Release Zip
+
+From `plugin/plan-your-day/`, build an installable WordPress admin zip with:
+
+```sh
+./tools/build-release-zip.sh
+```
+
+The script creates `dist/plan-your-day-0.1.0.zip`, installs production-only
+Composer autoload files into a temporary staging copy, and packages the final
+artifact with a top-level `plan-your-day/` directory suitable for **Plugins >
+Add New > Upload Plugin**.
+
 ## Configuration
 
 Plugin settings are stored in the `plan_your_day_settings` option and are

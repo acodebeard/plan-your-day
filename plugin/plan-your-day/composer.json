@@ -26,6 +26,7 @@
         "lint": "./tools/php-runner.sh tools/lint.php",
         "phpcs": "./tools/php-runner.sh vendor/bin/phpcs -n --standard=phpcs.xml.dist",
         "phpunit": "./tools/php-runner.sh vendor/bin/phpunit --configuration phpunit.xml.dist",
+        "build-release": "./tools/build-release-zip.sh",
         "test": [
             "@lint",
             "@phpcs",

@@ -2,14 +2,14 @@
 
 This directory documents the WordPress plugin migration as it exists today.
 The plugin is installable and has admin/settings, Google API, cache, planner
-helper, and planner state foundations. Public planner rendering, REST endpoints,
-assets, migration helpers, release builds, and production QA are still in
+helper, planner state, frontend rendering, REST endpoints, assets, and release
+zip packaging in place. Migration helpers and production QA are still in
 progress.
 
 ## Current Documents
 
 - [Installation](INSTALLATION.md): source checkout setup, local WordPress test install,
-  activation checks, and release zip expectations.
+  activation checks, and release zip build/install steps.
 - [Architecture](ARCHITECTURE.md): plugin layers, current service boundaries,
   and what remains in the standalone runtime.
 - [Settings](SETTINGS.md): option name, settings groups, defaults, API keys,
@@ -29,5 +29,5 @@ land:
 - REST endpoint request/response reference.
 - Anonymous visitor token details.
 - Standalone migration helper documentation.
-- Release zip build process and changelog policy.
+- Changelog policy.
 - Production QA and accessibility notes.
