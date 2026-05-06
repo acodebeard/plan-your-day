@@ -2,9 +2,10 @@
 
 ## Overview
 
-Convert the current standalone Plan Your Day implementation into a generic, maintainable WordPress plugin. The plugin must not contain inherent references to Kona or any other specific location. Site-specific destination behavior should come from admin settings, including a required default location.
-
-The current standalone implementation in `index.php`, `plan.js`, `plan.css`, and `icons/` is the source for the first plugin version, but the plugin should use WordPress-native APIs for rendering, settings, assets, REST endpoints, escaping, sanitization, caching, updates, and security.
+Continue hardening Plan Your Day as a generic, maintainable WordPress plugin.
+The plugin must not contain inherent references to Kona or any other specific
+location. Site-specific destination behavior should come from admin settings,
+including a required default location.
 
 ## Goals
 
@@ -25,8 +26,7 @@ The current standalone implementation in `index.php`, `plan.js`, `plan.css`, and
 - [ ] The browser-visible Google Maps Embed API key and server-side Google API keys must remain separate.
 - [ ] Public planner endpoints must remain POST-only and protected by a guest-safe token strategy.
 - [ ] PHP sessions should not be required in the plugin.
-- [ ] Existing standalone deployment should remain untouched until the plugin MVP works.
-- [ ] WordPress-native escaping, sanitization, options, REST, transients/object cache, and asset APIs should replace standalone compatibility shims.
+- [ ] WordPress-native escaping, sanitization, options, REST, transients/object cache, and asset APIs should be used throughout the plugin.
 
 ## Phases
 
@@ -42,7 +42,7 @@ The current standalone implementation in `index.php`, `plan.js`, `plan.css`, and
 
 ### Phase 2: Plugin Skeleton
 
-- [ ] Create standalone plugin scaffold.
+- [ ] Create plugin scaffold.
 - [ ] Add main plugin bootstrap file with WordPress plugin headers.
 - [ ] Add `readme.txt` with plugin metadata and changelog placeholder.
 - [ ] Add `uninstall.php` or uninstall handler.
@@ -54,8 +54,8 @@ The current standalone implementation in `index.php`, `plan.js`, `plan.css`, and
 ### Phase 3: Extract Current Logic
 
 - [ ] Move current Plan component rendering into plugin structure.
-- [ ] Split current `index.php` responsibilities into renderer, request parsing, Google client, security, settings, and support classes.
-- [ ] Replace standalone WordPress shim functions with real WordPress APIs.
+- [ ] Keep renderer, request parsing, Google client, security, settings, and support classes cleanly separated.
+- [ ] Replace any remaining compatibility shims with real WordPress APIs.
 - [ ] Move frontend assets into plugin `assets/` paths.
 - [ ] Move SVG icons into plugin assets.
 - [ ] Convert template markup into a reusable plugin template.
@@ -142,18 +142,7 @@ The current standalone implementation in `index.php`, `plan.js`, `plan.css`, and
 - [ ] Add `Update URI` header if using custom/private updates.
 - [ ] Maintain changelog entries for each release.
 
-### Phase 9: Migration From Standalone
-
-- [ ] Keep standalone deployment unchanged during plugin MVP.
-- [ ] Add migration helper for current standalone configuration.
-- [ ] Map existing Google key config to plugin settings.
-- [ ] Map existing categories to plugin category settings.
-- [ ] Map current site-specific location values into settings only.
-- [ ] Add admin notice if old standalone config exists and plugin settings are empty.
-- [ ] Document replacement of standalone route/page with shortcode or block.
-- [ ] Document cleanup/deprecation of standalone files after successful migration.
-
-### Phase 10: Testing And QA
+### Phase 9: Testing And QA
 
 - [ ] Add PHP lint check.
 - [ ] Add WordPress Coding Standards check.
@@ -171,7 +160,7 @@ The current standalone implementation in `index.php`, `plan.js`, `plan.css`, and
 - [ ] Add theme compatibility QA pass.
 - [ ] Add no-API-key and bad-API-response QA cases.
 
-### Phase 11: CI/CD
+### Phase 10: CI/CD
 
 - [ ] Add GitHub Actions workflow for PHP lint.
 - [ ] Add GitHub Actions workflow for PHPCS.
@@ -181,7 +170,7 @@ The current standalone implementation in `index.php`, `plan.js`, `plan.css`, and
 - [ ] Add release artifact build workflow.
 - [ ] Exclude local config, dev caches, deprecated backups, and unnecessary test fixtures from production zip.
 
-### Phase 12: Documentation
+### Phase 11: Documentation
 
 - [ ] Write admin/editor documentation.
 - [ ] Write developer README.
@@ -189,13 +178,12 @@ The current standalone implementation in `index.php`, `plan.js`, `plan.css`, and
 - [ ] Write settings reference.
 - [ ] Write Google Cloud API key restriction guide.
 - [ ] Write security model documentation.
-- [ ] Write migration guide from standalone implementation.
 - [ ] Write troubleshooting guide.
 - [ ] Maintain changelog.
 
 ## Task Checklist
 
-- [ ] Create standalone plugin scaffold.
+- [ ] Create plugin scaffold.
 - [ ] Choose generic namespace, prefix, and text domain.
 - [ ] Move current Plan component logic into plugin structure.
 - [ ] Register plugin settings/options.
@@ -214,7 +202,6 @@ The current standalone implementation in `index.php`, `plan.js`, `plan.css`, and
 - [x] Add trusted proxy strategy.
 - [ ] Add admin settings UI.
 - [ ] Add setup/status checks.
-- [ ] Add migration helper.
 - [ ] Add version/migration system.
 - [ ] Add CI checks.
 - [ ] Add accessibility review.
@@ -233,7 +220,6 @@ The current standalone implementation in `index.php`, `plan.js`, `plan.css`, and
 - [ ] REST endpoints must remain compatible with page caches and security plugins.
 - [ ] CSP/security headers may conflict with themes or other plugins if emitted globally.
 - [ ] Block support can expand scope; shortcode should work first.
-- [ ] Migration must not break the existing standalone page before plugin launch.
 
 ## Definition Of Done
 

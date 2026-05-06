@@ -60,12 +60,6 @@ The admin settings screen is:
 https://example.test/wp-admin/options-general.php?page=plan-your-day
 ```
 
-If the target WordPress runtime has legacy planner settings to preserve, define
-`PLAN_YOUR_DAY_LEGACY_CONFIG_FILE` to a PHP file that returns a legacy settings
-array, or provide the same array through the `plan_your_day_legacy_settings`
-filter before activating the plugin. Activation imports those values into the
-plugin settings only when the plugin settings are still effectively empty.
-
 ## Activation Effects
 
 Activation writes the current plugin and schema versions:

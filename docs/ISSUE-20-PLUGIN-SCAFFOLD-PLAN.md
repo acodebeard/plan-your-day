@@ -6,7 +6,7 @@ GitHub issue: https://github.com/acodebeard/plan-your-day/issues/20
 
 Create the initial WordPress plugin scaffold for Plan Your Day. The scaffold should define the plugin directory structure, bootstrap file, plugin headers, namespace, constants, activation and deactivation hooks, version options, and release metadata placeholders.
 
-This issue is limited to scaffold work. The existing standalone planner files should remain untouched until the plugin MVP is ready.
+This issue is limited to scaffold work. The broader plugin implementation can continue in later issues once the scaffold is in place.
 
 ## Acceptance Criteria
 
@@ -24,12 +24,7 @@ Create the plugin under:
 plugin/plan-your-day/
 ```
 
-This keeps the new plugin scaffold separate from the current standalone runtime in the repository root:
-
-- `index.php`
-- `plan.js`
-- `plan.css`
-- `icons/`
+This keeps the new plugin scaffold isolated from the rest of the implementation while the initial structure lands.
 
 ## Generic Identifiers
 
@@ -85,7 +80,7 @@ plugin/plan-your-day/
 12. Add `readme.txt` with WordPress-style plugin metadata and placeholders.
 13. Add `.distignore` for future release artifact packaging.
 14. Add `release.json` or equivalent release metadata placeholder.
-15. Leave current standalone files unchanged.
+15. Keep the scaffold change isolated and reviewable.
 
 ## Main Plugin File Requirements
 
@@ -156,6 +151,6 @@ find plugin/plan-your-day -maxdepth 3 -type f | sort
 - [x] Deactivation is registered and non-destructive.
 - [x] `readme.txt` exists with metadata and changelog placeholders.
 - [x] Release metadata placeholders exist.
-- [x] The standalone app files remain unchanged.
+- [x] The scaffold work stays isolated and reviewable.
 - [x] PHP syntax checks pass.
 - [x] Search confirms no new destination-specific strings exist in the plugin scaffold.

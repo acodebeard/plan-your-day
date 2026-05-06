@@ -64,29 +64,5 @@ Current likely causes:
 - API key restrictions do not allow the server or browser context being used.
 - Provider request failure or invalid response.
 
-The frontend planner is not wired yet, so current Google behavior is mostly
-validated through WP-CLI or future REST/renderer work.
-
-## Plugin Settings Are Empty But Legacy Planner Settings Exist
-
-Open the plugin settings screen:
-
-```text
-https://example.test/wp-admin/options-general.php?page=plan-your-day
-```
-
-If you are upgrading from an earlier standalone planner, expose its settings to
-the plugin before activation. The plugin supports two generic inputs:
-
-- Define `PLAN_YOUR_DAY_LEGACY_CONFIG_FILE` to a PHP file that returns a legacy
-  settings array using plugin setting keys.
-- Or provide the same array through the `plan_your_day_legacy_settings` filter.
-
-Activation imports that legacy data into `plan_your_day_settings` only when the
-plugin settings are still effectively empty.
-
-The importer is conservative:
-
-- It only copies scalar settings when the plugin field is still empty.
-- It only imports legacy categories when no custom plugin categories are saved.
-- It clears cached Google API responses after import.
+Use the plugin settings screen, frontend network requests, REST responses, and
+WP-CLI checks together when debugging current Google API behavior.

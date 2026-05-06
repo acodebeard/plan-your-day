@@ -37,17 +37,17 @@ Labels: planning, architecture, phase-1
 
 ## Issue 3
 
-Title: Extract standalone planner logic into plugin services
+Title: Extract planner logic into plugin services
 
-Summary: Move the current standalone implementation into maintainable plugin classes/modules for rendering, request parsing, Google API calls, security, settings, and support utilities.
+Summary: Move the current planner implementation into maintainable plugin classes/modules for rendering, request parsing, Google API calls, security, settings, and support utilities.
 
 Acceptance Criteria:
-- [ ] Current render logic is moved out of standalone `index.php`.
+- [ ] Current render logic is moved into maintainable plugin renderer/services.
 - [ ] Google API logic is isolated.
 - [ ] Place parsing is isolated.
 - [ ] Route/map URL generation is isolated.
 - [ ] Security helpers are isolated.
-- [ ] Standalone WordPress shim functions are removed from plugin code.
+- [ ] Temporary compatibility shims are removed from plugin code.
 - [ ] WordPress-native escaping, sanitization, JSON, and URL APIs are used.
 
 Dependencies: Issue 1
@@ -188,7 +188,7 @@ Labels: frontend, assets, phase-6
 
 Title: Implement REST browse and route endpoints
 
-Summary: Replace standalone action handling with WordPress REST API routes for browse and route preview requests.
+Summary: Implement WordPress REST API routes for browse and route preview requests.
 
 Acceptance Criteria:
 - [ ] Browse route is registered.
@@ -295,24 +295,6 @@ Acceptance Criteria:
 Dependencies: Issue 1, Issue 5
 
 Labels: release, maintenance, phase-8
-
-## Issue 17
-
-Title: Add standalone migration helper
-
-Summary: Add a migration path from the current standalone implementation to plugin settings without hardcoding site-specific values as plugin defaults.
-
-Acceptance Criteria:
-- [ ] Existing local API key config can be mapped into settings.
-- [ ] Existing categories can be mapped into settings.
-- [ ] Existing site-specific default location can be imported as settings data.
-- [ ] Admin notice appears when standalone config exists but plugin settings are empty.
-- [ ] Migration does not modify standalone files automatically.
-- [ ] Migration documentation is written.
-
-Dependencies: Issue 5, Issue 6, Issue 14
-
-Labels: migration, settings, phase-9
 
 ## Issue 18
 

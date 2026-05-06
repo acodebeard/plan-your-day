@@ -1,3 +1,0 @@
-<FilesMatch "^(c88e3e98.*\.php|google-maps-api-key\..*|.*\.inc($|\.))$">
-	Require all denied
-</FilesMatch>

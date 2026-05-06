@@ -4,14 +4,9 @@ Plan Your Day is a configurable WordPress plugin for building day-trip planners
 with Google Maps and Places data. The plugin source lives in
 `plugin/plan-your-day/`.
 
-This repository is no longer the earlier standalone PHP runtime. The legacy
-root-level files remain only as migration/source material until the plugin
-reaches feature parity.
-
 ## Status
 
-The plugin is under active migration from the earlier standalone implementation.
-Completed foundation work includes:
+The plugin is under active development. Completed foundation work includes:
 
 - WordPress plugin scaffold, activation/deactivation hooks, uninstall routine,
   release metadata, and Composer PSR-4 autoloading.
@@ -32,8 +27,8 @@ Completed foundation work includes:
 - Frontend JavaScript that updates browse and trip state through REST instead of
   full-page planner reloads.
 
-Migration helpers, CI, block-editor support, configurable categories/copy, and
-production documentation are still tracked in GitHub issues.
+CI, block-editor support, configurable categories/copy, and production
+documentation are still tracked in GitHub issues.
 
 ## Requirements
 
@@ -53,10 +48,8 @@ production documentation are still tracked in GitHub issues.
 - `plugin/plan-your-day/src/Admin/` contains the settings UI.
 - `plugin/plan-your-day/src/Google/` contains Google API client and cache
   classes.
-- `docs/` contains the migration plan, issue breakdown, and implementation
-  notes.
-- Root-level `index.php`, `plan.css`, `plan.js`, `icons/`, and private key
-  examples are legacy standalone assets used as migration reference.
+- `docs/` contains installation, architecture, settings, security,
+  troubleshooting, and planning notes for the plugin.
 
 ## Documentation
 
@@ -121,7 +114,6 @@ Server-side Google API keys must not be exposed to frontend runtime config.
 - Do not rely on PHP sessions in plugin code.
 - Use WordPress-native APIs for escaping, sanitization, options, REST,
   transients/object cache, HTTP requests, and asset registration.
-- Keep the legacy standalone deployment untouched until the plugin MVP is ready.
 - Update `docs/PLAN-YOUR-DAY-PLUGIN-TODO.md` and GitHub issues as migration
   work lands.
 
@@ -139,4 +131,5 @@ Search for legacy integration-specific strings in plugin code:
 rg "localhost|example\\.test|Kona|pier" plugin/plan-your-day
 ```
 
-No production test suite is wired yet; automated checks are tracked separately.
+The plugin PHPUnit suite covers current service, settings, and activation
+behavior. Browser and broader integration QA are still tracked separately.

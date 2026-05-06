@@ -57,7 +57,7 @@ repo). Each decision can be revisited when that milestone's recommendation
 - WP 6.8 matches `@wordpress/scripts` and block-editor feature availability
   (`viewScriptModule`, interactivity API) needed by subsequent port issues.
 - **Revisit gate:** DOC-03 of the discovery milestone runs PHPCompatibilityWP
-  against the standalone `index.php`. If it surfaces constructs requiring
+  against the plugin runtime entry points. If it surfaces constructs requiring
   newer-than-8.2 features, fine — we're already right. If it surfaces
   backward-compat needs against older hosts, the scaffold's headers drop back
   to the plan's 8.1 / 6.4 values. No work lost either way at this stage.
@@ -95,8 +95,8 @@ repo). Each decision can be revisited when that milestone's recommendation
 
 ## 9. Endpoint model — WordPress REST API
 
-- Public planner interactions use WordPress REST API routes, not `admin-ajax.php`
-  or standalone query actions.
+- Public planner interactions use WordPress REST API routes, not
+  `admin-ajax.php` or ad hoc query actions.
 - Browse and route-preview requests are POST-only.
 - REST request schemas own input validation and sanitization before Google API
   work starts.
@@ -112,7 +112,7 @@ repo). Each decision can be revisited when that milestone's recommendation
 - `Admin` owns settings screens, setup notices, and tools.
 - `Google` owns provider HTTP calls, field masks, result objects, and caching.
 - Future `Rest`, `Security`, `Renderer`, and `Assets` classes should be added
-  as those issue scopes land, keeping standalone compatibility shims out of
+  as those issue scopes land, keeping temporary compatibility shims out of
   plugin code.
 
 ## What is deliberately deferred (not silent prereqs — noted here)

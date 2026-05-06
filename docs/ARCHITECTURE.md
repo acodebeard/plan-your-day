@@ -1,8 +1,7 @@
 # Architecture
 
-Plan Your Day is migrating from a standalone PHP planner into a generic
-WordPress plugin. The standalone root files remain as migration reference until
-the plugin reaches feature parity.
+Plan Your Day is a generic WordPress plugin for building configurable day-trip
+planners with Google Maps and Places data.
 
 ## Plugin Entry Point
 
@@ -30,7 +29,8 @@ Implemented layers:
 - `Settings`: owns defaults, sanitization, option registration, and read access.
 - `Admin`: owns the settings screen, setup notices, and cache tools.
 - `Google`: owns provider HTTP calls, field masks, result objects, and caching.
-- `Planner`: owns extracted planner helpers from the standalone runtime.
+- `Planner`: owns planner helper services shared by frontend rendering and REST
+  endpoints.
 - `Security`: owns request/security helpers, visitor-token protection,
   trusted-proxy-aware IP resolution, and rate limiting.
 - `Rest`: owns the public browse and route endpoints.
@@ -143,9 +143,9 @@ the fallback toggle remains enabled.
 
 ## Security Helpers
 
-`RequestOriginValidator` contains the same-site request heuristic extracted from
-the standalone runtime. It checks Fetch Metadata headers when available and
-falls back to `Origin` / `Referer` host matching.
+`RequestOriginValidator` contains the same-site request heuristic used by the
+plugin runtime. It checks Fetch Metadata headers when available and falls back
+to `Origin` / `Referer` host matching.
 
 `VisitorTokenManager` issues the guest-safe planner cookie and derives the HMAC
 endpoint token embedded in frontend runtime config.
@@ -168,16 +168,3 @@ list in `plan.js` while the browse payload returns `nextPageToken`,
 `hasMoreResults`, `searchContextKey`, and `searchResultsError`. That keeps
 selected waypoints and route state aligned without introducing stored sessions
 or server-side persistence for pagination.
-
-## Still In The Standalone Runtime
-
-The root-level standalone implementation still contains:
-
-- Full planner rendering.
-- Focused JSON endpoint dispatch.
-- Standalone WordPress compatibility shims.
-- Session-backed nonce/cache behavior.
-- Standalone request rate limiting.
-
-Those pieces should move into plugin-native renderer, REST, security, and asset
-classes in later issue slices.

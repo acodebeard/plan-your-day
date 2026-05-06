@@ -54,7 +54,3 @@ The public planner endpoints also use:
 - File-backed rate limiter.
 - Trusted-proxy-aware client IP resolution.
 - Structured REST errors for bad requests and invalid tokens.
-
-The standalone runtime still contains session-backed endpoint protection and
-rate limiting. Those behaviors remain migration reference, not the final plugin
-implementation.

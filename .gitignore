@@ -1,11 +1,3 @@
-# Private local configuration.
-c88e3e98.php
-google-maps-api-key.*
-*.inc
-
-# Local deprecated backups created during extraction/replacement work.
-*.deprecated
-
 # Runtime/session/cache output that should not be committed.
 *.log
 *.cache
