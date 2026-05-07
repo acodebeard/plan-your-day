@@ -15,6 +15,10 @@ final class RequestOriginValidator {
 			return true;
 		}
 
+		if ( ! $this->has_same_site_proof( $server ) ) {
+			return false;
+		}
+
 		$fetch_site = strtolower( trim( (string) ( $server['HTTP_SEC_FETCH_SITE'] ?? '' ) ) );
 
 		if ( '' !== $fetch_site && ! in_array( $fetch_site, [ 'same-origin', 'none' ], true ) ) {
@@ -51,5 +55,15 @@ final class RequestOriginValidator {
 		}
 
 		return true;
+	}
+
+	private function has_same_site_proof( array $server ): bool {
+		foreach ( [ 'HTTP_SEC_FETCH_SITE', 'HTTP_ORIGIN', 'HTTP_REFERER' ] as $header ) {
+			if ( '' !== trim( (string) ( $server[ $header ] ?? '' ) ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

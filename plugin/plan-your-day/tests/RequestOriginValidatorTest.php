@@ -35,4 +35,29 @@ final class RequestOriginValidatorTest extends TestCase {
 			)
 		);
 	}
+
+	public function test_rejects_headerless_request_when_host_is_present(): void {
+		$validator = new RequestOriginValidator();
+
+		self::assertFalse(
+			$validator->is_same_site_request(
+				[
+					'HTTP_HOST' => 'example.com',
+				]
+			)
+		);
+	}
+
+	public function test_allows_same_origin_fetch_metadata_without_origin_or_referer(): void {
+		$validator = new RequestOriginValidator();
+
+		self::assertTrue(
+			$validator->is_same_site_request(
+				[
+					'HTTP_HOST'           => 'example.com',
+					'HTTP_SEC_FETCH_SITE' => 'same-origin',
+				]
+			)
+		);
+	}
 }
