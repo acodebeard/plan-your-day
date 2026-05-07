@@ -53,6 +53,32 @@ Current settings include:
 * Google API timeout and cache TTLs.
 * Rate-limit value and trusted proxy CIDRs for future endpoint protection.
 
+== External services ==
+
+Plan Your Day uses Google services to load place results, place details,
+geocoding data, embedded map previews, and Google Maps handoff links.
+
+The plugin can send data to Google when:
+
+* a visitor runs a category or custom place search
+* the plugin geocodes a configured or custom starting area
+* the plugin resolves selected waypoint place details
+* the frontend renders an embedded Google Map preview
+* a visitor opens the generated Google Maps handoff link
+
+Depending on the interaction, data sent to Google can include:
+
+* search phrases
+* configured or visitor-provided starting locations
+* selected Google Place IDs
+* route waypoint information needed to build map previews or handoff URLs
+
+Google provides these services. Review their terms and privacy information:
+
+* https://policies.google.com/privacy
+* https://mapsplatform.google.com/
+* https://cloud.google.com/maps-platform/terms
+
 == Frequently Asked Questions ==
 
 = Is this ready for production? =
