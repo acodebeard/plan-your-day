@@ -8,6 +8,7 @@ use Acodebeard\PlanYourDay\Settings\Settings;
 defined( 'ABSPATH' ) || exit;
 
 final class CachedGoogleApiClient implements GoogleApiClientInterface {
+	private const RETRYABLE_FAILURE_CACHE_TTL = 30;
 	private GoogleApiClientInterface $client;
 	private Settings $settings;
 	private GoogleApiCache $cache;
@@ -95,16 +96,19 @@ final class CachedGoogleApiClient implements GoogleApiClientInterface {
 	}
 
 	private function remember( string $cache_key, int $ttl, string $scope, string $place_id, callable $callback ): GoogleApiResult {
-		if ( $ttl > 0 ) {
-			$cached = $this->cache->get( $cache_key );
+		$cached = $this->cache->get( $cache_key );
 
-			if ( null !== $cached ) {
-				return $cached;
-			}
+		if ( null !== $cached ) {
+			return $cached;
 		}
 
 		$result = $callback();
-		$this->cache->set( $cache_key, $result, $ttl, $scope, $place_id );
+
+		if ( $result->is_success() ) {
+			$this->cache->set( $cache_key, $result, $ttl, $scope, $place_id );
+		} elseif ( $result->is_retryable() ) {
+			$this->cache->set( $cache_key, $result, self::RETRYABLE_FAILURE_CACHE_TTL, $scope, $place_id );
+		}
 
 		return $result;
 	}

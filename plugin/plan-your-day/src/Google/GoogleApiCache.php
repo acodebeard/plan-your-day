@@ -32,7 +32,7 @@ final class GoogleApiCache {
 	}
 
 	public function set( string $cache_key, GoogleApiResult $result, int $ttl, string $scope = '', string $place_id = '' ): void {
-		if ( $ttl < 1 || ! $result->is_success() ) {
+		if ( $ttl < 1 ) {
 			return;
 		}
 
