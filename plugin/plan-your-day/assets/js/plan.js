@@ -600,9 +600,13 @@
       if (mapsUrl) {
         refs.openLink.href = mapsUrl;
         refs.openLink.removeAttribute('aria-disabled');
+        refs.openLink.removeAttribute('tabindex');
+        refs.openLink.removeAttribute('role');
       } else {
         refs.openLink.removeAttribute('href');
         refs.openLink.setAttribute('aria-disabled', 'true');
+        refs.openLink.setAttribute('tabindex', '0');
+        refs.openLink.setAttribute('role', 'button');
       }
     }
   };
@@ -1306,7 +1310,7 @@
 
       const disabledOpenLink = target.closest('[data-plan-open-link][aria-disabled="true"]');
 
-      if (disabledOpenLink instanceof HTMLAnchorElement) {
+      if (disabledOpenLink instanceof HTMLElement) {
         event.preventDefault();
         announce(refs.liveRegion, strings.openMapsDisabled || '');
         return;
@@ -1388,6 +1392,27 @@
           }
         );
       }
+    });
+
+    root.addEventListener('keydown', (event) => {
+      const target = event.target;
+
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+
+      const disabledOpenLink = target.closest('[data-plan-open-link][aria-disabled="true"]');
+
+      if (!(disabledOpenLink instanceof HTMLElement)) {
+        return;
+      }
+
+      if (event.key !== 'Enter' && event.key !== ' ') {
+        return;
+      }
+
+      event.preventDefault();
+      announce(refs.liveRegion, strings.openMapsDisabled || '');
     });
 
     renderAll();
