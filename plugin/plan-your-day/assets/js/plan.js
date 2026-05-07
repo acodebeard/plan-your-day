@@ -607,6 +607,92 @@
     }
   };
 
+  const focusElement = (element) => {
+    if (!(element instanceof HTMLElement) || typeof element.focus !== 'function') {
+      return false;
+    }
+
+    element.focus();
+
+    return document.activeElement === element;
+  };
+
+  const buildRouteFocusRequest = (submitter) => {
+    if (!(submitter instanceof HTMLButtonElement)) {
+      return null;
+    }
+
+    if (submitter.matches('[data-plan-action="add-waypoint"]')) {
+      return {
+        action: 'add-waypoint',
+        placeId: submitter.getAttribute('data-place-id') || submitter.value || '',
+      };
+    }
+
+    if (submitter.matches('[data-plan-action="remove-waypoint"]')) {
+      return {
+        action: 'remove-waypoint',
+        placeId: submitter.getAttribute('data-place-id') || submitter.value || '',
+      };
+    }
+
+    if (submitter.matches('[data-plan-clear-trip]')) {
+      return {
+        action: 'clear-trip',
+        placeId: '',
+      };
+    }
+
+    if (submitter.name === 'move_waypoint' && submitter.value) {
+      const [placeId, direction] = String(submitter.value).split(':', 2);
+
+      return {
+        action: 'move-waypoint',
+        placeId: placeId || '',
+        direction: direction || '',
+      };
+    }
+
+    return null;
+  };
+
+  const restoreRouteActionFocus = (refs, focusRequest) => {
+    if (!focusRequest) {
+      return;
+    }
+
+    const placeId = String(focusRequest.placeId || '');
+    let target = null;
+
+    if (placeId && focusRequest.action === 'add-waypoint') {
+      target = refs.tripRegion?.querySelector(
+        `[data-waypoint-id="${placeId}"] button[name="remove_waypoint"]`
+      );
+    } else if (placeId && focusRequest.action === 'move-waypoint') {
+      const direction = String(focusRequest.direction || '');
+
+      target =
+        refs.tripRegion?.querySelector(
+          `[data-waypoint-id="${placeId}"] button[name="move_waypoint"][value="${placeId}:${direction}"]`
+        ) ||
+        refs.tripRegion?.querySelector(
+          `[data-waypoint-id="${placeId}"] button[name="remove_waypoint"]`
+        );
+    } else if (focusRequest.action === 'remove-waypoint') {
+      target =
+        refs.tripRegion?.querySelector('[data-plan-trip-list] button[name="remove_waypoint"]') ||
+        refs.tripHeaderActions?.querySelector('[data-plan-clear-trip]');
+    } else if (focusRequest.action === 'clear-trip') {
+      target = refs.tripHeading;
+    }
+
+    if (focusElement(target)) {
+      return;
+    }
+
+    focusElement(refs.tripHeading);
+  };
+
   const syncStartUi = (refs, state) => {
     refs.startModeInputs.forEach((input) => {
       input.checked = input.value === state.startMode;
@@ -729,6 +815,7 @@
       startToggleLabel: root.querySelector('[data-plan-start-toggle-label]'),
       startPanel: root.querySelector('[data-plan-start-panel]'),
       tripHeaderActions: root.querySelector('[data-plan-trip-header-actions]'),
+      tripHeading: root.querySelector('[data-plan-trip-heading]'),
       tripRegion: root.querySelector('[data-plan-trip-region]'),
       messages: root.querySelector('[data-plan-messages]'),
       previewCard: root.querySelector('[data-plan-preview-card]'),
@@ -766,6 +853,7 @@
     let isStartPanelOpen = true;
     let activeRequestController = null;
     let activeRequestId = 0;
+    let pendingRouteFocusRequest = null;
     let hasTouchedStartSelection = false;
     let hasAutoCollapsedDefaultStart = false;
     const initialWindowScrollY = typeof window === 'undefined' ? 0 : window.scrollY;
@@ -1117,6 +1205,10 @@
         state.customStart = String(payload.custom_start || '');
 
         renderAll();
+        if (endpointKey === 'route') {
+          restoreRouteActionFocus(refs, pendingRouteFocusRequest);
+          pendingRouteFocusRequest = null;
+        }
         announce(refs.liveRegion, announcementMessage || '');
 
         return 'success';
@@ -1157,6 +1249,9 @@
           setBusyState(root, false);
           setRegionBusyState(refs, state, false);
           setRouteMutationBusyState(root, false);
+          if (endpointKey === 'route') {
+            pendingRouteFocusRequest = null;
+          }
         }
       }
     };
@@ -1291,6 +1386,9 @@
         }
 
         event.preventDefault();
+        if (endpointKey === 'route') {
+          pendingRouteFocusRequest = buildRouteFocusRequest(submitter);
+        }
         void sendRequest(endpointKey, payload, {
           announcementMessage,
         });
