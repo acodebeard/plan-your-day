@@ -27,6 +27,10 @@ $plan_your_day_google_cache_keys = get_option( 'plan_your_day_google_cache_keys'
 
 if ( is_array( $plan_your_day_google_cache_keys ) ) {
 	foreach ( $plan_your_day_google_cache_keys as $plan_your_day_google_cache_key ) {
+		if ( is_array( $plan_your_day_google_cache_key ) ) {
+			$plan_your_day_google_cache_key = $plan_your_day_google_cache_key['cache_key'] ?? '';
+		}
+
 		if ( ! is_scalar( $plan_your_day_google_cache_key ) ) {
 			continue;
 		}
