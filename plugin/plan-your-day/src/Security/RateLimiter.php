@@ -124,6 +124,23 @@ final class RateLimiter {
 	}
 
 	private function acquire_lock( string $key, float $now ): bool {
+		if ( $this->uses_external_object_cache() ) {
+			return wp_cache_add(
+				$this->lock_option_name( $key ),
+				$now + self::LOCK_TIMEOUT_SECONDS,
+				self::CACHE_GROUP,
+				(int) ceil( self::LOCK_TIMEOUT_SECONDS )
+			);
+		}
+
+		if ( $this->can_use_database_advisory_locks() ) {
+			return $this->acquire_database_advisory_lock( $key );
+		}
+
+		return $this->acquire_option_lock_fallback( $key, $now );
+	}
+
+	private function acquire_option_lock_fallback( string $key, float $now ): bool {
 		$option_name = $this->lock_option_name( $key );
 
 		for ( $attempt = 0; $attempt < self::LOCK_RETRY_ATTEMPTS; $attempt++ ) {
@@ -147,13 +164,66 @@ final class RateLimiter {
 		return false;
 	}
 
+	private function acquire_database_advisory_lock( string $key ): bool {
+		for ( $attempt = 0; $attempt < self::LOCK_RETRY_ATTEMPTS; $attempt++ ) {
+			$result = $this->database_lock_result(
+				'SELECT GET_LOCK(%s, %d)',
+				$this->database_lock_name( $key ),
+				0
+			);
+
+			if ( is_scalar( $result ) && '1' === (string) $result ) {
+				return true;
+			}
+
+			if ( $attempt < self::LOCK_RETRY_ATTEMPTS - 1 ) {
+				usleep( self::LOCK_RETRY_DELAY_MICROSECONDS );
+			}
+		}
+
+		return false;
+	}
+
 	private function release_lock( string $key ): void {
+		if ( $this->uses_external_object_cache() ) {
+			wp_cache_delete( $this->lock_option_name( $key ), self::CACHE_GROUP );
+			return;
+		}
+
+		if ( $this->can_use_database_advisory_locks() ) {
+			$this->database_lock_result(
+				'SELECT RELEASE_LOCK(%s)',
+				$this->database_lock_name( $key )
+			);
+			return;
+		}
+
 		delete_option( $this->lock_option_name( $key ) );
+	}
+
+	private function database_lock_name( string $key ): string {
+		return substr( self::LOCK_OPTION_PREFIX . $key, 0, 64 );
+	}
+
+	private function can_use_database_advisory_locks(): bool {
+		global $wpdb;
+
+		return isset( $wpdb )
+			&& is_object( $wpdb )
+			&& method_exists( $wpdb, 'prepare' )
+			&& method_exists( $wpdb, 'get_var' );
+	}
+
+	private function database_lock_result( string $query, mixed ...$args ): mixed {
+		global $wpdb;
+
+		return $wpdb->get_var( $wpdb->prepare( $query, ...$args ) );
 	}
 
 	private function uses_external_object_cache(): bool {
 		return function_exists( 'wp_using_ext_object_cache' )
 			&& function_exists( 'wp_cache_get' )
+			&& function_exists( 'wp_cache_add' )
 			&& function_exists( 'wp_cache_set' )
 			&& function_exists( 'wp_cache_delete' )
 			&& wp_using_ext_object_cache();
