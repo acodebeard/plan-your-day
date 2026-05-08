@@ -100,6 +100,19 @@ final class PlannerRoutesTest extends TestCase {
 			3,
 			$method->invoke(
 				$routes,
+				'browse',
+				[
+					'category_key'          => 'coffee',
+					'category_search'       => '',
+					'selected_waypoint_ids' => [ 'place-1', 'place-2' ],
+					'append_results'        => true,
+				]
+			)
+		);
+		self::assertSame(
+			3,
+			$method->invoke(
+				$routes,
 				'route',
 				[
 					'category_key'          => 'coffee',

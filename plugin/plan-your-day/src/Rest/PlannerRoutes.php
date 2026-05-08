@@ -246,9 +246,14 @@ final class PlannerRoutes {
 	private function get_rate_limit_cost( string $scope, array $request_state ): int {
 		$cost               = self::RATE_LIMIT_BASE_COST;
 		$selected_waypoints = array_values( (array) ( $request_state['selected_waypoint_ids'] ?? [] ) );
+		$append_results     = ! empty( $request_state['append_results'] );
 
 		if ( 'browse' === $scope && $this->request_uses_google_search( $request_state ) ) {
 			$cost += self::BROWSE_SEARCH_COST;
+		}
+
+		if ( 'browse' === $scope && $append_results ) {
+			return $cost;
 		}
 
 		return $cost + count( $selected_waypoints );
