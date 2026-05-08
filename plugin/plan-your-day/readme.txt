@@ -58,12 +58,15 @@ Current settings include:
 Plan Your Day uses Google services to load place results, place details,
 geocoding data, embedded map previews, and Google Maps handoff links.
 
-The plugin can send data to Google when:
+The plugin can send data to Google from the server when:
 
 * a visitor runs a category or custom place search
 * the plugin geocodes a configured or custom starting area
 * the plugin resolves selected waypoint place details
-* the frontend renders an embedded Google Map preview
+
+The plugin can also send data to Google from the visitor's browser when:
+
+* the frontend loads a Google Maps Embed preview from `https://www.google.com/maps/embed/v1/search` or `https://www.google.com/maps/embed/v1/directions`
 * a visitor opens the generated Google Maps handoff link
 
 Depending on the interaction, data sent to Google can include:
@@ -71,12 +74,13 @@ Depending on the interaction, data sent to Google can include:
 * search phrases
 * configured or visitor-provided starting locations
 * selected Google Place IDs
+* visitor IP address and the browser-facing Maps Embed API key when the browser loads an embedded map preview
+* origin text plus waypoint and destination Place IDs when the browser loads an embedded directions preview
 * route waypoint information needed to build map previews or handoff URLs
 
 Google provides these services. Review their terms and privacy information:
 
 * https://policies.google.com/privacy
-* https://mapsplatform.google.com/
 * https://cloud.google.com/maps-platform/terms
 
 == Frequently Asked Questions ==
