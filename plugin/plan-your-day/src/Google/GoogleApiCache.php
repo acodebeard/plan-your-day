@@ -135,12 +135,16 @@ final class GoogleApiCache {
 		foreach ( $entries as $entry ) {
 			$normalized = $this->normalize_tracked_entry( $entry );
 
-			if ( null !== $normalized ) {
+			if ( null !== $normalized && $this->tracked_entry_exists( $normalized['cache_key'] ) ) {
 				$tracked_entries[ $normalized['cache_key'] ] = $normalized;
 			}
 		}
 
 		return array_values( $tracked_entries );
+	}
+
+	private function tracked_entry_exists( string $cache_key ): bool {
+		return false !== get_transient( $cache_key );
 	}
 
 	private function normalize_tracked_entry( mixed $entry ): ?array {

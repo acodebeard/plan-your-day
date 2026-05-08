@@ -96,6 +96,7 @@ final class CachedGoogleApiClient implements GoogleApiClientInterface {
 	}
 
 	private function remember( string $cache_key, int $ttl, string $scope, string $place_id, callable $callback ): GoogleApiResult {
+		// Retryable failures use a short cooldown cache even when the normal success TTL is disabled.
 		$cached = $this->cache->get( $cache_key );
 
 		if ( null !== $cached ) {

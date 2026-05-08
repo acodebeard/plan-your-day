@@ -48,4 +48,36 @@ final class GoogleApiCacheTest extends TestCase {
 		self::assertArrayHasKey( $place_two_key, $GLOBALS['plan_your_day_test_transients'] );
 		self::assertArrayHasKey( $text_key, $GLOBALS['plan_your_day_test_transients'] );
 	}
+
+	public function test_set_prunes_tracked_entries_for_missing_transients_before_appending(): void {
+		$cache  = new GoogleApiCache();
+		$result = GoogleApiResult::success( [ 'ok' => true ] );
+
+		$stale_key = $cache->build_key( 'text_search', [ 'query' => 'stale' ], 'places-key' );
+		$live_key  = $cache->build_key( 'text_search', [ 'query' => 'fresh' ], 'places-key' );
+
+		update_option(
+			'plan_your_day_google_cache_keys',
+			[
+				[
+					'cache_key' => $stale_key,
+					'scope'     => 'text_search',
+					'place_id'  => '',
+				],
+			]
+		);
+
+		$cache->set( $live_key, $result, 60, 'text_search' );
+
+		self::assertSame(
+			[
+				[
+					'cache_key' => $live_key,
+					'scope'     => 'text_search',
+					'place_id'  => '',
+				],
+			],
+			get_option( 'plan_your_day_google_cache_keys', [] )
+		);
+	}
 }
