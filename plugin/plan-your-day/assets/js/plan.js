@@ -1024,9 +1024,6 @@
       const errorMessage = String(requestOptions.errorMessage || '');
       const searchContextKey = String(requestOptions.searchContextKey || '');
 
-      activeRequestId += 1;
-      const requestId = activeRequestId;
-
       if (activeRequestController instanceof AbortController) {
         if (activeRequestEndpointKey === 'route') {
           debugLog(config, 'info', 'request:blocked', {
@@ -1039,6 +1036,9 @@
 
         activeRequestController.abort();
       }
+
+      activeRequestId += 1;
+      const requestId = activeRequestId;
 
       activeRequestController = new AbortController();
       activeRequestEndpointKey = endpointKey;
