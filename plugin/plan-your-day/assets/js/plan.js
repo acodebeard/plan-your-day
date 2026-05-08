@@ -662,6 +662,8 @@
     }
 
     const placeId = String(focusRequest.placeId || '');
+    const tripHeaderActionButton =
+      refs.tripHeaderActions?.querySelector('button:not([disabled]):not([hidden])');
     let target = null;
 
     if (placeId && focusRequest.action === 'add-waypoint') {
@@ -681,9 +683,9 @@
     } else if (focusRequest.action === 'remove-waypoint') {
       target =
         refs.tripRegion?.querySelector('[data-plan-trip-list] button[name="remove_waypoint"]') ||
-        refs.tripHeaderActions?.querySelector('[data-plan-clear-trip]');
+        tripHeaderActionButton;
     } else if (focusRequest.action === 'clear-trip') {
-      target = refs.tripHeading;
+      target = tripHeaderActionButton || refs.tripHeading;
     }
 
     if (focusElement(target)) {
@@ -1081,12 +1083,22 @@
       const announcementMessage = String(requestOptions.announcementMessage || '');
       const errorMessage = String(requestOptions.errorMessage || '');
       const searchContextKey = String(requestOptions.searchContextKey || '');
+      const routeFocusRequest = endpointKey === 'route' ? requestOptions.routeFocusRequest ?? null : null;
 
       activeRequestId += 1;
       const requestId = activeRequestId;
 
       if (activeRequestController instanceof AbortController) {
         activeRequestController.abort();
+      }
+
+      if (endpointKey === 'route') {
+        pendingRouteFocusRequest = routeFocusRequest
+          ? {
+              requestId,
+              focusRequest: routeFocusRequest,
+            }
+          : null;
       }
 
       activeRequestController = new AbortController();
@@ -1205,8 +1217,12 @@
         state.customStart = String(payload.custom_start || '');
 
         renderAll();
-        if (endpointKey === 'route') {
-          restoreRouteActionFocus(refs, pendingRouteFocusRequest);
+        if (
+          endpointKey === 'route' &&
+          pendingRouteFocusRequest &&
+          pendingRouteFocusRequest.requestId === requestId
+        ) {
+          restoreRouteActionFocus(refs, pendingRouteFocusRequest.focusRequest);
           pendingRouteFocusRequest = null;
         }
         announce(refs.liveRegion, announcementMessage || '');
@@ -1249,7 +1265,11 @@
           setBusyState(root, false);
           setRegionBusyState(refs, state, false);
           setRouteMutationBusyState(root, false);
-          if (endpointKey === 'route') {
+          if (
+            endpointKey === 'route' &&
+            pendingRouteFocusRequest &&
+            pendingRouteFocusRequest.requestId === requestId
+          ) {
             pendingRouteFocusRequest = null;
           }
         }
@@ -1386,11 +1406,9 @@
         }
 
         event.preventDefault();
-        if (endpointKey === 'route') {
-          pendingRouteFocusRequest = buildRouteFocusRequest(submitter);
-        }
         void sendRequest(endpointKey, payload, {
           announcementMessage,
+          routeFocusRequest: endpointKey === 'route' ? buildRouteFocusRequest(submitter) : null,
         });
       });
     }
