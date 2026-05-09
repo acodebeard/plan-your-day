@@ -80,4 +80,23 @@ final class GoogleApiCacheTest extends TestCase {
 			get_option( 'plan_your_day_google_cache_keys', [] )
 		);
 	}
+
+	public function test_get_prunes_missing_tracked_entries_when_transient_has_expired(): void {
+		$cache     = new GoogleApiCache();
+		$stale_key = $cache->build_key( 'text_search', [ 'query' => 'stale' ], 'places-key' );
+
+		update_option(
+			'plan_your_day_google_cache_keys',
+			[
+				[
+					'cache_key' => $stale_key,
+					'scope'     => 'text_search',
+					'place_id'  => '',
+				],
+			]
+		);
+
+		self::assertNull( $cache->get( $stale_key ) );
+		self::assertSame( [], get_option( 'plan_your_day_google_cache_keys', [] ) );
+	}
 }

@@ -28,6 +28,10 @@ final class GoogleApiCache {
 	public function get( string $cache_key ): ?GoogleApiResult {
 		$cached = get_transient( $cache_key );
 
+		if ( false === $cached ) {
+			$this->untrack_entry( $cache_key );
+		}
+
 		return $cached instanceof GoogleApiResult ? $cached : null;
 	}
 
@@ -121,6 +125,37 @@ final class GoogleApiCache {
 		}
 
 		return $cleared_count;
+	}
+
+	private function untrack_entry( string $cache_key ): void {
+		$entries = get_option( self::INDEX_OPTION, [] );
+
+		if ( ! is_array( $entries ) || [] === $entries ) {
+			return;
+		}
+
+		$remaining = [];
+
+		foreach ( $entries as $entry ) {
+			$normalized = $this->normalize_tracked_entry( $entry );
+
+			if ( null === $normalized || $normalized['cache_key'] === $cache_key ) {
+				continue;
+			}
+
+			$remaining[] = $normalized;
+		}
+
+		if ( count( $remaining ) === count( $entries ) ) {
+			return;
+		}
+
+		if ( [] === $remaining ) {
+			delete_option( self::INDEX_OPTION );
+			return;
+		}
+
+		update_option( self::INDEX_OPTION, $remaining, false );
 	}
 
 	private function get_tracked_entries(): array {
