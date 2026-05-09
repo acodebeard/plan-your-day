@@ -9,12 +9,12 @@ use WP_Error;
 defined( 'ABSPATH' ) || exit;
 
 final class RateLimiter {
-	private const WINDOW_SECONDS = 60;
-	private const CACHE_GROUP = 'plan-your-day';
-	private const STATE_OPTION_PREFIX = 'plan_your_day_rate_';
-	private const LOCK_OPTION_PREFIX = 'plan_your_day_rate_lock_';
-	private const LOCK_TIMEOUT_SECONDS = 5.0;
-	private const LOCK_RETRY_ATTEMPTS = 5;
+	private const WINDOW_SECONDS                = 60;
+	private const CACHE_GROUP                   = 'plan-your-day';
+	private const STATE_OPTION_PREFIX           = 'plan_your_day_rate_';
+	private const LOCK_OPTION_PREFIX            = 'plan_your_day_rate_lock_';
+	private const LOCK_TIMEOUT_SECONDS          = 5.0;
+	private const LOCK_RETRY_ATTEMPTS           = 5;
 	private const LOCK_RETRY_DELAY_MICROSECONDS = 20000;
 
 	private Settings $settings;
@@ -166,11 +166,7 @@ final class RateLimiter {
 
 	private function acquire_database_advisory_lock( string $key ): bool {
 		for ( $attempt = 0; $attempt < self::LOCK_RETRY_ATTEMPTS; $attempt++ ) {
-			$result = $this->database_lock_result(
-				'SELECT GET_LOCK(%s, %d)',
-				$this->database_lock_name( $key ),
-				0
-			);
+			$result = $this->get_database_advisory_lock_result( $key );
 
 			if ( is_scalar( $result ) && '1' === (string) $result ) {
 				return true;
@@ -191,10 +187,7 @@ final class RateLimiter {
 		}
 
 		if ( $this->can_use_database_advisory_locks() ) {
-			$this->database_lock_result(
-				'SELECT RELEASE_LOCK(%s)',
-				$this->database_lock_name( $key )
-			);
+			$this->release_database_advisory_lock( $key );
 			return;
 		}
 
@@ -214,10 +207,27 @@ final class RateLimiter {
 			&& method_exists( $wpdb, 'get_var' );
 	}
 
-	private function database_lock_result( string $query, mixed ...$args ): mixed {
+	private function get_database_advisory_lock_result( string $key ): mixed {
 		global $wpdb;
 
-		return $wpdb->get_var( $wpdb->prepare( $query, ...$args ) );
+		return $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT GET_LOCK(%s, %d)',
+				$this->database_lock_name( $key ),
+				0
+			)
+		);
+	}
+
+	private function release_database_advisory_lock( string $key ): void {
+		global $wpdb;
+
+		$wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT RELEASE_LOCK(%s)',
+				$this->database_lock_name( $key )
+			)
+		);
 	}
 
 	private function uses_external_object_cache(): bool {
