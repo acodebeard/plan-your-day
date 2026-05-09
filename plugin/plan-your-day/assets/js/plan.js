@@ -531,7 +531,9 @@
     }
 
     if (refs.customResultsPanel) {
-      if (hasCustomSearch) {
+      if (!isCustomResultsExpanded) {
+        refs.customResultsPanel.innerHTML = '';
+      } else if (hasCustomSearch) {
         renderResultsPanel(refs.customResultsPanel, browseData, selectedWaypointIds, strings, panelRenderOptions);
       } else {
         refs.customResultsPanel.innerHTML = renderResultsMarkup(browseData, selectedWaypointIds, strings, {
