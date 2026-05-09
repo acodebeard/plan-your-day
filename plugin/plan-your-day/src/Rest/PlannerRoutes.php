@@ -90,9 +90,16 @@ final class PlannerRoutes {
 			return $guard;
 		}
 
+		$append_results_request = ! empty( $request_state['append_results'] );
+		$build_options          = $this->public_trip_waypoint_options( true );
+
+		if ( $append_results_request ) {
+			$build_options['include_trip_waypoints'] = false;
+		}
+
 		$planner_state = $this->planner_state_builder->build(
 			$request_state,
-			$this->public_trip_waypoint_options( true )
+			$build_options
 		);
 		DebugLogger::log(
 			'rest.browse.response',
@@ -108,12 +115,15 @@ final class PlannerRoutes {
 			]
 		);
 
-		return new WP_REST_Response(
-			[
-				'browse' => $this->planner_payload_builder->build_browse_payload( $planner_state ),
-				'route'  => $this->planner_payload_builder->build_route_payload( $planner_state ),
-			]
-		);
+		$response_payload = [
+			'browse' => $this->planner_payload_builder->build_browse_payload( $planner_state ),
+		];
+
+		if ( ! $append_results_request ) {
+			$response_payload['route'] = $this->planner_payload_builder->build_route_payload( $planner_state );
+		}
+
+		return new WP_REST_Response( $response_payload );
 	}
 
 	public function route( WP_REST_Request $request ): WP_REST_Response|WP_Error {
@@ -236,9 +246,14 @@ final class PlannerRoutes {
 	private function get_rate_limit_cost( string $scope, array $request_state ): int {
 		$cost               = self::RATE_LIMIT_BASE_COST;
 		$selected_waypoints = array_values( (array) ( $request_state['selected_waypoint_ids'] ?? [] ) );
+		$append_results     = ! empty( $request_state['append_results'] );
 
 		if ( 'browse' === $scope && $this->request_uses_google_search( $request_state ) ) {
 			$cost += self::BROWSE_SEARCH_COST;
+		}
+
+		if ( 'browse' === $scope && $append_results ) {
+			return $cost;
 		}
 
 		return $cost + count( $selected_waypoints );

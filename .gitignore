@@ -1,6 +1,7 @@
 # Runtime/session/cache output that should not be committed.
 *.log
 *.cache
+dist/
 tmp/
 temp/
 cache/
