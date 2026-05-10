@@ -3,6 +3,7 @@ declare( strict_types=1 );
 
 namespace Acodebeard\PlanYourDay\Rest;
 
+use Acodebeard\PlanYourDay\Planner\PlaceParser;
 use Acodebeard\PlanYourDay\Planner\PlannerPayloadBuilder;
 use Acodebeard\PlanYourDay\Planner\PlannerStateBuilder;
 use Acodebeard\PlanYourDay\Planner\RequestStateParser;
@@ -25,6 +26,8 @@ final class PlannerRoutes {
 	private const PUBLIC_TRIP_WAYPOINT_DEADLINE_SECONDS = 12;
 	private const PUBLIC_TRIP_WAYPOINT_PLACE_DETAILS_TIMEOUT = 5;
 	private const PUBLIC_TRIP_WAYPOINT_MAX_FAILURES = 3;
+	private const LOADED_RESULTS_CACHE_PREFIX = 'pyd_loaded_results_';
+	private const LOADED_RESULTS_CACHE_TTL = 1800;
 
 	private RequestStateParser $request_state_parser;
 	private PlannerStateBuilder $planner_state_builder;
@@ -91,15 +94,29 @@ final class PlannerRoutes {
 		}
 
 		$append_results_request = ! empty( $request_state['append_results'] );
+		$refresh_route          = $this->should_refresh_browse_route( $request, $request_state );
 		$build_options          = $this->public_trip_waypoint_options( true );
 
 		if ( $append_results_request ) {
+			$cached_loaded_result_ids = $this->get_cached_loaded_result_ids( $request );
+
+			if ( [] !== $cached_loaded_result_ids ) {
+				$request_state['loaded_result_ids'] = $cached_loaded_result_ids;
+			}
+		}
+
+		if ( $append_results_request || ! $refresh_route ) {
 			$build_options['include_trip_waypoints'] = false;
 		}
 
 		$planner_state = $this->planner_state_builder->build(
 			$request_state,
 			$build_options
+		);
+		$this->remember_loaded_result_ids(
+			$request,
+			$planner_state,
+			(array) ( $request_state['loaded_result_ids'] ?? [] )
 		);
 		DebugLogger::log(
 			'rest.browse.response',
@@ -119,7 +136,7 @@ final class PlannerRoutes {
 			'browse' => $this->planner_payload_builder->build_browse_payload( $planner_state ),
 		];
 
-		if ( ! $append_results_request ) {
+		if ( $refresh_route && ! $append_results_request ) {
 			$response_payload['route'] = $this->planner_payload_builder->build_route_payload( $planner_state );
 		}
 
@@ -212,7 +229,7 @@ final class PlannerRoutes {
 			return $error;
 		}
 
-		$rate_limit = $this->rate_limiter->enforce( $scope, $_SERVER, $this->get_rate_limit_cost( $scope, $request_state ) );
+		$rate_limit = $this->rate_limiter->enforce( $scope, $_SERVER, $this->get_rate_limit_cost( $scope, $request_state, $request ) );
 
 		if ( $rate_limit instanceof WP_Error ) {
 			DebugLogger::log(
@@ -243,7 +260,7 @@ final class PlannerRoutes {
 			: __( 'The planner request could not be verified. Refresh the page and try again.', 'plan-your-day' );
 	}
 
-	private function get_rate_limit_cost( string $scope, array $request_state ): int {
+	private function get_rate_limit_cost( string $scope, array $request_state, ?WP_REST_Request $request = null ): int {
 		$cost               = self::RATE_LIMIT_BASE_COST;
 		$selected_waypoints = array_values( (array) ( $request_state['selected_waypoint_ids'] ?? [] ) );
 		$append_results     = ! empty( $request_state['append_results'] );
@@ -256,7 +273,123 @@ final class PlannerRoutes {
 			return $cost;
 		}
 
+		if ( 'browse' === $scope && [] !== $selected_waypoints && ! $this->should_refresh_browse_route( $request, $request_state ) ) {
+			return $cost;
+		}
+
 		return $cost + count( $selected_waypoints );
+	}
+
+	private function should_refresh_browse_route( ?WP_REST_Request $request, array $request_state ): bool {
+		if ( [] === array_values( (array) ( $request_state['selected_waypoint_ids'] ?? [] ) ) ) {
+			return true;
+		}
+
+		if ( ! $request instanceof WP_REST_Request ) {
+			return true;
+		}
+
+		$refresh_route = $request->get_param( 'refresh_route' );
+
+		if ( null === $refresh_route ) {
+			return true;
+		}
+
+		return $this->sanitize_boolean( $refresh_route );
+	}
+
+	/**
+	 * @return array<int, string>
+	 */
+	private function get_cached_loaded_result_ids( WP_REST_Request $request ): array {
+		$cache_key = $this->loaded_results_cache_key( $request, $this->request_search_context_key( $request ) );
+
+		if ( '' === $cache_key ) {
+			return [];
+		}
+
+		$cached_loaded_result_ids = get_transient( $cache_key );
+
+		if ( ! is_array( $cached_loaded_result_ids ) ) {
+			return [];
+		}
+
+		return $this->normalize_place_ids( $cached_loaded_result_ids );
+	}
+
+	private function remember_loaded_result_ids( WP_REST_Request $request, array $planner_state, array $loaded_result_ids ): void {
+		$search_context_key = trim( sanitize_text_field( (string) ( $planner_state['search_context_key'] ?? '' ) ) );
+		$cache_key          = $this->loaded_results_cache_key( $request, $search_context_key );
+
+		if ( '' === $cache_key ) {
+			return;
+		}
+
+		set_transient(
+			$cache_key,
+			$this->normalize_place_ids(
+				array_merge(
+					$loaded_result_ids,
+					$this->extract_search_result_ids( $planner_state )
+				)
+			),
+			self::LOADED_RESULTS_CACHE_TTL
+		);
+	}
+
+	private function request_search_context_key( WP_REST_Request $request ): string {
+		return trim( sanitize_text_field( (string) $request->get_param( 'search_context_key' ) ) );
+	}
+
+	private function loaded_results_cache_key( WP_REST_Request $request, string $search_context_key ): string {
+		$endpoint_token = trim( sanitize_text_field( (string) $request->get_param( 'endpoint_token' ) ) );
+
+		if ( '' === $endpoint_token || '' === $search_context_key ) {
+			return '';
+		}
+
+		return self::LOADED_RESULTS_CACHE_PREFIX . substr( hash( 'sha256', $endpoint_token . '|' . $search_context_key ), 0, 40 );
+	}
+
+	/**
+	 * @return array<int, string>
+	 */
+	private function extract_search_result_ids( array $planner_state ): array {
+		$place_ids = [];
+
+		foreach ( (array) ( $planner_state['search_results'] ?? [] ) as $search_result ) {
+			if ( ! is_array( $search_result ) ) {
+				continue;
+			}
+
+			$place_id = PlaceParser::sanitize_place_id( (string) ( $search_result['id'] ?? '' ) );
+
+			if ( '' !== $place_id ) {
+				$place_ids[] = $place_id;
+			}
+		}
+
+		return $this->normalize_place_ids( $place_ids );
+	}
+
+	/**
+	 * @param array<int, mixed> $place_ids
+	 * @return array<int, string>
+	 */
+	private function normalize_place_ids( array $place_ids ): array {
+		$normalized_place_ids = [];
+
+		foreach ( $place_ids as $place_id ) {
+			$place_id = PlaceParser::sanitize_place_id( (string) $place_id );
+
+			if ( '' === $place_id || in_array( $place_id, $normalized_place_ids, true ) ) {
+				continue;
+			}
+
+			$normalized_place_ids[] = $place_id;
+		}
+
+		return $normalized_place_ids;
 	}
 
 	private function request_uses_google_search( array $request_state ): bool {
@@ -289,6 +422,18 @@ final class PlannerRoutes {
 				'sanitize_callback' => [ $this, 'sanitize_boolean' ],
 				'validate_callback' => [ $this, 'validate_loose_boolean' ],
 				'default'           => false,
+			],
+			'refresh_route'   => [
+				'type'              => 'boolean',
+				'sanitize_callback' => [ $this, 'sanitize_boolean' ],
+				'validate_callback' => [ $this, 'validate_loose_boolean' ],
+				'default'           => true,
+			],
+			'search_context_key' => [
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'validate_callback' => [ $this, 'validate_loose_scalar' ],
+				'default'           => '',
 			],
 			'loaded_result_ids' => [
 				'type'              => 'array',
@@ -448,6 +593,10 @@ final class PlannerRoutes {
 			$params['append_results'] = '1';
 		}
 
+		if ( true === $request->get_param( 'refresh_route' ) ) {
+			$params['refresh_route'] = '1';
+		}
+
 		if ( true === $request->get_param( 'clear_trip' ) ) {
 			$params['clear_trip'] = '1';
 		}
@@ -478,6 +627,8 @@ final class PlannerRoutes {
 				'category_search'   => $request->get_param( 'category_search' ),
 				'page_token'        => $request->get_param( 'page_token' ),
 				'append_results'    => $request->get_param( 'append_results' ),
+				'refresh_route'     => $request->get_param( 'refresh_route' ),
+				'search_context_key' => $request->get_param( 'search_context_key' ),
 				'loaded_result_ids' => $request->get_param( 'loaded_result_ids' ),
 				'waypoints'         => $request->get_param( 'waypoints' ),
 				'start_mode'        => $request->get_param( 'start_mode' ),
