@@ -602,9 +602,13 @@
       if (mapsUrl) {
         refs.openLink.href = mapsUrl;
         refs.openLink.removeAttribute('aria-disabled');
+        refs.openLink.removeAttribute('tabindex');
+        refs.openLink.removeAttribute('role');
       } else {
         refs.openLink.removeAttribute('href');
         refs.openLink.setAttribute('aria-disabled', 'true');
+        refs.openLink.setAttribute('tabindex', '0');
+        refs.openLink.setAttribute('role', 'button');
       }
     }
   };
@@ -735,30 +739,59 @@
     root.setAttribute('aria-busy', String(isBusy));
   };
 
-  const setRouteMutationBusyState = (root, isBusy) => {
-    root.querySelectorAll('[data-plan-route-mutation]').forEach((control) => {
-      if (!(control instanceof HTMLButtonElement)) {
+  const setManagedControlBusyState = (controls, isBusy, stateAttribute) => {
+    controls.forEach((control) => {
+      if (
+        !(control instanceof HTMLButtonElement) &&
+        !(control instanceof HTMLInputElement)
+      ) {
         return;
       }
 
       if (isBusy) {
-        if (!control.hasAttribute('data-plan-disabled-before-request')) {
-          control.setAttribute('data-plan-disabled-before-request', control.disabled ? 'true' : 'false');
+        if (!control.hasAttribute(stateAttribute)) {
+          control.setAttribute(stateAttribute, control.disabled ? 'true' : 'false');
         }
 
         control.disabled = true;
         return;
       }
 
-      const disabledBeforeRequest = control.getAttribute('data-plan-disabled-before-request');
+      const disabledBeforeRequest = control.getAttribute(stateAttribute);
 
       if (null === disabledBeforeRequest) {
         return;
       }
 
       control.disabled = disabledBeforeRequest === 'true';
-      control.removeAttribute('data-plan-disabled-before-request');
+      control.removeAttribute(stateAttribute);
     });
+  };
+
+  const setRouteMutationBusyState = (root, isBusy) => {
+    setManagedControlBusyState(
+      root.querySelectorAll('[data-plan-route-mutation]'),
+      isBusy,
+      'data-plan-disabled-before-request'
+    );
+  };
+
+  const setBrowseControlsBusyState = (root, isBusy) => {
+    setManagedControlBusyState(
+      root.querySelectorAll(
+        [
+          '[data-plan-form] button[type="submit"]:not([data-plan-route-mutation])',
+          '[data-plan-load-more-button]',
+          '[data-plan-start-toggle]',
+          '[data-plan-custom-results-button]',
+          'input[name="start_mode"]',
+          '[data-plan-custom-start]',
+          '[data-plan-category-search]',
+        ].join(',')
+      ),
+      isBusy,
+      'data-plan-browse-disabled-before-request'
+    );
   };
 
   const setRegionBusyState = (refs, state, isBusy) => {
@@ -856,6 +889,7 @@
 
     let isStartPanelOpen = true;
     let activeRequestController = null;
+    let activeRequestEndpointKey = '';
     let activeRequestId = 0;
     let pendingRouteFocusRequest = null;
     let hasTouchedStartSelection = false;
@@ -1087,12 +1121,21 @@
       const searchContextKey = String(requestOptions.searchContextKey || '');
       const routeFocusRequest = endpointKey === 'route' ? requestOptions.routeFocusRequest ?? null : null;
 
-      activeRequestId += 1;
-      const requestId = activeRequestId;
-
       if (activeRequestController instanceof AbortController) {
+        if (activeRequestEndpointKey === 'route') {
+          debugLog(config, 'info', 'request:blocked', {
+            endpointKey,
+            blockedBy: activeRequestEndpointKey,
+          });
+
+          return 'busy';
+        }
+
         activeRequestController.abort();
       }
+
+      activeRequestId += 1;
+      const requestId = activeRequestId;
 
       if (endpointKey === 'route') {
         pendingRouteFocusRequest = routeFocusRequest
@@ -1104,9 +1147,11 @@
       }
 
       activeRequestController = new AbortController();
+      activeRequestEndpointKey = endpointKey;
       setBusyState(root, true);
       setRegionBusyState(refs, state, true);
       setRouteMutationBusyState(root, endpointKey === 'route');
+      setBrowseControlsBusyState(root, endpointKey === 'route');
       debugLog(config, 'info', 'request:start', {
         endpointKey,
         payload,
@@ -1274,6 +1319,9 @@
           ) {
             pendingRouteFocusRequest = null;
           }
+          setBrowseControlsBusyState(root, false);
+          activeRequestController = null;
+          activeRequestEndpointKey = '';
         }
       }
     };
@@ -1424,7 +1472,7 @@
 
       const disabledOpenLink = target.closest('[data-plan-open-link][aria-disabled="true"]');
 
-      if (disabledOpenLink instanceof HTMLAnchorElement) {
+      if (disabledOpenLink instanceof HTMLElement) {
         event.preventDefault();
         announce(refs.liveRegion, strings.openMapsDisabled || '');
         return;
@@ -1506,6 +1554,27 @@
           }
         );
       }
+    });
+
+    root.addEventListener('keydown', (event) => {
+      const target = event.target;
+
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+
+      const disabledOpenLink = target.closest('[data-plan-open-link][aria-disabled="true"]');
+
+      if (!(disabledOpenLink instanceof HTMLElement)) {
+        return;
+      }
+
+      if (event.key !== 'Enter' && event.key !== ' ') {
+        return;
+      }
+
+      event.preventDefault();
+      announce(refs.liveRegion, strings.openMapsDisabled || '');
     });
 
     renderAll();

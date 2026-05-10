@@ -156,6 +156,26 @@ namespace Acodebeard\PlanYourDay\Tests {
 			self::assertStringContainsString( 'View built-in starter categories', $output );
 		}
 
+		public function test_categories_field_template_keeps_new_row_form_controls(): void {
+			$settings_page = $this->settings_page();
+
+			ob_start();
+			$settings_page->render_field(
+				[
+					'key'         => 'categories',
+					'type'        => 'categories',
+					'description' => '',
+					'attributes'  => [],
+				]
+			);
+			$output = (string) ob_get_clean();
+
+			self::assertStringContainsString( '<template data-plan-category-row-template>', $output );
+			self::assertStringContainsString( 'plan_your_day_settings[categories][__INDEX__][label]', $output );
+			self::assertStringContainsString( 'plan_your_day_settings[categories][__INDEX__][description]', $output );
+			self::assertStringContainsString( 'plan_your_day_settings[categories][__INDEX__][text_query]', $output );
+		}
+
 		private function settings_page(): SettingsPage {
 			$settings = new Settings();
 
