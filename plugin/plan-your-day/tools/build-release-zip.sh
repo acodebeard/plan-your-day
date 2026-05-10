@@ -22,14 +22,54 @@ if ! command -v rsync >/dev/null 2>&1; then
 fi
 
 read_release_meta() {
-	php -r '
-		$release = json_decode(file_get_contents($argv[1]), true);
-		if (!is_array($release) || empty($release["slug"]) || empty($release["version"]) || empty($release["artifact"])) {
-			fwrite(STDERR, "release.json must contain non-empty slug, version, and artifact values.\n");
-			exit(1);
-		}
-		echo $release["slug"], "\n", $release["version"], "\n", $release["artifact"], "\n";
-	' "$RELEASE_JSON"
+	php /dev/stdin "$RELEASE_JSON" "${PLUGIN_DIR}/plan-your-day.php" <<'PHP'
+<?php
+$release = json_decode(file_get_contents($argv[1]), true);
+$plugin  = file_get_contents($argv[2]);
+
+if ( ! is_array( $release ) || empty( $release['slug'] ) || empty( $release['version'] ) || ! isset( $release['schemaVersion'] ) || empty( $release['artifact'] ) ) {
+	fwrite( STDERR, "release.json must contain non-empty slug, version, schemaVersion, and artifact values.\n" );
+	exit( 1 );
+}
+
+if ( ! is_string( $plugin ) || '' === $plugin ) {
+	fwrite( STDERR, "Unable to read the main plugin file.\n" );
+	exit( 1 );
+}
+
+if ( ! preg_match( "/define\\(\\s*'PLAN_YOUR_DAY_VERSION'\\s*,\\s*'([^']+)'\\s*\\)/", $plugin, $version_match ) ) {
+	fwrite( STDERR, "Unable to read PLAN_YOUR_DAY_VERSION from the main plugin file.\n" );
+	exit( 1 );
+}
+
+if ( ! preg_match( "/define\\(\\s*'PLAN_YOUR_DAY_SCHEMA_VERSION'\\s*,\\s*(\\d+)\\s*\\)/", $plugin, $schema_match ) ) {
+	fwrite( STDERR, "Unable to read PLAN_YOUR_DAY_SCHEMA_VERSION from the main plugin file.\n" );
+	exit( 1 );
+}
+
+$runtime_version = $version_match[1];
+$runtime_schema  = (int) $schema_match[1];
+$release_schema  = (int) $release['schemaVersion'];
+$artifact_name   = basename( $release['artifact'] );
+$expected_name   = sprintf( '%s-%s.zip', $release['slug'], $release['version'] );
+
+if ( $release['version'] !== $runtime_version ) {
+	fwrite( STDERR, "release.json version must match PLAN_YOUR_DAY_VERSION.\n" );
+	exit( 1 );
+}
+
+if ( $release_schema !== $runtime_schema ) {
+	fwrite( STDERR, "release.json schemaVersion must match PLAN_YOUR_DAY_SCHEMA_VERSION.\n" );
+	exit( 1 );
+}
+
+if ( $artifact_name !== $expected_name ) {
+	fwrite( STDERR, "release.json artifact name must match the plugin slug and version.\n" );
+	exit( 1 );
+}
+
+echo $release['slug'], "\n", $release['version'], "\n", $release['artifact'], "\n";
+PHP
 }
 
 mapfile -t RELEASE_META < <(read_release_meta)

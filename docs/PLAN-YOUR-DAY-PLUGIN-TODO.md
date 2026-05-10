@@ -1,5 +1,10 @@
 # Plan Your Day Plugin TODO
 
+> Historical planning snapshot: this checklist was drafted during the early
+> plugin port and backlog planning work. It is not maintained as the live
+> implementation-status document. Use current GitHub Issues and the repo docs
+> for current status.
+
 ## Overview
 
 Continue hardening Plan Your Day as a generic, maintainable WordPress plugin.

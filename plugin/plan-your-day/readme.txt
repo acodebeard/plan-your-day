@@ -15,11 +15,10 @@ A configurable day planning plugin for WordPress.
 Plan Your Day is a configurable day planning plugin for WordPress.
 
 Current development builds include the plugin scaffold, Settings API
-registration, admin settings screen, Google API client abstraction, Google API
-caching, frontend planner rendering, REST endpoints, and extracted planner
-helper services.
-
-Block wrapper polish and production QA are still in progress.
+registration, admin settings screen, editable categories and interface copy,
+Google API client abstraction, Google API caching, frontend planner rendering,
+block and shortcode entry points, REST endpoints, and extracted planner helper
+services.
 
 == Installation ==
 
@@ -48,10 +47,11 @@ Current settings include:
 * Default location label, address/search phrase, latitude, longitude, and Place ID.
 * Allowed start modes, max waypoints, result count, distance unit, map preview,
   and Google Maps handoff toggles.
+* Editable categories and interface copy.
 * Browser-facing Maps Embed API key.
 * Server-side Places and Geocoding API keys.
 * Google API timeout and cache TTLs.
-* Rate-limit value and trusted proxy CIDRs for future endpoint protection.
+* Rate-limit value and trusted proxy CIDRs for public endpoint protection.
 
 == External services ==
 
@@ -91,18 +91,24 @@ Not yet. The plugin is installable and includes the planner frontend, REST
 endpoints, and admin/settings flow, but production QA and release hardening are
 still in progress.
 
+= How do I display the planner? =
+
+Use the Plan Your Day block in the block editor or add `[plan_your_day]` to a
+page, post, or Shortcode block. The repository docs cover placement guidance
+and the optional `action_url` / `Action URL` setting.
+
 = Where is the developer documentation? =
 
-See the repository `docs/` directory for installation, architecture, settings,
-security, and troubleshooting notes.
+See the repository `docs/` directory for installation, usage, admin, release,
+architecture, settings, security, and troubleshooting notes.
 
 == Changelog ==
 
 = Unreleased =
-* Added Settings API registration and admin settings screen.
-* Added Google API client abstraction and transient-backed caching.
-* Added extracted planner helper services for shortcode and REST work.
-* Added a reproducible release zip builder for WordPress admin installs.
+* Added block-editor and shortcode entry points that share the same planner renderer.
+* Added admin-editable categories and interface copy settings.
+* Added REST-powered planner interactions, rate limiting, and Google API admin tools.
+* Added a reproducible release zip builder and manual release-process documentation.
 
 = 0.1.0 =
 * Initial plugin scaffold (GH issue #20): directory structure, main plugin file, activation / deactivation hooks, uninstall routine, PSR-4 autoloading.

@@ -41,8 +41,10 @@ defaults.
   used when the frontend requests additional Google Places pages through the
   More Results control.
 - `distance_unit`: `miles` or `kilometers`.
-- `map_preview_enabled`: allows future on-page Maps Embed previews.
-- `maps_handoff_enabled`: allows future outbound Google Maps links.
+- `map_preview_enabled`: controls whether the public planner may render on-page
+  Google Maps Embed previews.
+- `maps_handoff_enabled`: controls whether the public planner may show outbound
+  Google Maps links.
 
 ## Categories
 
@@ -147,10 +149,11 @@ TTL values can be set to `0` to disable that cache path.
 
 ## Rate Limit And Trusted Proxies
 
-- `rate_limit_per_minute`: stored configuration for the future public endpoint
-  rate limiter.
-- `trusted_proxy_cidrs`: optional IP/CIDR list, one per line, for future
-  trusted-proxy-aware client IP resolution.
+- `rate_limit_per_minute`: per-minute budget used by the active public planner
+  REST rate limiter.
+- `trusted_proxy_cidrs`: optional IP/CIDR list, one per line, used for
+  trusted-proxy-aware client IP resolution when the site sits behind known
+  reverse proxies.
 
 Invalid trusted proxy entries are discarded during sanitization.
 
