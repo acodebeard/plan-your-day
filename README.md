@@ -21,14 +21,18 @@ The plugin is under active development. Completed foundation work includes:
   labels, map URLs, start context, request state, and request-origin checks.
 - Shortcode-based frontend rendering with plugin-scoped assets and a shared
   planner renderer.
+- Block-editor rendering through a thin server-rendered wrapper around the
+  shared planner renderer.
 - WordPress REST browse/route endpoints with POST-only requests, guest-safe
   visitor token validation, same-site request checks, trusted-proxy-aware client
   IP resolution, and file-backed rate limiting.
 - Frontend JavaScript that updates browse and trip state through REST instead of
   full-page planner reloads.
+- Admin-editable categories, admin-editable interface copy, cache-clear tools,
+  and a Google API test tool.
 
-CI, block-editor support, configurable categories/copy, and production
-documentation are still tracked in GitHub issues.
+Browser automation and broader production QA are still tracked in GitHub
+issues.
 
 ## Requirements
 
@@ -48,14 +52,14 @@ documentation are still tracked in GitHub issues.
 - `plugin/plan-your-day/src/Admin/` contains the settings UI.
 - `plugin/plan-your-day/src/Google/` contains Google API client and cache
   classes.
-- `docs/` contains installation, architecture, settings, security,
-  troubleshooting, and planning notes for the plugin.
+- `docs/` contains installation, usage, admin, release, architecture, settings,
+  security, troubleshooting, and historical planning notes for the plugin.
 
 ## Documentation
 
 Start with [docs/README.md](docs/README.md). Current docs cover installation,
-architecture, settings, security, and troubleshooting for the work implemented
-so far.
+frontend usage, admin workflows, release steps, architecture, settings,
+security, and troubleshooting.
 
 ## Local Source Installation
 
@@ -87,6 +91,9 @@ installs production-only Composer autoload files into a temporary staging copy,
 and packages the final artifact with a top-level `plan-your-day/` directory
 suitable for **Plugins > Add New > Upload Plugin**.
 
+See [docs/RELEASES.md](docs/RELEASES.md) for the full manual GitHub release
+workflow and the metadata that needs to stay aligned.
+
 ## Configuration
 
 Plugin settings are stored in the `plan_your_day_settings` option and are
@@ -114,8 +121,9 @@ Server-side Google API keys must not be exposed to frontend runtime config.
 - Do not rely on PHP sessions in plugin code.
 - Use WordPress-native APIs for escaping, sanitization, options, REST,
   transients/object cache, HTTP requests, and asset registration.
-- Update `docs/PLAN-YOUR-DAY-PLUGIN-TODO.md` and GitHub issues as migration
-  work lands.
+- Treat `docs/PLAN-YOUR-DAY-PLUGIN-TODO.md` and
+  `docs/PLAN-YOUR-DAY-PLUGIN-ISSUES.md` as historical planning notes unless
+  they are explicitly refreshed.
 
 ## Useful Checks
 

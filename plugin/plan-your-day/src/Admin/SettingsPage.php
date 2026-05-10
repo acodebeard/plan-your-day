@@ -96,7 +96,7 @@ final class SettingsPage {
 		$this->add_field(
 			'default_location_place_id',
 			__( 'Default Google Place ID', 'plan-your-day' ),
-			__( 'Optional. Google Place ID for the default location when a future workflow needs exact place details.', 'plan-your-day' ),
+			__( 'Optional. Save the exact Google Place ID for the default location when you want a stable place reference alongside the address.', 'plan-your-day' ),
 			'text',
 			[],
 			'plan_your_day_default_location'
@@ -158,7 +158,7 @@ final class SettingsPage {
 		$this->add_field(
 			'map_preview_enabled',
 			__( 'Map preview', 'plan-your-day' ),
-			__( 'Allow on-page Google Maps preview rendering when the frontend is added.', 'plan-your-day' ),
+			__( 'Allow on-page Google Maps preview rendering in the public planner.', 'plan-your-day' ),
 			'checkbox',
 			[],
 			'plan_your_day_planner_behavior'
@@ -167,7 +167,7 @@ final class SettingsPage {
 		$this->add_field(
 			'maps_handoff_enabled',
 			__( 'Google Maps handoff', 'plan-your-day' ),
-			__( 'Allow outbound Google Maps links when the frontend is added.', 'plan-your-day' ),
+			__( 'Allow outbound Google Maps links from the public planner.', 'plan-your-day' ),
 			'checkbox',
 			[],
 			'plan_your_day_planner_behavior'

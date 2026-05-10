@@ -9,6 +9,14 @@ if ( ! defined( 'PLAN_YOUR_DAY_TEXT_DOMAIN' ) ) {
 	define( 'PLAN_YOUR_DAY_TEXT_DOMAIN', 'plan-your-day' );
 }
 
+if ( ! defined( 'PLAN_YOUR_DAY_VERSION' ) ) {
+	define( 'PLAN_YOUR_DAY_VERSION', 'test-version' );
+}
+
+if ( ! defined( 'PLAN_YOUR_DAY_SCHEMA_VERSION' ) ) {
+	define( 'PLAN_YOUR_DAY_SCHEMA_VERSION', 2 );
+}
+
 if ( ! defined( 'WEEK_IN_SECONDS' ) ) {
 	define( 'WEEK_IN_SECONDS', 7 * 24 * 60 * 60 );
 }

@@ -377,6 +377,8 @@ final class Settings {
 	}
 
 	public function maybe_upgrade(): void {
+		$this->maybe_update_stored_plugin_version();
+
 		$current_schema_version = (int) get_option( 'plan_your_day_schema_version', 0 );
 
 		if ( $current_schema_version >= self::EDITABLE_CATEGORY_SCHEMA_VERSION ) {
@@ -399,6 +401,20 @@ final class Settings {
 		update_option( self::OPTION_NAME, self::sanitize( array_merge( self::defaults(), $settings ) ) );
 
 		return true;
+	}
+
+	private function maybe_update_stored_plugin_version(): void {
+		if ( ! defined( 'PLAN_YOUR_DAY_VERSION' ) ) {
+			return;
+		}
+
+		$current_version = get_option( 'plan_your_day_version', '' );
+
+		if ( PLAN_YOUR_DAY_VERSION === $current_version ) {
+			return;
+		}
+
+		update_option( 'plan_your_day_version', PLAN_YOUR_DAY_VERSION );
 	}
 
 	public function get_missing_required_settings(): array {

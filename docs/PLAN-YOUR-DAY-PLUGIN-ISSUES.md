@@ -1,5 +1,9 @@
 # Plan Your Day Plugin GitHub Issue Drafts
 
+> Historical planning snapshot: these issue drafts were prepared before the
+> implementation backlog moved into GitHub. They are preserved for context, not
+> maintained as the current source of truth for feature status.
+
 ## Issue 1
 
 Title: Create generic WordPress plugin scaffold

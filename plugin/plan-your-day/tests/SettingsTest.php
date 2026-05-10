@@ -187,13 +187,26 @@ final class SettingsTest extends TestCase {
 
 	public function test_maybe_upgrade_seeds_default_categories_and_updates_schema_version_for_existing_empty_installs(): void {
 		update_option( Settings::OPTION_NAME, Settings::defaults() );
+		update_option( 'plan_your_day_version', '0.0.1' );
 		update_option( 'plan_your_day_schema_version', 1 );
 
 		$settings = new Settings();
 		$settings->maybe_upgrade();
 
+		self::assertSame( PLAN_YOUR_DAY_VERSION, get_option( 'plan_your_day_version' ) );
 		self::assertSame( Settings::default_categories(), get_option( Settings::OPTION_NAME )['categories'] ?? [] );
-		self::assertSame( 2, get_option( 'plan_your_day_schema_version' ) );
+		self::assertSame( PLAN_YOUR_DAY_SCHEMA_VERSION, get_option( 'plan_your_day_schema_version' ) );
+	}
+
+	public function test_maybe_upgrade_updates_stored_plugin_version_even_when_schema_is_current(): void {
+		update_option( 'plan_your_day_version', '0.0.9' );
+		update_option( 'plan_your_day_schema_version', PLAN_YOUR_DAY_SCHEMA_VERSION );
+
+		$settings = new Settings();
+		$settings->maybe_upgrade();
+
+		self::assertSame( PLAN_YOUR_DAY_VERSION, get_option( 'plan_your_day_version' ) );
+		self::assertSame( PLAN_YOUR_DAY_SCHEMA_VERSION, get_option( 'plan_your_day_schema_version' ) );
 	}
 
 	public function test_sanitize_trusted_proxy_cidrs_accepts_ipv4_and_ipv6_edge_masks(): void {
