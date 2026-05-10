@@ -12,23 +12,25 @@ final class RequestOriginValidator {
 		$expected_port        = wp_parse_url( 'http://' . $expected_host_header, PHP_URL_PORT );
 
 		if ( ! is_string( $expected_host ) || '' === $expected_host ) {
-			return true;
+			return false;
+		}
+
+		if ( ! $this->has_same_site_proof( $server ) ) {
+			return false;
 		}
 
 		$fetch_site = strtolower( trim( (string) ( $server['HTTP_SEC_FETCH_SITE'] ?? '' ) ) );
 
-		if ( '' !== $fetch_site && ! in_array( $fetch_site, [ 'same-origin', 'none' ], true ) ) {
-			$fetch_mode = strtolower( trim( (string) ( $server['HTTP_SEC_FETCH_MODE'] ?? '' ) ) );
-			$fetch_dest = strtolower( trim( (string) ( $server['HTTP_SEC_FETCH_DEST'] ?? '' ) ) );
-			$fetch_user = trim( (string) ( $server['HTTP_SEC_FETCH_USER'] ?? '' ) );
-
-			if (
-				'navigate' !== $fetch_mode ||
-				'document' !== $fetch_dest ||
-				'?1' !== $fetch_user
-			) {
+		if ( 'none' === $fetch_site ) {
+			if ( '' !== trim( (string) ( $server['HTTP_ORIGIN'] ?? '' ) ) ) {
 				return false;
 			}
+
+			if ( ! $this->is_top_level_navigation( $server ) ) {
+				return false;
+			}
+		} elseif ( '' !== $fetch_site && 'same-origin' !== $fetch_site && ! $this->is_top_level_navigation( $server ) ) {
+			return false;
 		}
 
 		foreach ( [ 'HTTP_ORIGIN', 'HTTP_REFERER' ] as $header ) {
@@ -51,5 +53,25 @@ final class RequestOriginValidator {
 		}
 
 		return true;
+	}
+
+	private function has_same_site_proof( array $server ): bool {
+		foreach ( [ 'HTTP_SEC_FETCH_SITE', 'HTTP_ORIGIN', 'HTTP_REFERER' ] as $header ) {
+			if ( '' !== trim( (string) ( $server[ $header ] ?? '' ) ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private function is_top_level_navigation( array $server ): bool {
+		$fetch_mode = strtolower( trim( (string) ( $server['HTTP_SEC_FETCH_MODE'] ?? '' ) ) );
+		$fetch_dest = strtolower( trim( (string) ( $server['HTTP_SEC_FETCH_DEST'] ?? '' ) ) );
+		$fetch_user = trim( (string) ( $server['HTTP_SEC_FETCH_USER'] ?? '' ) );
+
+		return 'navigate' === $fetch_mode
+			&& 'document' === $fetch_dest
+			&& '?1' === $fetch_user;
 	}
 }
