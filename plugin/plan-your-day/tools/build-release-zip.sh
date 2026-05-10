@@ -24,20 +24,29 @@ fi
 read_release_meta() {
 	php -r '
 		$release = json_decode(file_get_contents($argv[1]), true);
-		if (!is_array($release) || empty($release["slug"]) || empty($release["version"])) {
-			fwrite(STDERR, "release.json must contain non-empty slug and version values.\n");
+		if (!is_array($release) || empty($release["slug"]) || empty($release["version"]) || empty($release["artifact"])) {
+			fwrite(STDERR, "release.json must contain non-empty slug, version, and artifact values.\n");
 			exit(1);
 		}
-		echo $release["slug"], "\n", $release["version"], "\n";
+		echo $release["slug"], "\n", $release["version"], "\n", $release["artifact"], "\n";
 	' "$RELEASE_JSON"
 }
 
 mapfile -t RELEASE_META < <(read_release_meta)
 SLUG="${RELEASE_META[0]}"
 VERSION="${RELEASE_META[1]}"
-DIST_DIR="${PLUGIN_DIR}/dist"
-ARTIFACT_NAME="${SLUG}-${VERSION}.zip"
-ARTIFACT_PATH="${DIST_DIR}/${ARTIFACT_NAME}"
+ARTIFACT_CONFIG_PATH="${RELEASE_META[2]}"
+ARTIFACT_NAME="$(basename "${ARTIFACT_CONFIG_PATH}")"
+
+if [[ "${ARTIFACT_CONFIG_PATH}" = /* ]]; then
+	ARTIFACT_DIR="$(dirname "${ARTIFACT_CONFIG_PATH}")"
+else
+	ARTIFACT_DIR="${PLUGIN_DIR}/$(dirname "${ARTIFACT_CONFIG_PATH}")"
+fi
+
+mkdir -p "${ARTIFACT_DIR}"
+ARTIFACT_DIR="$(cd "${ARTIFACT_DIR}" && pwd)"
+ARTIFACT_PATH="${ARTIFACT_DIR}/${ARTIFACT_NAME}"
 
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "${TMP_DIR}"' EXIT
@@ -45,7 +54,7 @@ trap 'rm -rf "${TMP_DIR}"' EXIT
 STAGE_ROOT="${TMP_DIR}/stage"
 STAGE_PLUGIN_DIR="${STAGE_ROOT}/${SLUG}"
 
-mkdir -p "${STAGE_ROOT}" "${DIST_DIR}"
+mkdir -p "${STAGE_ROOT}"
 
 rsync -a --delete --exclude-from="${DISTIGNORE_FILE}" "${PLUGIN_DIR}/" "${STAGE_PLUGIN_DIR}/"
 

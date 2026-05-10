@@ -100,6 +100,19 @@ final class PlannerRoutesTest extends TestCase {
 			3,
 			$method->invoke(
 				$routes,
+				'browse',
+				[
+					'category_key'          => 'coffee',
+					'category_search'       => '',
+					'selected_waypoint_ids' => [ 'place-1', 'place-2' ],
+					'append_results'        => true,
+				]
+			)
+		);
+		self::assertSame(
+			3,
+			$method->invoke(
+				$routes,
 				'route',
 				[
 					'category_key'          => 'coffee',
@@ -167,7 +180,7 @@ final class PlannerRoutesTest extends TestCase {
 		self::assertSame( 'plan_your_day_rate_limited', $second->get_error_code() );
 	}
 
-	public function test_browse_returns_pagination_metadata_and_preserves_selected_waypoints_in_append_mode(): void {
+	public function test_browse_append_results_skips_route_payload_and_trip_waypoint_resolution(): void {
 		$google_api_client = new PlannerRoutesGoogleApiClient(
 			GoogleApiResult::success(
 				[
@@ -222,8 +235,9 @@ final class PlannerRoutesTest extends TestCase {
 		self::assertSame( 'page-3', $data['browse']['nextPageToken'] ?? '' );
 		self::assertTrue( $data['browse']['hasMoreResults'] ?? false );
 		self::assertNotSame( '', $data['browse']['searchContextKey'] ?? '' );
-		self::assertSame( [ 'trip-1' ], $data['route']['selectedWaypointIds'] ?? [] );
+		self::assertArrayNotHasKey( 'route', $data );
 		self::assertSame( 'page-2', $google_api_client->last_page_token );
+		self::assertSame( [], $google_api_client->requested_place_ids );
 	}
 
 	private function build_routes( int $rate_limit_per_minute, array $settings_overrides = [], ?GoogleApiClientInterface $google_api_client = null ): PlannerRoutes {
@@ -289,6 +303,9 @@ final class PlannerRoutesGoogleApiClient implements GoogleApiClientInterface {
 
 	public string $last_page_token = '';
 
+	/** @var array<int, string> */
+	public array $requested_place_ids = [];
+
 	/**
 	 * @param array<string, GoogleApiResult> $place_details_results
 	 */
@@ -304,6 +321,8 @@ final class PlannerRoutesGoogleApiClient implements GoogleApiClientInterface {
 	}
 
 	public function place_details( string $place_id, ?int $timeout = null ): GoogleApiResult {
+		$this->requested_place_ids[] = $place_id;
+
 		return $this->place_details_results[ $place_id ] ?? GoogleApiResult::success( [ 'place' => [] ] );
 	}
 
