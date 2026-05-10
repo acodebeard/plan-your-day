@@ -701,6 +701,8 @@
     focusElement(refs.tripHeading);
   };
 
+  const shouldRefreshBrowseRoute = (routeData) => toStringArray(routeData?.selectedWaypointIds).length === 0;
+
   const syncStartUi = (refs, state) => {
     refs.startModeInputs.forEach((input) => {
       input.checked = input.value === state.startMode;
@@ -995,7 +997,6 @@
       const endHeight = nextOpenState ? panel.scrollHeight : 0;
       const startOpacity = nextOpenState && endHeight > 0 ? Math.max(startHeight / endHeight, 0) : 1;
       const endOpacity = nextOpenState ? 1 : 0;
-      const initialScrollY = typeof window === 'undefined' ? 0 : window.scrollY;
 
       isStartPanelOpen = nextOpenState;
       panel.style.overflow = 'hidden';
@@ -1050,13 +1051,6 @@
 
         panel.style.height = `${Math.max(currentHeight, 0)}px`;
         panel.style.opacity = String(Math.max(Math.min(currentOpacity, 1), 0));
-
-        if (scrollToY !== null && typeof window !== 'undefined') {
-          window.scrollTo({
-            top: initialScrollY + (scrollToY - initialScrollY) * easedProgress,
-            behavior: 'auto',
-          });
-        }
 
         if (rawProgress < 1) {
           startPanelAnimationFrame = window.requestAnimationFrame(stepAnimation);
@@ -1119,6 +1113,7 @@
       const announcementMessage = String(requestOptions.announcementMessage || '');
       const errorMessage = String(requestOptions.errorMessage || '');
       const searchContextKey = String(requestOptions.searchContextKey || '');
+      const refreshRoute = endpointKey === 'browse' ? requestOptions.refreshRoute !== false : false;
       const routeFocusRequest = endpointKey === 'route' ? requestOptions.routeFocusRequest ?? null : null;
 
       if (activeRequestController instanceof AbortController) {
@@ -1158,6 +1153,19 @@
       });
 
       try {
+        const requestBody = {
+          ...payload,
+          endpoint_token: config.rest.endpointToken,
+        };
+
+        if (endpointKey === 'browse') {
+          requestBody.refresh_route = refreshRoute;
+
+          if (searchContextKey !== '') {
+            requestBody.search_context_key = searchContextKey;
+          }
+        }
+
         const response = await fetch(config.rest[endpointKey === 'browse' ? 'browseUrl' : 'routeUrl'], {
           method: 'POST',
           credentials: 'same-origin',
@@ -1165,10 +1173,7 @@
             Accept: 'application/json',
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            ...payload,
-            endpoint_token: config.rest.endpointToken,
-          }),
+          body: JSON.stringify(requestBody),
           signal: activeRequestController.signal,
         });
         const responseBody = await response.json().catch(() => ({}));
@@ -1343,6 +1348,7 @@
 
         void sendRequest('browse', buildPayload(refs, state), {
           announcementMessage: strings.startingPointUpdated || '',
+          refreshRoute: true,
         });
       });
     });
@@ -1364,6 +1370,7 @@
 
         void sendRequest('browse', buildPayload(refs, state), {
           announcementMessage: strings.startingPointUpdated || '',
+          refreshRoute: true,
         });
       });
     }
@@ -1392,6 +1399,7 @@
 
         void sendRequest('browse', payload, {
           announcementMessage: strings.resultsUpdated || '',
+          refreshRoute: shouldRefreshBrowseRoute(state.route),
         });
       });
     }
@@ -1458,6 +1466,7 @@
         event.preventDefault();
         void sendRequest(endpointKey, payload, {
           announcementMessage,
+          refreshRoute: endpointKey === 'browse' ? shouldRefreshBrowseRoute(state.route) : undefined,
           routeFocusRequest: endpointKey === 'route' ? buildRouteFocusRequest(submitter) : null,
         });
       });
@@ -1545,11 +1554,11 @@
             ...buildPayload(refs, state),
             page_token: nextPageToken,
             append_results: true,
-            loaded_result_ids: getLoadedResultIds(state.browse),
           },
           {
             appendBrowseResults: true,
             errorMessage: strings.loadMoreError || '',
+            refreshRoute: false,
             searchContextKey: String(state.browse?.searchContextKey || ''),
           }
         );
@@ -1587,7 +1596,9 @@
         return;
       }
 
-      void sendRequest('browse', buildPayload(refs, state));
+      void sendRequest('browse', buildPayload(refs, state), {
+        refreshRoute: true,
+      });
     }
   };
 

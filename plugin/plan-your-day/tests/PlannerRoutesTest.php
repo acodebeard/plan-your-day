@@ -30,6 +30,7 @@ final class PlannerRoutesTest extends TestCase {
 		parent::setUp();
 
 		$GLOBALS['plan_your_day_test_options'] = [];
+		$GLOBALS['plan_your_day_test_transients'] = [];
 		$_COOKIE                                = [];
 		$_SERVER                                = [];
 	}
@@ -135,6 +136,29 @@ final class PlannerRoutesTest extends TestCase {
 		);
 	}
 
+	public function test_get_rate_limit_cost_skips_trip_weight_for_browse_requests_that_preserve_route(): void {
+		$routes  = ( new ReflectionClass( PlannerRoutes::class ) )->newInstanceWithoutConstructor();
+		$method  = new \ReflectionMethod( PlannerRoutes::class, 'get_rate_limit_cost' );
+		$request = new WP_REST_Request( 'POST', '/plan-your-day/v1/browse' );
+
+		$method->setAccessible( true );
+		$request->set_param( 'refresh_route', false );
+
+		self::assertSame(
+			3,
+			$method->invoke(
+				$routes,
+				'browse',
+				[
+					'category_key'          => 'coffee',
+					'category_search'       => '',
+					'selected_waypoint_ids' => [ 'place-1', 'place-2' ],
+				],
+				$request
+			)
+		);
+	}
+
 	public function test_route_rate_limiter_returns_429_after_the_configured_limit(): void {
 		$routes  = $this->build_routes( 1 );
 		$request = $this->build_verified_request( str_repeat( 'ab', 24 ) );
@@ -180,7 +204,104 @@ final class PlannerRoutesTest extends TestCase {
 		self::assertSame( 'plan_your_day_rate_limited', $second->get_error_code() );
 	}
 
-	public function test_browse_append_results_skips_route_payload_and_trip_waypoint_resolution(): void {
+	public function test_browse_append_results_uses_cached_search_context_ids_and_skips_route_refresh(): void {
+		$google_api_client = new PlannerRoutesGoogleApiClient(
+			GoogleApiResult::success(
+				[
+					'places'        => [
+						[
+							'id'      => 'result-1',
+							'label'   => 'First Result',
+							'address' => '123 Test Ave',
+						],
+					],
+					'nextPageToken' => 'page-2',
+				]
+			),
+			[
+				'trip-1' => GoogleApiResult::success(
+					[
+						'place' => [
+							'id'      => 'trip-1',
+							'label'   => 'Trip Stop',
+							'address' => '789 Trip Rd',
+						],
+					]
+				),
+			],
+			[
+				'page-2' => GoogleApiResult::success(
+					[
+						'places'        => [
+							[
+								'id'      => 'result-1',
+								'label'   => 'First Result',
+								'address' => '123 Test Ave',
+							],
+							[
+								'id'      => 'result-2',
+								'label'   => 'Second Result',
+								'address' => '456 Test Ave',
+							],
+						],
+						'nextPageToken' => 'page-3',
+					]
+				),
+			]
+		);
+		$routes            = $this->build_routes(
+			10,
+			[
+				'default_location_label'   => 'Downtown',
+				'default_location_address' => '123 Main St',
+			],
+			$google_api_client
+		);
+		$initial_request   = new WP_REST_Request( 'POST', '/plan-your-day/v1/browse' );
+		$append_request    = new WP_REST_Request( 'POST', '/plan-your-day/v1/browse' );
+
+		$_SERVER = $this->same_site_server( '198.51.100.10' );
+		$_COOKIE['plan_your_day_visitor'] = str_repeat( 'ab', 24 );
+
+		$endpoint_token = hash_hmac( 'sha256', str_repeat( 'ab', 24 ), 'tests-auth|plan-your-day' );
+
+		$initial_request->set_param( 'endpoint_token', $endpoint_token );
+		$initial_request->set_param( 'category_search', 'coffee' );
+		$initial_request->set_param( 'waypoints', [ 'trip-1' ] );
+		$initial_request->set_param( 'start_mode', Settings::START_MODE_DEFAULT );
+
+		$initial_response = $routes->browse( $initial_request );
+
+		self::assertInstanceOf( WP_REST_Response::class, $initial_response );
+
+		$initial_data = $initial_response->get_data();
+
+		$google_api_client->requested_place_ids = [];
+
+		$append_request->set_param( 'endpoint_token', $endpoint_token );
+		$append_request->set_param( 'category_search', 'coffee' );
+		$append_request->set_param( 'page_token', 'page-2' );
+		$append_request->set_param( 'append_results', true );
+		$append_request->set_param( 'search_context_key', $initial_data['browse']['searchContextKey'] ?? '' );
+		$append_request->set_param( 'waypoints', [ 'trip-1' ] );
+		$append_request->set_param( 'start_mode', Settings::START_MODE_DEFAULT );
+
+		$response = $routes->browse( $append_request );
+
+		self::assertInstanceOf( WP_REST_Response::class, $response );
+
+		$data = $response->get_data();
+
+		self::assertSame( [ 'result-2' ], array_column( (array) ( $data['browse']['searchResults'] ?? [] ), 'id' ) );
+		self::assertSame( 'page-3', $data['browse']['nextPageToken'] ?? '' );
+		self::assertTrue( $data['browse']['hasMoreResults'] ?? false );
+		self::assertNotSame( '', $data['browse']['searchContextKey'] ?? '' );
+		self::assertArrayNotHasKey( 'route', $data );
+		self::assertSame( 'page-2', $google_api_client->last_page_token );
+		self::assertSame( [], $google_api_client->requested_place_ids );
+	}
+
+	public function test_browse_can_preserve_existing_trip_route_without_resolving_trip_waypoints(): void {
 		$google_api_client = new PlannerRoutesGoogleApiClient(
 			GoogleApiResult::success(
 				[
@@ -190,8 +311,7 @@ final class PlannerRoutesTest extends TestCase {
 							'label'   => 'Second Result',
 							'address' => '456 Test Ave',
 						],
-					],
-					'nextPageToken' => 'page-3',
+					]
 				]
 			),
 			[
@@ -220,10 +340,8 @@ final class PlannerRoutesTest extends TestCase {
 		$_COOKIE['plan_your_day_visitor'] = str_repeat( 'ab', 24 );
 		$request->set_param( 'endpoint_token', hash_hmac( 'sha256', str_repeat( 'ab', 24 ), 'tests-auth|plan-your-day' ) );
 		$request->set_param( 'category_search', 'coffee' );
-		$request->set_param( 'page_token', 'page-2' );
-		$request->set_param( 'append_results', true );
-		$request->set_param( 'loaded_result_ids', [ 'result-1' ] );
 		$request->set_param( 'waypoints', [ 'trip-1' ] );
+		$request->set_param( 'refresh_route', false );
 		$request->set_param( 'start_mode', Settings::START_MODE_DEFAULT );
 
 		$response = $routes->browse( $request );
@@ -232,11 +350,9 @@ final class PlannerRoutesTest extends TestCase {
 
 		$data = $response->get_data();
 
-		self::assertSame( 'page-3', $data['browse']['nextPageToken'] ?? '' );
-		self::assertTrue( $data['browse']['hasMoreResults'] ?? false );
-		self::assertNotSame( '', $data['browse']['searchContextKey'] ?? '' );
+		self::assertSame( [ 'result-2' ], array_column( (array) ( $data['browse']['searchResults'] ?? [] ), 'id' ) );
 		self::assertArrayNotHasKey( 'route', $data );
-		self::assertSame( 'page-2', $google_api_client->last_page_token );
+		self::assertSame( '', $google_api_client->last_page_token );
 		self::assertSame( [], $google_api_client->requested_place_ids );
 	}
 
@@ -299,6 +415,9 @@ final class PlannerRoutesGoogleApiClient implements GoogleApiClientInterface {
 	private GoogleApiResult $text_search_result;
 
 	/** @var array<string, GoogleApiResult> */
+	private array $text_search_results_by_page_token;
+
+	/** @var array<string, GoogleApiResult> */
 	private array $place_details_results;
 
 	public string $last_page_token = '';
@@ -307,17 +426,19 @@ final class PlannerRoutesGoogleApiClient implements GoogleApiClientInterface {
 	public array $requested_place_ids = [];
 
 	/**
+	 * @param array<string, GoogleApiResult> $text_search_results_by_page_token
 	 * @param array<string, GoogleApiResult> $place_details_results
 	 */
-	public function __construct( ?GoogleApiResult $text_search_result = null, array $place_details_results = [] ) {
-		$this->text_search_result   = $text_search_result ?? GoogleApiResult::success( [ 'places' => [] ] );
-		$this->place_details_results = $place_details_results;
+	public function __construct( ?GoogleApiResult $text_search_result = null, array $place_details_results = [], array $text_search_results_by_page_token = [] ) {
+		$this->text_search_result              = $text_search_result ?? GoogleApiResult::success( [ 'places' => [] ] );
+		$this->place_details_results           = $place_details_results;
+		$this->text_search_results_by_page_token = $text_search_results_by_page_token;
 	}
 
 	public function text_search( string $query, ?float $origin_latitude = null, ?float $origin_longitude = null, string $page_token = '' ): GoogleApiResult {
 		$this->last_page_token = $page_token;
 
-		return $this->text_search_result;
+		return $this->text_search_results_by_page_token[ $page_token ] ?? $this->text_search_result;
 	}
 
 	public function place_details( string $place_id, ?int $timeout = null ): GoogleApiResult {
