@@ -64,6 +64,31 @@ jobs:
 
       - run: composer phpunit
 
+  browser-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          coverage: none
+
+      - uses: ramsey/composer-install@v3
+        with:
+          working-directory: plugin/plan-your-day
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: npm run browser-smoke
+
   plugin-check:
     runs-on: ubuntu-latest
     steps:

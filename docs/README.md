@@ -2,8 +2,8 @@
 
 This directory documents the WordPress plugin as it exists today. The plugin is
 installable and has admin/settings, Google API, cache, planner helper, planner
-state, shortcode and block rendering, REST endpoints, assets, and release zip
-packaging in place. Broader production QA automation is still in progress.
+state, shortcode and block rendering, REST endpoints, assets, release zip
+packaging, and browser smoke automation in place.
 
 ## Current Documents
 
@@ -15,6 +15,8 @@ packaging in place. Broader production QA automation is still in progress.
   tools, and the Google API test workflow.
 - [Release Process](RELEASES.md): version metadata alignment, changelog
   expectations, and the manual GitHub release zip workflow.
+- [Frontend QA](QA.md): browser smoke coverage, local run steps, and ongoing
+  public frontend QA expectations.
 - [Architecture](ARCHITECTURE.md): plugin layers, current service boundaries,
   and current runtime structure.
 - [Settings](SETTINGS.md): option name, settings groups, defaults, API keys,
@@ -31,7 +33,6 @@ land:
 
 - REST endpoint request/response reference.
 - Anonymous visitor token details.
-- Production QA and accessibility notes.
 
 ## Historical Planning Notes
 

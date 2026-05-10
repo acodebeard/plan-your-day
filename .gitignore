@@ -16,3 +16,5 @@ Thumbs.db
 node_modules/
 vendor/
 plugin/plan-your-day/.phpunit.cache/
+playwright-report/
+test-results/
