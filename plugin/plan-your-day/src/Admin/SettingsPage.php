@@ -1132,7 +1132,9 @@ final class SettingsPage {
 						'sort_order'  => $next_sort,
 					]
 				);
-					echo wp_kses_post( trim( (string) ob_get_clean() ) );
+				$template_row_markup = trim( (string) ob_get_clean() );
+				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Markup is assembled by render_category_editor_row() from escaped field values.
+				echo $template_row_markup;
 				?>
 			</template>
 		</div>

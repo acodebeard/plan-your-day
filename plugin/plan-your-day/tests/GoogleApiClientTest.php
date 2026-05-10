@@ -175,6 +175,29 @@ final class GoogleApiClientTest extends TestCase {
 		self::assertSame( 2, $recording_client->text_search_calls );
 		self::assertSame( [ '', 'page-2' ], $recording_client->text_search_page_tokens );
 	}
+
+	public function test_cached_text_search_briefly_reuses_retryable_failure_results(): void {
+		$settings                               = $GLOBALS['plan_your_day_test_options'][ Settings::OPTION_NAME ];
+		$settings['google_text_search_cache_ttl'] = 0;
+		update_option( Settings::OPTION_NAME, $settings );
+
+		$recording_client                     = new RecordingGoogleApiClient();
+		$recording_client->text_search_result = GoogleApiResult::failure(
+			'rate_limited',
+			'Google rate limited the request.',
+			429,
+			true
+		);
+		$client                               = new CachedGoogleApiClient( $recording_client, new Settings(), new GoogleApiCache() );
+
+		$first  = $client->text_search( 'coffee', 19.64, -155.99 );
+		$second = $client->text_search( 'coffee', 19.64, -155.99 );
+
+		self::assertFalse( $first->is_success() );
+		self::assertSame( $first->to_array(), $second->to_array() );
+		self::assertSame( 1, $recording_client->text_search_calls );
+		self::assertNotEmpty( $GLOBALS['plan_your_day_test_transients'] );
+	}
 }
 
 final class RecordingGoogleHttpTransport implements GoogleHttpTransportInterface {
@@ -219,10 +242,15 @@ final class RecordingGoogleHttpTransport implements GoogleHttpTransportInterface
 final class RecordingGoogleApiClient implements GoogleApiClientInterface {
 	public int $text_search_calls = 0;
 	public array $text_search_page_tokens = [];
+	public ?GoogleApiResult $text_search_result = null;
 
 	public function text_search( string $query, ?float $origin_latitude = null, ?float $origin_longitude = null, string $page_token = '' ): GoogleApiResult {
 		++$this->text_search_calls;
 		$this->text_search_page_tokens[] = $page_token;
+
+		if ( $this->text_search_result instanceof GoogleApiResult ) {
+			return $this->text_search_result;
+		}
 
 		return GoogleApiResult::success(
 			[

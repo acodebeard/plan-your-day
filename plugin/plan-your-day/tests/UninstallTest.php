@@ -38,6 +38,38 @@ final class UninstallTest extends TestCase {
 		self::assertArrayHasKey( 'not_plugin_owned', $GLOBALS['plan_your_day_test_transients'] );
 	}
 
+	public function test_uninstall_removes_google_cache_transients_tracked_by_array_entries(): void {
+		update_option(
+			'plan_your_day_google_cache_keys',
+			[
+				[
+					'cache_key' => 'pyd_google_geocode_test',
+					'scope'     => 'geocode',
+					'place_id'  => '',
+				],
+				[
+					'cache_key' => 'pyd_google_place_details_test',
+					'scope'     => 'place_details',
+					'place_id'  => 'place-1',
+				],
+				[
+					'cache_key' => 'not_plugin_owned',
+					'scope'     => 'test',
+					'place_id'  => '',
+				],
+			]
+		);
+		set_transient( 'pyd_google_geocode_test', [ 'cached' => true ], 600 );
+		set_transient( 'pyd_google_place_details_test', [ 'cached' => true ], 600 );
+		set_transient( 'not_plugin_owned', [ 'cached' => true ], 600 );
+
+		$this->run_uninstall();
+
+		self::assertArrayNotHasKey( 'pyd_google_geocode_test', $GLOBALS['plan_your_day_test_transients'] );
+		self::assertArrayNotHasKey( 'pyd_google_place_details_test', $GLOBALS['plan_your_day_test_transients'] );
+		self::assertArrayHasKey( 'not_plugin_owned', $GLOBALS['plan_your_day_test_transients'] );
+	}
+
 	private function run_uninstall(): void {
 		if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 			define( 'WP_UNINSTALL_PLUGIN', true );

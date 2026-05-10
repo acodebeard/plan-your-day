@@ -3,11 +3,14 @@ set -euo pipefail
 
 has_required_extensions() {
   local php_bin="$1"
-  local required_extensions=("dom" "SimpleXML" "xml" "xmlwriter")
+  local required_extensions=("dom" "simplexml" "xml" "xmlwriter")
+  local available_extensions
   local extension
 
+  available_extensions="$("$php_bin" -m 2>/dev/null | tr '[:upper:]' '[:lower:]')"
+
   for extension in "${required_extensions[@]}"; do
-    if ! "$php_bin" -m 2>/dev/null | grep -qx "$extension"; then
+    if ! grep -qx "$extension" <<<"$available_extensions"; then
       return 1
     fi
   done
