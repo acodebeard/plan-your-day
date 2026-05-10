@@ -590,7 +590,7 @@ final class PlannerRenderer {
 					rel="noopener noreferrer"
 					data-plan-open-link
 					<?php echo $has_selected_waypoints ? '' : 'hidden'; ?>
-					<?php echo $maps_link_enabled ? '' : 'aria-disabled="true"'; ?>>
+					<?php echo $maps_link_enabled ? '' : 'aria-disabled="true" tabindex="0" role="button"'; ?>>
 					<span data-plan-open-link-label><?php echo esc_html( $planner_state['maps_link_label'] ); ?></span>
 				</a>
 			</div>
