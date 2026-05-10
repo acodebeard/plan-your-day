@@ -8,6 +8,7 @@ defined( 'ABSPATH' ) || exit;
 final class FrontendAssets {
 	public const STYLE_HANDLE = 'plan-your-day';
 	public const SCRIPT_HANDLE = 'plan-your-day';
+	public const BLOCK_EDITOR_SCRIPT_HANDLE = 'plan-your-day-block-editor';
 
 	public function register(): void {
 		wp_register_style(
@@ -26,6 +27,20 @@ final class FrontendAssets {
 				'in_footer' => true,
 				'strategy'  => 'defer',
 			]
+		);
+
+		wp_register_script(
+			self::BLOCK_EDITOR_SCRIPT_HANDLE,
+			PLAN_YOUR_DAY_PLUGIN_URL . 'assets/js/plan-block.js',
+			[
+				'wp-block-editor',
+				'wp-blocks',
+				'wp-components',
+				'wp-element',
+				'wp-i18n',
+			],
+			PLAN_YOUR_DAY_VERSION,
+			true
 		);
 	}
 

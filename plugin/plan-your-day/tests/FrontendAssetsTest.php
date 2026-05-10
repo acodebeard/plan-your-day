@@ -81,6 +81,20 @@ namespace Acodebeard\PlanYourDay\Tests {
 				'https://example.test/wp-content/plugins/plan-your-day/assets/js/plan.min.js',
 				$GLOBALS['plan_your_day_test_registered_scripts'][ FrontendAssets::SCRIPT_HANDLE ]['src'] ?? null
 			);
+			self::assertSame(
+				'https://example.test/wp-content/plugins/plan-your-day/assets/js/plan-block.js',
+				$GLOBALS['plan_your_day_test_registered_scripts'][ FrontendAssets::BLOCK_EDITOR_SCRIPT_HANDLE ]['src'] ?? null
+			);
+			self::assertSame(
+				[
+					'wp-block-editor',
+					'wp-blocks',
+					'wp-components',
+					'wp-element',
+					'wp-i18n',
+				],
+				$GLOBALS['plan_your_day_test_registered_scripts'][ FrontendAssets::BLOCK_EDITOR_SCRIPT_HANDLE ]['deps'] ?? null
+			);
 		}
 
 		public function test_enqueue_uses_registered_frontend_asset_handles(): void {
