@@ -1,17 +1,49 @@
+@font-face {
+	font-family: "Noto Sans";
+	src: url("../fonts/noto-sans-v42-latin-ext-300.woff2") format("woff2");
+	font-style: normal;
+	font-weight: 300;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Noto Sans";
+	src: url("../fonts/noto-sans-v42-latin-ext-regular.woff2") format("woff2");
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Noto Sans";
+	src: url("../fonts/noto-sans-v42-latin-ext-700.woff2") format("woff2");
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+}
+
 .plan-your-day-admin-page {
+	font-family: "Noto Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 	scroll-behavior: smooth;
+}
+
+.plan-your-day-admin-page input,
+.plan-your-day-admin-page select,
+.plan-your-day-admin-page textarea,
+.plan-your-day-admin-page button {
+	font-family: inherit;
 }
 
 .plan-your-day-admin-accordion {
 	display: grid;
-	gap: 1rem;
+	gap: 0.65rem;
 	max-width: 72rem;
-	margin-top: 1rem;
+	margin-top: 0.75rem;
 }
 
 .plan-your-day-admin-accordion__item {
 	margin: 0;
-	border: 1px solid #ccd0d4;
+	border: thin solid #ccd0d4;
 	border-radius: 12px;
 	background: #fff;
 	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
@@ -22,8 +54,8 @@
 	display: flex;
 	align-items: flex-start;
 	justify-content: space-between;
-	gap: 1rem;
-	padding: 1rem 1.25rem;
+	gap: 0.75rem;
+	padding: 0.75rem 1rem;
 	cursor: pointer;
 	list-style: none;
 }
@@ -47,7 +79,7 @@
 
 .plan-your-day-admin-accordion__summary-copy {
 	display: grid;
-	gap: 0.35rem;
+	gap: 0.2rem;
 }
 
 .plan-your-day-admin-accordion__title {
@@ -61,31 +93,74 @@
 .plan-your-day-admin-accordion__description {
 	display: block;
 	font-size: 0.875rem;
-	line-height: 1.5;
+	line-height: 1.4;
 	color: #50575e;
 }
 
 .plan-your-day-admin-accordion__panel {
-	padding: 0 1.25rem 1.25rem;
-	border-top: 1px solid #e2e4e7;
+	padding: 0 1rem 1rem;
+	border-top: thin solid #e2e4e7;
 }
 
 .plan-your-day-interface-copy-group {
 	display: grid;
-	gap: 1rem;
+	gap: 0.5rem;
 	max-width: 56rem;
-	padding-top: 1rem;
+	padding-top: 0.75rem;
+}
+
+.plan-your-day-interface-copy-field {
+	padding: 0.55rem 0.65rem;
+	border: thin solid transparent;
+	border-radius: 8px;
 }
 
 .plan-your-day-interface-copy-field-label {
-	display: block;
-	margin-bottom: 0.35rem;
+	display: flex;
+	align-items: center;
+	gap: 0.35rem;
+	flex-wrap: wrap;
+	margin-bottom: 0.2rem;
 	font-weight: 600;
 }
 
 .plan-your-day-categories-editor .widefat th:first-child,
 .plan-your-day-categories-editor .widefat td:first-child {
 	padding-left: 1rem;
+}
+
+.plan-your-day-category-order-cell {
+	width: 5rem;
+	white-space: nowrap;
+}
+
+.plan-your-day-category-drag-handle {
+	cursor: grab;
+	min-width: 4.5rem;
+	text-align: center;
+}
+
+.plan-your-day-category-row.is-dragging {
+	opacity: 0.55;
+}
+
+.plan-your-day-category-row.is-dragging .plan-your-day-category-drag-handle {
+	cursor: grabbing;
+}
+
+.plan-your-day-categories-field {
+	display: block;
+}
+
+.plan-your-day-categories-field > th {
+	display: none;
+}
+
+.plan-your-day-categories-field > td {
+	display: block;
+	width: 100%;
+	box-sizing: border-box;
+	padding-left: 0;
 }
 
 .plan-your-day-admin-back-to-top {

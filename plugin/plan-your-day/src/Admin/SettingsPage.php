@@ -103,6 +103,24 @@ final class SettingsPage {
 		);
 
 		add_settings_section(
+			'plan_your_day_appearance',
+			__( 'Appearance', 'plan-your-day' ),
+			[ $this, 'render_appearance_section' ],
+			Settings::PAGE_SLUG
+		);
+
+		$this->add_field(
+			'color_mode_default',
+			__( 'Default color mode', 'plan-your-day' ),
+			__( 'Choose the public planner color mode before a visitor makes their own choice. System follows the visitor browser or OS preference.', 'plan-your-day' ),
+			'select',
+			[
+				'choices' => Settings::color_mode_choices(),
+			],
+			'plan_your_day_appearance'
+		);
+
+		add_settings_section(
 			'plan_your_day_planner_behavior',
 			__( 'Planner Behavior', 'plan-your-day' ),
 			[ $this, 'render_planner_behavior_section' ],
@@ -198,10 +216,12 @@ final class SettingsPage {
 
 		$this->add_field(
 			'categories',
-			__( 'Categories', 'plan-your-day' ),
+			'',
 			__( 'Manage the category buttons shown to visitors. The Google search query is the phrase sent to Google Places.', 'plan-your-day' ),
 			'categories',
-			[],
+			[
+				'field_class' => 'plan-your-day-categories-field',
+			],
 			'plan_your_day_categories'
 		);
 
@@ -554,6 +574,13 @@ final class SettingsPage {
 		);
 	}
 
+	public function render_appearance_section(): void {
+		printf(
+			'<p>%s</p>',
+			esc_html__( 'Set the public planner default color mode. Visitors can switch modes on the planner without changing the saved plugin setting.', 'plan-your-day' )
+		);
+	}
+
 	public function render_interface_copy_section(): void {
 		printf(
 			'<p>%s</p>',
@@ -891,18 +918,27 @@ final class SettingsPage {
 		array $attributes = [],
 		string $section = 'plan_your_day_google_api'
 	): void {
+		$field_class = (string) ( $attributes['field_class'] ?? '' );
+		unset( $attributes['field_class'] );
+
+		$args = [
+			'attributes'  => $attributes,
+			'description' => $description,
+			'key'         => $key,
+			'type'        => $type,
+		];
+
+		if ( '' !== $field_class ) {
+			$args['class'] = $field_class;
+		}
+
 		add_settings_field(
 			'plan_your_day_' . $key,
 			$label,
 			[ $this, 'render_field' ],
 			Settings::PAGE_SLUG,
 			$section,
-			[
-				'attributes'  => $attributes,
-				'description' => $description,
-				'key'         => $key,
-				'type'        => $type,
-			]
+			$args
 		);
 	}
 
@@ -982,9 +1018,11 @@ final class SettingsPage {
 				$type        = (string) $definition['type'];
 				$description = (string) $definition['description'];
 				?>
-				<div>
+				<div
+					class="plan-your-day-interface-copy-field"
+					data-plan-interface-copy-key="<?php echo esc_attr( $key ); ?>">
 					<label for="<?php echo esc_attr( $id ); ?>" class="plan-your-day-interface-copy-field-label">
-						<?php echo esc_html( (string) $definition['label'] ); ?>
+						<span><?php echo esc_html( (string) $definition['label'] ); ?></span>
 					</label>
 					<?php if ( 'textarea' === $type ) : ?>
 						<textarea
@@ -1021,9 +1059,8 @@ final class SettingsPage {
 		}
 		?>
 		<div class="plan-your-day-admin-accordion">
-			<?php $is_first_group = true; ?>
 			<?php foreach ( $groups as $group_key => $group ) : ?>
-				<details class="plan-your-day-admin-accordion__item"<?php echo $is_first_group ? ' open' : ''; ?>>
+				<details class="plan-your-day-admin-accordion__item">
 					<summary class="plan-your-day-admin-accordion__summary">
 						<span class="plan-your-day-admin-accordion__summary-copy">
 							<span class="plan-your-day-admin-accordion__title"><?php echo esc_html( (string) $group['label'] ); ?></span>
@@ -1036,7 +1073,6 @@ final class SettingsPage {
 						<?php $this->render_interface_copy_group( $group_key ); ?>
 					</div>
 				</details>
-				<?php $is_first_group = false; ?>
 			<?php endforeach; ?>
 		</div>
 		<?php
@@ -1064,11 +1100,11 @@ final class SettingsPage {
 			<table class="widefat striped">
 				<thead>
 					<tr>
+						<th><?php esc_html_e( 'Order', 'plan-your-day' ); ?></th>
 						<th><?php esc_html_e( 'Enabled', 'plan-your-day' ); ?></th>
 						<th><?php esc_html_e( 'Label', 'plan-your-day' ); ?></th>
 						<th><?php esc_html_e( 'Description', 'plan-your-day' ); ?></th>
 						<th><?php esc_html_e( 'Google search query', 'plan-your-day' ); ?></th>
-						<th><?php esc_html_e( 'Sort', 'plan-your-day' ); ?></th>
 						<th><?php esc_html_e( 'Remove', 'plan-your-day' ); ?></th>
 					</tr>
 				</thead>
@@ -1096,7 +1132,7 @@ final class SettingsPage {
 				<button type="button" class="button" data-plan-add-category><?php esc_html_e( 'Add category', 'plan-your-day' ); ?></button>
 			</p>
 			<p class="description">
-				<?php esc_html_e( 'Leave a row empty to ignore it. Use Enabled to hide a category without deleting it, Remove to delete it on save, and Sort to control the public order. The starter category fallback above is only used when this saved list is empty.', 'plan-your-day' ); ?>
+				<?php esc_html_e( 'Leave a row empty to ignore it. Use Enabled to hide a category without deleting it, Remove to delete it on save, and drag rows to control the public order. The starter category fallback above is only used when this saved list is empty.', 'plan-your-day' ); ?>
 			</p>
 			<details>
 				<summary><?php esc_html_e( 'View built-in starter categories', 'plan-your-day' ); ?></summary>
@@ -1154,12 +1190,148 @@ final class SettingsPage {
 			}
 
 			let nextIndex = rows.querySelectorAll('tr').length;
+			let draggedRow = null;
+
+			const getRows = () => Array.from(rows.querySelectorAll('[data-plan-category-row]'));
+
+			const syncSortOrders = () => {
+				getRows().forEach((row, rowIndex) => {
+					const sortInput = row.querySelector('[data-plan-category-sort-order]');
+
+					if (sortInput instanceof HTMLInputElement) {
+						sortInput.value = String((rowIndex + 1) * 10);
+					}
+				});
+			};
+
+			const findRowAfterPointer = (clientY) => {
+				return getRows()
+					.filter((row) => row !== draggedRow)
+					.reduce(
+						(closest, row) => {
+							const box = row.getBoundingClientRect();
+							const offset = clientY - box.top - box.height / 2;
+
+							if (offset < 0 && offset > closest.offset) {
+								return {
+									offset,
+									row,
+								};
+							}
+
+							return closest;
+						},
+						{
+							offset: Number.NEGATIVE_INFINITY,
+							row: null,
+						}
+					).row;
+			};
+
+			const moveRow = (row, direction) => {
+				if (!(row instanceof HTMLTableRowElement)) {
+					return;
+				}
+
+				if ('up' === direction) {
+					const previousRow = row.previousElementSibling;
+
+					if (previousRow instanceof HTMLTableRowElement) {
+						rows.insertBefore(row, previousRow);
+						syncSortOrders();
+					}
+				} else {
+					const nextRow = row.nextElementSibling;
+
+					if (nextRow instanceof HTMLTableRowElement) {
+						rows.insertBefore(nextRow, row);
+						syncSortOrders();
+					}
+				}
+			};
+
+			const initializeRow = (row) => {
+				if (!(row instanceof HTMLTableRowElement) || 'true' === row.dataset.planCategoryDragReady) {
+					return;
+				}
+
+				const dragHandle = row.querySelector('[data-plan-category-drag-handle]');
+
+				if (!(dragHandle instanceof HTMLButtonElement)) {
+					return;
+				}
+
+				row.dataset.planCategoryDragReady = 'true';
+				dragHandle.draggable = true;
+
+				dragHandle.addEventListener('keydown', (event) => {
+					if ('ArrowUp' === event.key) {
+						event.preventDefault();
+						moveRow(row, 'up');
+						dragHandle.focus();
+					}
+
+					if ('ArrowDown' === event.key) {
+						event.preventDefault();
+						moveRow(row, 'down');
+						dragHandle.focus();
+					}
+				});
+
+				dragHandle.addEventListener('dragstart', (event) => {
+					draggedRow = row;
+					row.classList.add('is-dragging');
+
+					if (null !== event.dataTransfer) {
+						event.dataTransfer.effectAllowed = 'move';
+						event.dataTransfer.setData('text/plain', '');
+					}
+				});
+
+				dragHandle.addEventListener('dragend', () => {
+					row.classList.remove('is-dragging');
+					draggedRow = null;
+					syncSortOrders();
+				});
+			};
+
+			rows.addEventListener('dragover', (event) => {
+				if (null === draggedRow) {
+					return;
+				}
+
+				event.preventDefault();
+
+				const nextRow = findRowAfterPointer(event.clientY);
+
+				if (nextRow instanceof HTMLTableRowElement) {
+					rows.insertBefore(draggedRow, nextRow);
+				} else {
+					rows.appendChild(draggedRow);
+				}
+			});
+
+			rows.addEventListener('drop', (event) => {
+				if (null === draggedRow) {
+					return;
+				}
+
+				event.preventDefault();
+				syncSortOrders();
+			});
 
 			addButton.addEventListener('click', () => {
 				const markup = template.innerHTML.replace(/__INDEX__/g, String(nextIndex));
 				rows.insertAdjacentHTML('beforeend', markup);
+				initializeRow(rows.lastElementChild);
+				syncSortOrders();
 				nextIndex += 1;
 			});
+
+			getRows().forEach((row) => {
+				initializeRow(row);
+			});
+			syncSortOrders();
 		})();
 		</script>
 		<?php
@@ -1174,7 +1346,20 @@ final class SettingsPage {
 		$enabled     = ! array_key_exists( 'enabled', $category ) || (bool) $category['enabled'];
 		$sort_order  = isset( $category['sort_order'] ) && is_numeric( $category['sort_order'] ) ? (int) $category['sort_order'] : 0;
 		?>
-		<tr>
+		<tr class="plan-your-day-category-row" data-plan-category-row>
+			<td class="plan-your-day-category-order-cell">
+				<button
+					type="button"
+					class="button plan-your-day-category-drag-handle"
+					data-plan-category-drag-handle
+					draggable="true"
+					aria-label="<?php echo esc_attr( __( 'Drag or use arrow keys to reorder category', 'plan-your-day' ) ); ?>"
+					title="<?php echo esc_attr( __( 'Drag or use arrow keys to reorder category', 'plan-your-day' ) ); ?>"
+				>
+					<?php esc_html_e( 'Drag', 'plan-your-day' ); ?>
+				</button>
+				<input type="hidden" name="<?php echo esc_attr( $row_name . '[sort_order]' ); ?>" value="<?php echo esc_attr( (string) $sort_order ); ?>" data-plan-category-sort-order />
+			</td>
 			<td>
 				<input type="hidden" name="<?php echo esc_attr( $row_name . '[enabled]' ); ?>" value="0" />
 				<input type="checkbox" name="<?php echo esc_attr( $row_name . '[enabled]' ); ?>" value="1" <?php checked( $enabled ); ?> />
@@ -1188,9 +1373,6 @@ final class SettingsPage {
 			</td>
 			<td>
 				<input type="text" name="<?php echo esc_attr( $row_name . '[text_query]' ); ?>" value="<?php echo esc_attr( $text_query ); ?>" class="regular-text" />
-			</td>
-			<td>
-				<input type="number" name="<?php echo esc_attr( $row_name . '[sort_order]' ); ?>" value="<?php echo esc_attr( (string) $sort_order ); ?>" min="0" max="999" step="1" class="small-text" />
 			</td>
 			<td>
 				<input type="checkbox" name="<?php echo esc_attr( $row_name . '[remove]' ); ?>" value="1" />

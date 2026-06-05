@@ -1,3 +1,27 @@
+@font-face {
+  font-family: "Noto Sans";
+  src: url("../fonts/noto-sans-v42-latin-ext-300.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  src: url("../fonts/noto-sans-v42-latin-ext-regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  src: url("../fonts/noto-sans-v42-latin-ext-700.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
 .plan-your-day,
 .plan-your-day *,
 .plan-your-day *::before,
@@ -8,14 +32,188 @@
 .plan-your-day {
   --focus-ring-color: #1168d8;
   --focus-ring-offset-color: #ffffff;
+  --pyd-font-family: "Noto Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --pyd-text: #173038;
+  --pyd-heading: #102027;
+  --pyd-hero-heading: #112127;
+  --pyd-muted: #35545d;
+  --pyd-accent: #8a4f0f;
+  --pyd-accent-soft: rgba(138, 79, 15, 0.2);
+  --pyd-accent-border: rgba(138, 79, 15, 0.42);
+  --pyd-border-subtle: rgba(23, 48, 56, 0.08);
+  --pyd-border: rgba(23, 48, 56, 0.12);
+  --pyd-border-medium: rgba(23, 48, 56, 0.14);
+  --pyd-border-strong: rgba(23, 48, 56, 0.16);
+  --pyd-border-emphasis: rgba(23, 48, 56, 0.22);
+  --pyd-control-mark-border: rgba(23, 48, 56, 0.35);
+  --pyd-surface-bg: radial-gradient(circle at top right, rgba(241, 181, 67, 0.18), transparent 26%),
+    linear-gradient(180deg, #fffdf8 0%, #f4ecdb 100%);
+  --pyd-surface-shadow: 0 0.85rem 2rem rgba(23, 48, 56, 0.12);
+  --pyd-card-bg: rgba(255, 255, 255, 0.82);
+  --pyd-card-shadow: 0 0.65rem 1.45rem rgba(23, 48, 56, 0.06);
+  --pyd-panel-bg: #fffefb;
+  --pyd-option-bg: #fffdf9;
+  --pyd-option-selected-bg: linear-gradient(180deg, #fffaf0 0%, #f7ecd6 100%);
+  --pyd-option-selected-shadow: 0 0.85rem 1.8rem rgba(138, 79, 15, 0.12);
+  --pyd-radio-bg: #ffffff;
+  --pyd-radio-checked-bg: radial-gradient(circle at center, var(--pyd-accent) 0 45%, transparent 48% 100%),
+    #fff7e9;
+  --pyd-chip-bg: rgba(23, 48, 56, 0.08);
+  --pyd-hero-note-bg: rgba(255, 255, 255, 0.72);
+  --pyd-primary-bg: #173038;
+  --pyd-primary-hover-bg: #0f2228;
+  --pyd-primary-text: #fffdf7;
+  --pyd-primary-soft-text: #fffaf0;
+  --pyd-secondary-hover-bg: #f6eddb;
+  --pyd-interactive-hover-bg: rgba(255, 255, 255, 0.38);
+  --pyd-item-bg: linear-gradient(180deg, #fffdf9 0%, #f7f0e0 100%);
+  --pyd-item-hover-shadow: 0 0.85rem 1.8rem rgba(23, 48, 56, 0.08);
+  --pyd-item-drag-shadow: 0 1.1rem 2rem rgba(23, 48, 56, 0.14);
+  --pyd-feedback-border: rgba(255, 255, 255, 0.55);
+  --pyd-feedback-shadow: 0 0.5rem 1rem rgba(23, 48, 56, 0.18);
+  --pyd-disabled-bg: rgba(255, 255, 255, 0.65);
+  --pyd-disabled-text: #5c737a;
+  --pyd-empty-border: rgba(23, 48, 56, 0.26);
+  --pyd-empty-bg: rgba(255, 255, 255, 0.62);
+  --pyd-summary-bg: linear-gradient(180deg, #fffdf7 0%, #f8f1e0 100%);
+  --pyd-summary-tile-bg: rgba(255, 255, 255, 0.7);
+  --pyd-note-border: rgba(23, 48, 56, 0.12);
+  --pyd-note-bg: rgba(223, 236, 241, 0.75);
+  --pyd-note-text: #163038;
+  --pyd-warning-border: rgba(138, 79, 15, 0.2);
+  --pyd-warning-bg: rgba(255, 243, 225, 0.9);
+  --pyd-warning-text: #6e410d;
+  --pyd-map-bg: #f3ede0;
+  --pyd-scrollbar-track: rgba(23, 48, 56, 0.08);
+  --pyd-scrollbar-thumb: rgba(138, 79, 15, 0.55);
+  --pyd-scrollbar-thumb-border: rgba(255, 255, 255, 0.65);
+  color-scheme: light;
   font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+    var(--pyd-font-family);
   line-height: 1.5;
   padding:0;
+}
+
+.plan-your-day[data-plan-color-mode="dark"] {
+  --focus-ring-color: #9fc5ff;
+  --focus-ring-offset-color: #232323;
+  --pyd-text: #f3f1ea;
+  --pyd-heading: #fffaf0;
+  --pyd-hero-heading: #fffdf7;
+  --pyd-muted: #c5d0d1;
+  --pyd-accent: #f1b543;
+  --pyd-accent-soft: rgba(241, 181, 67, 0.24);
+  --pyd-accent-border: rgba(241, 181, 67, 0.55);
+  --pyd-border-subtle: rgba(255, 255, 255, 0.08);
+  --pyd-border: rgba(255, 255, 255, 0.12);
+  --pyd-border-medium: rgba(255, 255, 255, 0.14);
+  --pyd-border-strong: rgba(255, 255, 255, 0.18);
+  --pyd-border-emphasis: rgba(255, 255, 255, 0.26);
+  --pyd-control-mark-border: rgba(255, 255, 255, 0.42);
+  --pyd-surface-bg: radial-gradient(circle at top right, rgba(241, 181, 67, 0.14), transparent 28%),
+    linear-gradient(180deg, #2e2e2e 0%, #232323 100%);
+  --pyd-surface-shadow: 0 0.85rem 2rem rgba(0, 0, 0, 0.34);
+  --pyd-card-bg: rgba(48, 48, 48, 0.92);
+  --pyd-card-shadow: 0 0.65rem 1.45rem rgba(0, 0, 0, 0.24);
+  --pyd-panel-bg: #2b2b2b;
+  --pyd-option-bg: #292929;
+  --pyd-option-selected-bg: linear-gradient(180deg, #3a3427 0%, #2b2925 100%);
+  --pyd-option-selected-shadow: 0 0.85rem 1.8rem rgba(0, 0, 0, 0.28);
+  --pyd-radio-bg: #232323;
+  --pyd-radio-checked-bg: radial-gradient(circle at center, var(--pyd-accent) 0 45%, transparent 48% 100%),
+    #302818;
+  --pyd-chip-bg: rgba(255, 255, 255, 0.1);
+  --pyd-hero-note-bg: rgba(255, 255, 255, 0.08);
+  --pyd-primary-bg: #f1b543;
+  --pyd-primary-hover-bg: #ffd36b;
+  --pyd-primary-text: #232323;
+  --pyd-primary-soft-text: #232323;
+  --pyd-secondary-hover-bg: rgba(241, 181, 67, 0.16);
+  --pyd-interactive-hover-bg: rgba(255, 255, 255, 0.08);
+  --pyd-item-bg: linear-gradient(180deg, #303030 0%, #282828 100%);
+  --pyd-item-hover-shadow: 0 0.85rem 1.8rem rgba(0, 0, 0, 0.26);
+  --pyd-item-drag-shadow: 0 1.1rem 2rem rgba(0, 0, 0, 0.36);
+  --pyd-feedback-border: rgba(241, 181, 67, 0.36);
+  --pyd-feedback-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.28);
+  --pyd-disabled-bg: rgba(255, 255, 255, 0.08);
+  --pyd-disabled-text: #9aa6a8;
+  --pyd-empty-border: rgba(255, 255, 255, 0.24);
+  --pyd-empty-bg: rgba(255, 255, 255, 0.07);
+  --pyd-summary-bg: linear-gradient(180deg, #303030 0%, #292929 100%);
+  --pyd-summary-tile-bg: rgba(255, 255, 255, 0.08);
+  --pyd-note-border: rgba(145, 198, 217, 0.28);
+  --pyd-note-bg: rgba(62, 91, 101, 0.5);
+  --pyd-note-text: #e9f6f9;
+  --pyd-warning-border: rgba(241, 181, 67, 0.34);
+  --pyd-warning-bg: rgba(78, 57, 24, 0.68);
+  --pyd-warning-text: #ffe1a3;
+  --pyd-map-bg: #303030;
+  --pyd-scrollbar-track: rgba(255, 255, 255, 0.08);
+  --pyd-scrollbar-thumb: rgba(241, 181, 67, 0.62);
+  --pyd-scrollbar-thumb-border: rgba(35, 35, 35, 0.9);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  .plan-your-day[data-plan-color-mode-default="system"]:not([data-plan-color-mode]) {
+    --focus-ring-color: #9fc5ff;
+    --focus-ring-offset-color: #232323;
+    --pyd-text: #f3f1ea;
+    --pyd-heading: #fffaf0;
+    --pyd-hero-heading: #fffdf7;
+    --pyd-muted: #c5d0d1;
+    --pyd-accent: #f1b543;
+    --pyd-accent-soft: rgba(241, 181, 67, 0.24);
+    --pyd-accent-border: rgba(241, 181, 67, 0.55);
+    --pyd-border-subtle: rgba(255, 255, 255, 0.08);
+    --pyd-border: rgba(255, 255, 255, 0.12);
+    --pyd-border-medium: rgba(255, 255, 255, 0.14);
+    --pyd-border-strong: rgba(255, 255, 255, 0.18);
+    --pyd-border-emphasis: rgba(255, 255, 255, 0.26);
+    --pyd-control-mark-border: rgba(255, 255, 255, 0.42);
+    --pyd-surface-bg: radial-gradient(circle at top right, rgba(241, 181, 67, 0.14), transparent 28%),
+      linear-gradient(180deg, #2e2e2e 0%, #232323 100%);
+    --pyd-surface-shadow: 0 0.85rem 2rem rgba(0, 0, 0, 0.34);
+    --pyd-card-bg: rgba(48, 48, 48, 0.92);
+    --pyd-card-shadow: 0 0.65rem 1.45rem rgba(0, 0, 0, 0.24);
+    --pyd-panel-bg: #2b2b2b;
+    --pyd-option-bg: #292929;
+    --pyd-option-selected-bg: linear-gradient(180deg, #3a3427 0%, #2b2925 100%);
+    --pyd-option-selected-shadow: 0 0.85rem 1.8rem rgba(0, 0, 0, 0.28);
+    --pyd-radio-bg: #232323;
+    --pyd-radio-checked-bg: radial-gradient(circle at center, var(--pyd-accent) 0 45%, transparent 48% 100%),
+      #302818;
+    --pyd-chip-bg: rgba(255, 255, 255, 0.1);
+    --pyd-hero-note-bg: rgba(255, 255, 255, 0.08);
+    --pyd-primary-bg: #f1b543;
+    --pyd-primary-hover-bg: #ffd36b;
+    --pyd-primary-text: #232323;
+    --pyd-primary-soft-text: #232323;
+    --pyd-secondary-hover-bg: rgba(241, 181, 67, 0.16);
+    --pyd-interactive-hover-bg: rgba(255, 255, 255, 0.08);
+    --pyd-item-bg: linear-gradient(180deg, #303030 0%, #282828 100%);
+    --pyd-item-hover-shadow: 0 0.85rem 1.8rem rgba(0, 0, 0, 0.26);
+    --pyd-item-drag-shadow: 0 1.1rem 2rem rgba(0, 0, 0, 0.36);
+    --pyd-feedback-border: rgba(241, 181, 67, 0.36);
+    --pyd-feedback-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.28);
+    --pyd-disabled-bg: rgba(255, 255, 255, 0.08);
+    --pyd-disabled-text: #9aa6a8;
+    --pyd-empty-border: rgba(255, 255, 255, 0.24);
+    --pyd-empty-bg: rgba(255, 255, 255, 0.07);
+    --pyd-summary-bg: linear-gradient(180deg, #303030 0%, #292929 100%);
+    --pyd-summary-tile-bg: rgba(255, 255, 255, 0.08);
+    --pyd-note-border: rgba(145, 198, 217, 0.28);
+    --pyd-note-bg: rgba(62, 91, 101, 0.5);
+    --pyd-note-text: #e9f6f9;
+    --pyd-warning-border: rgba(241, 181, 67, 0.34);
+    --pyd-warning-bg: rgba(78, 57, 24, 0.68);
+    --pyd-warning-text: #ffe1a3;
+    --pyd-map-bg: #303030;
+    --pyd-scrollbar-track: rgba(255, 255, 255, 0.08);
+    --pyd-scrollbar-thumb: rgba(241, 181, 67, 0.62);
+    --pyd-scrollbar-thumb-border: rgba(35, 35, 35, 0.9);
+    color-scheme: dark;
+  }
 }
 
 .plan-your-day img,
@@ -55,7 +253,8 @@
 .plan-your-day {
   width: min(100% - 2rem, 1180px);
   margin: clamp(1rem, 4vw, 3rem) auto;
-  color: #173038;
+  color: var(--pyd-text);
+  container-type: inline-size;
 }
 
 .plan-your-day [hidden] {
@@ -64,12 +263,10 @@
 
 .plan-your-day__surface {
   padding: clamp(1rem, 1.6vw, 1.5rem);
-  border: 1px solid rgba(23, 48, 56, 0.12);
+  border: thin solid var(--pyd-border);
   border-radius: 1.5rem;
-  background:
-    radial-gradient(circle at top right, rgba(241, 181, 67, 0.18), transparent 26%),
-    linear-gradient(180deg, #fffdf8 0%, #f4ecdb 100%);
-  box-shadow: 0 0.85rem 2rem rgba(23, 48, 56, 0.12);
+  background: var(--pyd-surface-bg);
+  box-shadow: var(--pyd-surface-shadow);
 }
 
 .plan-your-day__hero {
@@ -77,7 +274,7 @@
   gap: 0.8rem;
   margin-bottom: 1.2rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(23, 48, 56, 0.12);
+  border-bottom: thin solid var(--pyd-border);
 }
 
 .plan-your-day__eyebrow,
@@ -88,13 +285,14 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #8a4f0f;
+  color: var(--pyd-accent);
 }
 
 .plan-your-day__hero h2 {
   font-size: clamp(1.8rem, 3.3vw, 2.45rem);
   line-height: 1;
-  color: #112127;
+  color: var(--pyd-hero-heading);
+  font-weight: 700;
 }
 
 .plan-your-day__intro,
@@ -114,15 +312,15 @@
   margin: 0;
   font-size: 0.95rem;
   line-height: 1.5;
-  color: #35545d;
+  color: var(--pyd-muted);
 }
 
 .plan-your-day__hero-note {
   max-width: 33rem;
   padding: 0.75rem 0.9rem;
   border-radius: 1rem;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(23, 48, 56, 0.08);
+  background: var(--pyd-hero-note-bg);
+  border: thin solid var(--pyd-border-subtle);
 }
 
 .plan-your-day__layout {
@@ -135,14 +333,16 @@
 .plan-your-day__preview-panel {
   display: grid;
   gap: 0.85rem;
+  min-width: 0;
 }
 
 .plan-your-day__card {
+  min-width: 0;
   padding: 1rem;
-  border: 1px solid rgba(23, 48, 56, 0.12);
+  border: thin solid var(--pyd-border);
   border-radius: 1.2rem;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 0.65rem 1.45rem rgba(23, 48, 56, 0.06);
+  background: var(--pyd-card-bg);
+  box-shadow: var(--pyd-card-shadow);
 }
 
 .plan-your-day__card-header,
@@ -164,7 +364,9 @@
 
 .plan-your-day__card h3,
 .plan-your-day__card h4 {
-  color: #102027;
+  color: var(--pyd-heading);
+  font-weight: 700;
+  margin-top: 0;
 }
 
 .plan-your-day__card h3 {
@@ -186,8 +388,8 @@
   min-height: 1.8rem;
   padding: 0.3rem 0.7rem;
   border-radius: 999px;
-  background: #173038;
-  color: #fffaf0;
+  background: var(--pyd-primary-bg);
+  color: var(--pyd-primary-soft-text);
   font-size: 0.85rem;
   font-weight: 700;
   white-space: nowrap;
@@ -221,9 +423,9 @@
   gap: 0.35rem;
   min-height: 100%;
   padding: 0.85rem 0.9rem 0.85rem 2.7rem;
-  border: 1px solid rgba(23, 48, 56, 0.16);
+  border: thin solid var(--pyd-border-strong);
   border-radius: 1rem;
-  background: #fffdf9;
+  background: var(--pyd-option-bg);
   position: relative;
   transition:
     border-color 0.2s ease,
@@ -240,31 +442,30 @@
   left: 0.9rem;
   width: 1.05rem;
   height: 1.05rem;
-  border: 2px solid rgba(23, 48, 56, 0.35);
+  border: 2px solid var(--pyd-control-mark-border);
   border-radius: 999px;
-  background: #fff;
+  background: var(--pyd-radio-bg);
 }
 
 .plan-your-day__category-option input:checked + .plan-your-day__category-option-body,
 .plan-your-day__start-option input:checked + .plan-your-day__start-option-body {
-  border-color: rgba(138, 79, 15, 0.45);
-  background: linear-gradient(180deg, #fffaf0 0%, #f7ecd6 100%);
-  box-shadow: 0 0.85rem 1.8rem rgba(138, 79, 15, 0.12);
+  border-color: var(--pyd-accent-border);
+  background: var(--pyd-option-selected-bg);
+  box-shadow: var(--pyd-option-selected-shadow);
   transform: translateY(-1px);
 }
 
 .plan-your-day__category-option input:checked + .plan-your-day__category-option-body::before,
 .plan-your-day__start-option input:checked + .plan-your-day__start-option-body::before {
-  border-color: #8a4f0f;
-  background:
-    radial-gradient(circle at center, #8a4f0f 0 45%, transparent 48% 100%),
-    #fff7e9;
+  border-color: var(--pyd-accent);
+  background: var(--pyd-radio-checked-bg);
 }
 
 .plan-your-day__category-radio:focus-visible + .plan-your-day__category-option-body,
 .plan-your-day__category-trigger:focus-visible,
 .plan-your-day__category-search input:focus-visible,
 .plan-your-day__category-search-button:focus-visible,
+.plan-your-day__color-mode-toggle:focus-visible,
 .plan-your-day__load-more-button:focus-visible,
 .plan-your-day__start-option input:focus-visible + .plan-your-day__start-option-body,
 .plan-your-day__start-toggle:focus-visible,
@@ -285,7 +486,7 @@
 .plan-your-day__category-title,
 .plan-your-day__start-title {
   display: block;
-  color: #102027;
+  color: var(--pyd-heading);
   font-size: 1rem;
   font-weight: 700;
 }
@@ -308,10 +509,10 @@
   width: 100%;
   min-height: 2.85rem;
   padding: 0.75rem 0.9rem;
-  border: 1px solid rgba(23, 48, 56, 0.16);
+  border: thin solid var(--pyd-border-strong);
   border-radius: 0.5rem;
-  background: #fffefb;
-  color: #102027;
+  background: var(--pyd-panel-bg);
+  color: var(--pyd-heading);
 }
 
 .plan-your-day__category-search-button {
@@ -323,9 +524,9 @@
 }
 
 .plan-your-day__category-accordion-item {
-  border: 1px solid rgba(23, 48, 56, 0.14);
+  border: thin solid var(--pyd-border-medium);
   border-radius: 1rem;
-  background: linear-gradient(180deg, #fffefb 0%, #f6efde 100%);
+  background: var(--pyd-item-bg);
   transition:
     border-color 0.18s ease,
     box-shadow 0.18s ease,
@@ -333,8 +534,11 @@
 }
 
 .plan-your-day__category-accordion-item.is-expanded {
-  border-color: rgba(138, 79, 15, 0.32);
-  box-shadow: 0 0.85rem 1.7rem rgba(23, 48, 56, 0.08);
+  border-color: var(--pyd-accent-border);
+  box-shadow: var(--pyd-item-hover-shadow);
+}
+.plan-your-day__category-accordion-item.is-expanded > h4 button {
+  box-shadow: 0 4px 5px -5px #333333d7;
 }
 
 .plan-your-day__category-accordion-heading {
@@ -364,7 +568,7 @@
 .plan-your-day__category-trigger:hover,
 .plan-your-day__category-trigger:active {
   transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.38);
+  background: var(--pyd-interactive-hover-bg);
 }
 
 .plan-your-day__category-trigger-copy {
@@ -395,7 +599,7 @@
 }
 
 .plan-your-day__category-panel {
-  padding: 0 1rem 1rem;
+  padding:.66rem 1rem 1rem;
 }
 
 .plan-your-day__custom-search-header {
@@ -404,6 +608,7 @@
 
 .plan-your-day__custom-search-header h4 {
   margin: 0;
+  font-weight: 700;
 }
 
 .plan-your-day__category-results-scroll {
@@ -411,7 +616,7 @@
   overflow-y: auto;
   padding-right: 0.35rem;
   scrollbar-width: thin;
-  scrollbar-color: rgba(138, 79, 15, 0.55) rgba(23, 48, 56, 0.08);
+  scrollbar-color: var(--pyd-scrollbar-thumb) var(--pyd-scrollbar-track);
   transition: opacity 0.18s ease, filter 0.18s ease;
 }
 
@@ -420,14 +625,14 @@
 }
 
 .plan-your-day__category-results-scroll::-webkit-scrollbar-track {
-  background: rgba(23, 48, 56, 0.08);
+  background: var(--pyd-scrollbar-track);
   border-radius: 999px;
 }
 
 .plan-your-day__category-results-scroll::-webkit-scrollbar-thumb {
-  background: rgba(138, 79, 15, 0.55);
+  background: var(--pyd-scrollbar-thumb);
   border-radius: 999px;
-  border: 2px solid rgba(255, 255, 255, 0.65);
+  border: 2px solid var(--pyd-scrollbar-thumb-border);
 }
 
 .plan-your-day__start-toggle {
@@ -438,10 +643,10 @@
   gap: 0.55rem;
   min-height: 2.5rem;
   padding: 0.55rem 0.9rem;
-  border: 1px solid rgba(23, 48, 56, 0.14);
+  border: thin solid var(--pyd-border-medium);
   border-radius: 999px;
-  background: #fffefb;
-  color: #173038;
+  background: var(--pyd-panel-bg);
+  color: var(--pyd-text);
   font-size: 0.88rem;
   font-weight: 700;
   line-height: 1;
@@ -456,8 +661,72 @@
 .plan-your-day__start-toggle:hover,
 .plan-your-day__start-toggle:active {
   transform: translateY(-1px);
-  border-color: rgba(138, 79, 15, 0.42);
-  background: #f6eddb;
+  border-color: var(--pyd-accent-border);
+  background: var(--pyd-secondary-hover-bg);
+}
+
+.plan-your-day__hero-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.plan-your-day__color-mode-toggle {
+  appearance: none;
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.75rem 0.45rem 0.5rem;
+  border: thin solid var(--pyd-border-medium);
+  border-radius: 999px;
+  background: var(--pyd-panel-bg);
+  color: var(--pyd-text);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.plan-your-day__color-mode-toggle::before {
+  content: "";
+  width: 2.2rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: var(--pyd-chip-bg);
+  box-shadow: inset 0 0 0 thin var(--pyd-border);
+}
+
+.plan-your-day__color-mode-toggle::after {
+  content: "";
+  position: absolute;
+  width: 0.85rem;
+  height: 0.85rem;
+  margin-left: 0.2rem;
+  border-radius: 999px;
+  background: var(--pyd-primary-bg);
+  transform: translateX(0);
+  transition:
+    background-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.plan-your-day__color-mode-toggle[aria-pressed="true"]::after {
+  transform: translateX(0.95rem);
+}
+
+.plan-your-day__color-mode-toggle:hover,
+.plan-your-day__color-mode-toggle:active {
+  transform: translateY(-1px);
+  border-color: var(--pyd-accent-border);
+  background: var(--pyd-secondary-hover-bg);
 }
 
 .plan-your-day__start-toggle-icon {
@@ -495,7 +764,7 @@
   margin: 0;
   font-size: 0.88rem;
   font-weight: 700;
-  color: #8a4f0f;
+  color: var(--pyd-accent);
 }
 
 .plan-your-day__results-list,
@@ -518,9 +787,9 @@
   gap: 0.8rem;
   position: relative;
   padding: 0.85rem;
-  border: 1px solid rgba(23, 48, 56, 0.14);
+  border: thin solid var(--pyd-border-medium);
   border-radius: .5rem;
-  background: linear-gradient(180deg, #fffdf9 0%, #f7f0e0 100%);
+  background: var(--pyd-item-bg);
   transition:
     transform 0.18s ease,
     box-shadow 0.18s ease,
@@ -531,11 +800,14 @@
 .plan-your-day__trip-copy {
   display: grid;
   gap: 0.15rem;
+  min-width: 0;
 }
 
 .plan-your-day__result-copy h4,
 .plan-your-day__trip-copy h4 {
   font-size: 1rem;
+  margin: 0;
+  font-weight: 700;
 }
 
 .plan-your-day__result-tools,
@@ -563,7 +835,7 @@
   min-height: 2.625rem;
   height: 42px;
   padding: 0.65rem 0.95rem;
-  border: 1px solid transparent;
+  border: thin solid transparent;
   border-radius: 999px;
   appearance: none;
   cursor: pointer;
@@ -585,9 +857,9 @@
 .plan-your-day__trip-tools a,
 .plan-your-day__trip-tools button,
 .plan-your-day__maps-link {
-  border-color: rgba(23, 48, 56, 0.16);
-  background: #fffefb;
-  color: #173038;
+  border-color: var(--pyd-border-strong);
+  background: var(--pyd-panel-bg);
+  color: var(--pyd-text);
 }
 
 .plan-your-day__result-link:hover,
@@ -601,16 +873,16 @@
 .plan-your-day__maps-link:hover:not(.is-disabled),
 .plan-your-day__maps-link:active:not(.is-disabled) {
   transform: translateY(-1px);
-  border-color: rgba(138, 79, 15, 0.42);
-  background: #f6eddb;
+  border-color: var(--pyd-accent-border);
+  background: var(--pyd-secondary-hover-bg);
 }
 
 .plan-your-day__result-add,
 .plan-your-day__submit,
 .plan-your-day__load-more-button,
 .plan-your-day__category-search-button {
-  background: #173038;
-  color: #fffdf7;
+  background: var(--pyd-primary-bg);
+  color: var(--pyd-primary-text);
 }
 
 .plan-your-day__result-add:hover,
@@ -622,7 +894,7 @@
 .plan-your-day__submit:hover,
 .plan-your-day__submit:active {
   transform: translateY(-1px);
-  background: #0f2228;
+  background: var(--pyd-primary-hover-bg);
 }
 
 .plan-your-day__load-more-button {
@@ -643,8 +915,8 @@
   min-height: 2.625rem;
   padding: 0.65rem 0.95rem;
   border-radius: 999px;
-  background: rgba(23, 48, 56, 0.08);
-  color: #173038;
+  background: var(--pyd-chip-bg);
+  color: var(--pyd-text);
   font-size: 0.9rem;
   font-weight: 700;
 }
@@ -669,11 +941,11 @@
   z-index: 2;
   max-width: calc(100% - 1.3rem);
   padding: 0.45rem 0.7rem;
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  border: thin solid var(--pyd-feedback-border);
   border-radius: 0.5rem;
-  background: #173038;
-  box-shadow: 0 0.5rem 1rem rgba(23, 48, 56, 0.18);
-  color: #fffdf7;
+  background: var(--pyd-primary-bg);
+  box-shadow: var(--pyd-feedback-shadow);
+  color: var(--pyd-primary-text);
   font-size: 0.85rem;
   font-weight: 700;
   line-height: 1.2;
@@ -681,22 +953,22 @@
 }
 
 .plan-your-day.is-enhanced .plan-your-day__trip-item:hover {
-  border-color: rgba(138, 79, 15, 0.4);
-  box-shadow: 0 0.85rem 1.8rem rgba(23, 48, 56, 0.08);
+  border-color: var(--pyd-accent-border);
+  box-shadow: var(--pyd-item-hover-shadow);
 }
 
 .plan-your-day__trip-item.is-dragging {
   opacity: 0.7;
   transform: scale(0.985);
-  box-shadow: 0 1.1rem 2rem rgba(23, 48, 56, 0.14);
+  box-shadow: var(--pyd-item-drag-shadow);
 }
 
 .plan-your-day__trip-item.is-drop-before {
-  box-shadow: inset 0 4px 0 #8a4f0f;
+  box-shadow: inset 0 4px 0 var(--pyd-accent);
 }
 
 .plan-your-day__trip-item.is-drop-after {
-  box-shadow: inset 0 -4px 0 #8a4f0f;
+  box-shadow: inset 0 -4px 0 var(--pyd-accent);
 }
 
 .plan-your-day__trip-main {
@@ -712,8 +984,8 @@
   width: 2.1rem;
   height: 2.1rem;
   border-radius: 999px;
-  background: #173038;
-  color: #fffdf7;
+  background: var(--pyd-primary-bg);
+  color: var(--pyd-primary-text);
   font-size: 0.95rem;
   font-weight: 700;
 }
@@ -725,8 +997,8 @@
   min-width: 4rem;
   padding: 0.6rem 16px .4rem 32px;
   border-radius: 1000px;
-  background: #173038;
-  color: #fffef9;
+  background: var(--pyd-primary-bg);
+  color: var(--pyd-primary-text);
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -759,9 +1031,9 @@
 .plan-your-day__reorder-disabled {
   opacity: 0.45;
   cursor: not-allowed;
-  border-color: rgba(23, 48, 56, 0.12);
-  background: rgba(255, 255, 255, 0.65);
-  color: #5c737a;
+  border-color: var(--pyd-border);
+  background: var(--pyd-disabled-bg);
+  color: var(--pyd-disabled-text);
 }
 
 .plan-your-day__results-empty,
@@ -771,15 +1043,16 @@
   gap: 0.55rem;
   place-items: start;
   padding: 1.1rem;
-  border: 1px dashed rgba(23, 48, 56, 0.26);
+  border: thin dashed var(--pyd-empty-border);
   border-radius: .5rem;
-  background: rgba(255, 255, 255, 0.62);
+  background: var(--pyd-empty-bg);
 }
 
 .plan-your-day__results-empty h4,
 .plan-your-day__trip-empty h4,
 .plan-your-day__preview-empty h4 {
   font-size: 1.15rem;
+  font-weight: 700;
 }
 
 .plan-your-day__custom-start {
@@ -790,17 +1063,17 @@
   display: inline-block;
   margin-bottom: 0.45rem;
   font-weight: 700;
-  color: #102027;
+  color: var(--pyd-heading);
 }
 
 .plan-your-day__custom-start input {
   width: 100%;
   min-height: 2.85rem;
   padding: 0.75rem 0.9rem;
-  border: 1px solid rgba(23, 48, 56, 0.16);
+  border: thin solid var(--pyd-border-strong);
   border-radius: 0.5rem;
-  background: #fffefb;
-  color: #102027;
+  background: var(--pyd-panel-bg);
+  color: var(--pyd-heading);
 }
 
 .plan-your-day__input-help,
@@ -817,16 +1090,16 @@
 }
 
 .plan-your-day__clear-link {
-  border-color: rgba(23, 48, 56, 0.12);
+  border-color: var(--pyd-border);
   background: transparent;
-  color: #173038;
+  color: var(--pyd-text);
 }
 
 .plan-your-day__clear-link:hover,
 .plan-your-day__clear-link:active {
   transform: translateY(-1px);
-  border-color: rgba(23, 48, 56, 0.22);
-  background: rgba(255, 255, 255, 0.7);
+  border-color: var(--pyd-border-emphasis);
+  background: var(--pyd-summary-tile-bg);
 }
 
 .plan-your-day__maps-link.is-disabled,
@@ -845,21 +1118,21 @@
 .plan-your-day__message {
   padding: 0.75rem 0.85rem;
   border-radius: .5rem;
-  border: 1px solid transparent;
+  border: thin solid transparent;
   font-size: 0.92rem;
   line-height: 1.45;
 }
 
 .plan-your-day__message--note {
-  border-color: rgba(23, 48, 56, 0.12);
-  background: rgba(223, 236, 241, 0.75);
-  color: #163038;
+  border-color: var(--pyd-note-border);
+  background: var(--pyd-note-bg);
+  color: var(--pyd-note-text);
 }
 
 .plan-your-day__message--warning {
-  border-color: rgba(138, 79, 15, 0.2);
-  background: rgba(255, 243, 225, 0.9);
-  color: #6e410d;
+  border-color: var(--pyd-warning-border);
+  background: var(--pyd-warning-bg);
+  color: var(--pyd-warning-text);
 }
 
 .plan-your-day__summary {
@@ -867,8 +1140,8 @@
   margin-bottom: 0;
   padding: 0.9rem;
   border-radius: .5rem;
-  background: linear-gradient(180deg, #fffdf7 0%, #f8f1e0 100%);
-  border: 1px solid rgba(23, 48, 56, 0.1);
+  background: var(--pyd-summary-bg);
+  border: thin solid var(--pyd-border-subtle);
 }
 
 .plan-your-day__summary-handoff {
@@ -884,7 +1157,7 @@
   font-weight: 700;
   letter-spacing: 0;
   text-transform: uppercase;
-  color: #8a4f0f;
+  color: var(--pyd-accent);
 }
 
 .plan-your-day__maps-link--summary {
@@ -897,7 +1170,7 @@
 .plan-your-day__summary-grid div {
   padding: 0.7rem 0.8rem;
   border-radius: 0.5rem;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--pyd-summary-tile-bg);
 }
 
 .plan-your-day__summary-grid dt {
@@ -906,20 +1179,20 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #8a4f0f;
+  color: var(--pyd-accent);
 }
 
 .plan-your-day__summary-grid dd {
   margin: 0;
   font-size: 0.95rem;
-  color: #102027;
+  color: var(--pyd-heading);
 }
 
 .plan-your-day__map-wrap {
   overflow: hidden;
   border-radius: 1rem;
-  border: 1px solid rgba(23, 48, 56, 0.12);
-  background: #f3ede0;
+  border: thin solid var(--pyd-border);
+  background: var(--pyd-map-bg);
 }
 
 .plan-your-day__map-frame {
@@ -927,22 +1200,13 @@
   width: 100%;
   min-height: 24rem;
   border: 0;
-  background: #f3ede0;
+  background: var(--pyd-map-bg);
 }
 
 @media (min-width: 980px) {
   .plan-your-day__hero {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: end;
-  }
-
-  .plan-your-day__layout {
-    grid-template-columns: minmax(18rem, 30rem) minmax(0, 1fr);
-  }
-
-  .plan-your-day__preview-card {
-    position: sticky;
-    top: 7.75rem;
   }
 
   .plan-your-day__summary-grid {
@@ -957,6 +1221,17 @@
   .plan-your-day__trip-tools {
     align-self: center;
     justify-content: end;
+  }
+}
+
+@container (min-width: 60rem) {
+  .plan-your-day__layout {
+    grid-template-columns: minmax(18rem, 30rem) minmax(0, 1fr);
+  }
+
+  .plan-your-day__preview-card {
+    position: sticky;
+    top: 7.75rem;
   }
 }
 

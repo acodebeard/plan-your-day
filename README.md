@@ -86,7 +86,7 @@ From `plugin/plan-your-day/`, build an installable WordPress admin zip with:
 ./tools/build-release-zip.sh
 ```
 
-The script creates `dist/plan-your-day-0.1.0.zip` at the repository root,
+The script creates `dist/plan-your-day-0.5.zip` at the repository root,
 installs production-only Composer autoload files into a temporary staging copy,
 and packages the final artifact with a top-level `plan-your-day/` directory
 suitable for **Plugins > Add New > Upload Plugin**.

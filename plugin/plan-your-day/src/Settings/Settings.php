@@ -10,6 +10,7 @@ defined( 'ABSPATH' ) || exit;
 
 final class Settings {
 	private const EDITABLE_CATEGORY_SCHEMA_VERSION = 2;
+	private const SANITIZED_SETTINGS_SCHEMA_VERSION = 3;
 	public const OPTION_NAME = 'plan_your_day_settings';
 	public const OPTION_GROUP = 'plan_your_day_settings';
 	public const PAGE_SLUG = 'plan-your-day';
@@ -18,6 +19,9 @@ final class Settings {
 	public const START_MODE_CUSTOM = 'custom';
 	public const DISTANCE_UNIT_MILES = 'miles';
 	public const DISTANCE_UNIT_KILOMETERS = 'kilometers';
+	public const COLOR_MODE_LIGHT = 'light';
+	public const COLOR_MODE_DARK = 'dark';
+	public const COLOR_MODE_SYSTEM = 'system';
 	private ?array $cached_settings = null;
 
 	public function __construct() {
@@ -40,6 +44,7 @@ final class Settings {
 			'max_waypoints'                   => 8,
 			'result_count'                    => 8,
 			'distance_unit'                   => self::DISTANCE_UNIT_MILES,
+			'color_mode_default'              => self::COLOR_MODE_LIGHT,
 			'map_preview_enabled'             => true,
 			'maps_handoff_enabled'            => true,
 			'use_preset_categories'           => true,
@@ -76,6 +81,14 @@ final class Settings {
 		];
 	}
 
+	public static function color_mode_choices(): array {
+		return [
+			self::COLOR_MODE_LIGHT  => __( 'Light', 'plan-your-day' ),
+			self::COLOR_MODE_DARK   => __( 'Dark', 'plan-your-day' ),
+			self::COLOR_MODE_SYSTEM => __( 'System', 'plan-your-day' ),
+		];
+	}
+
 	public function register(): void {
 		add_filter( 'option_page_capability_' . self::OPTION_GROUP, [ $this, 'option_page_capability' ] );
 
@@ -109,6 +122,7 @@ final class Settings {
 			'max_waypoints'                   => self::sanitize_integer( $raw_settings['max_waypoints'] ?? $defaults['max_waypoints'], 1, 25, $defaults['max_waypoints'] ),
 			'result_count'                    => self::sanitize_integer( $raw_settings['result_count'] ?? $defaults['result_count'], 1, 20, $defaults['result_count'] ),
 			'distance_unit'                   => self::sanitize_distance_unit( $raw_settings['distance_unit'] ?? $defaults['distance_unit'] ),
+			'color_mode_default'              => self::sanitize_color_mode( $raw_settings['color_mode_default'] ?? $defaults['color_mode_default'] ),
 			'map_preview_enabled'             => self::sanitize_boolean( $raw_settings['map_preview_enabled'] ?? $defaults['map_preview_enabled'] ),
 			'maps_handoff_enabled'            => self::sanitize_boolean( $raw_settings['maps_handoff_enabled'] ?? $defaults['maps_handoff_enabled'] ),
 			'use_preset_categories'           => self::sanitize_boolean( $raw_settings['use_preset_categories'] ?? $defaults['use_preset_categories'] ),
@@ -216,6 +230,14 @@ final class Settings {
 		return array_key_exists( $distance_unit, self::distance_unit_choices() )
 			? $distance_unit
 			: self::DISTANCE_UNIT_MILES;
+	}
+
+	public static function sanitize_color_mode( mixed $color_mode ): string {
+		$color_mode = sanitize_key( self::scalar_to_string( $color_mode ) );
+
+		return array_key_exists( $color_mode, self::color_mode_choices() )
+			? $color_mode
+			: self::COLOR_MODE_LIGHT;
 	}
 
 	public static function sanitize_categories( mixed $categories ): array {
@@ -381,12 +403,19 @@ final class Settings {
 
 		$current_schema_version = (int) get_option( 'plan_your_day_schema_version', 0 );
 
-		if ( $current_schema_version >= self::EDITABLE_CATEGORY_SCHEMA_VERSION ) {
+		if ( $current_schema_version >= self::current_schema_version() ) {
 			return;
 		}
 
-		$this->seed_default_categories_if_needed();
-		update_option( 'plan_your_day_schema_version', self::EDITABLE_CATEGORY_SCHEMA_VERSION );
+		if ( $current_schema_version < self::EDITABLE_CATEGORY_SCHEMA_VERSION ) {
+			$this->seed_default_categories_if_needed();
+		}
+
+		if ( $current_schema_version < self::SANITIZED_SETTINGS_SCHEMA_VERSION ) {
+			$this->sanitize_stored_settings();
+		}
+
+		update_option( 'plan_your_day_schema_version', self::current_schema_version() );
 	}
 
 	public function seed_default_categories_if_needed(): bool {
@@ -401,6 +430,19 @@ final class Settings {
 		update_option( self::OPTION_NAME, self::sanitize( array_merge( self::defaults(), $settings ) ) );
 
 		return true;
+	}
+
+	private static function current_schema_version(): int {
+		return defined( 'PLAN_YOUR_DAY_SCHEMA_VERSION' )
+			? (int) PLAN_YOUR_DAY_SCHEMA_VERSION
+			: self::SANITIZED_SETTINGS_SCHEMA_VERSION;
+	}
+
+	private function sanitize_stored_settings(): void {
+		$settings = get_option( self::OPTION_NAME, [] );
+		$settings = is_array( $settings ) ? $settings : [];
+
+		update_option( self::OPTION_NAME, self::sanitize( array_merge( self::defaults(), $settings ) ) );
 	}
 
 	private function maybe_update_stored_plugin_version(): void {
@@ -488,6 +530,12 @@ final class Settings {
 		$settings = $this->get_all();
 
 		return $settings['distance_unit'];
+	}
+
+	public function get_color_mode_default(): string {
+		$settings = $this->get_all();
+
+		return $settings['color_mode_default'];
 	}
 
 	public function is_map_preview_enabled(): bool {

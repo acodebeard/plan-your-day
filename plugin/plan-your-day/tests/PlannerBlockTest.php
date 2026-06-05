@@ -44,6 +44,13 @@ namespace {
 		}
 	}
 
+	if ( ! function_exists( 'esc_html_e' ) ) {
+		function esc_html_e( string $text, ?string $domain = null ): void {
+			unset( $domain );
+			echo esc_html( $text );
+		}
+	}
+
 	if ( ! function_exists( 'esc_attr' ) ) {
 		function esc_attr( string $text ): string {
 			return $text;
@@ -88,6 +95,18 @@ namespace {
 		}
 	}
 
+	if ( ! function_exists( 'checked' ) ) {
+		function checked( mixed $checked, mixed $current = true, bool $display = true ): string {
+			$output = $checked === $current ? 'checked="checked"' : '';
+
+			if ( $display ) {
+				echo $output;
+			}
+
+			return $output;
+		}
+	}
+
 	if ( ! function_exists( 'wp_unique_id' ) ) {
 		function wp_unique_id( string $prefix = '' ): string {
 			$GLOBALS['plan_your_day_test_unique_id'] = (int) ( $GLOBALS['plan_your_day_test_unique_id'] ?? 0 ) + 1;
@@ -100,6 +119,7 @@ namespace {
 namespace Acodebeard\PlanYourDay\Tests {
 
 	use Acodebeard\PlanYourDay\Frontend\FrontendAssets;
+	use Acodebeard\PlanYourDay\Frontend\InterfaceCopy;
 	use Acodebeard\PlanYourDay\Frontend\PlannerBlock;
 	use Acodebeard\PlanYourDay\Frontend\PlannerRenderer;
 	use Acodebeard\PlanYourDay\Google\GoogleApiClientInterface;
@@ -162,6 +182,32 @@ namespace Acodebeard\PlanYourDay\Tests {
 					[
 						'default_location_label'   => 'Downtown',
 						'default_location_address' => '123 Main St',
+						'color_mode_default'       => 'dark',
+						'interface_copy'           => array_merge(
+							InterfaceCopy::defaults(),
+							[
+								'start_card_help'                => 'Editable starting point helper.',
+								'custom_start_label'             => 'Editable custom start label',
+								'start_mode_legend'              => 'Editable starting point legend',
+								'start_mode_default_description' => 'Editable default start from {default_location}.',
+								'update_results_button'          => 'Editable update button',
+								'category_card_help'             => 'Editable search helper.',
+								'category_search_label'          => 'Editable category search label',
+								'category_search_button'         => 'Editable search button',
+								'custom_results_heading'         => 'Editable results for {search}',
+								'custom_results_description'     => 'Editable custom results description.',
+								'more_results_button'            => 'Editable more results',
+								'view_in_google_maps'            => 'Editable map link',
+								'view_place_in_google_maps_aria' => 'Editable map link for {place}',
+								'in_trip'                        => 'Editable in trip',
+								'already_in_trip_aria'           => 'Editable already in trip for {place}',
+								'add_to_trip'                    => 'Editable add to trip',
+								'add_waypoint_aria'              => 'Editable add waypoint for {place}',
+								'clear_trip'                     => 'Editable clear trip',
+								'move_up'                        => 'Editable move up',
+								'move_down'                      => 'Editable move down',
+							]
+						),
 					]
 				)
 			);
@@ -176,7 +222,41 @@ namespace Acodebeard\PlanYourDay\Tests {
 			self::assertArrayHasKey( FrontendAssets::STYLE_HANDLE, $GLOBALS['plan_your_day_test_enqueued_styles'] );
 			self::assertArrayHasKey( FrontendAssets::SCRIPT_HANDLE, $GLOBALS['plan_your_day_test_enqueued_scripts'] );
 			self::assertStringContainsString( 'class="plan-your-day"', $output );
+			self::assertStringContainsString( 'data-plan-color-mode-default="dark"', $output );
+			self::assertStringContainsString( '"colorModeDefault":"dark"', $output );
 			self::assertStringContainsString( 'action="https://example.test/planner#plan-your-day-1"', $output );
+			self::assertStringNotContainsString( 'Editable starting point helper.', $output );
+			self::assertStringNotContainsString( 'Editable custom start label', $output );
+			self::assertStringNotContainsString( 'Editable starting point legend', $output );
+			self::assertStringNotContainsString( 'Editable default start from Downtown.', $output );
+			self::assertStringNotContainsString( 'Editable update button', $output );
+			self::assertStringNotContainsString( 'Editable search helper.', $output );
+			self::assertStringNotContainsString( 'Editable category search label', $output );
+			self::assertStringNotContainsString( 'Editable search button', $output );
+			self::assertStringNotContainsString( 'Editable results for', $output );
+			self::assertStringNotContainsString( 'Editable custom results description.', $output );
+			self::assertStringNotContainsString( 'Editable more results', $output );
+			self::assertStringNotContainsString( 'Editable map link', $output );
+			self::assertStringNotContainsString( 'Editable in trip', $output );
+			self::assertStringNotContainsString( 'Editable add to trip', $output );
+			self::assertStringNotContainsString( 'Editable clear trip', $output );
+			self::assertStringNotContainsString( 'Editable move up', $output );
+			self::assertStringNotContainsString( 'Editable move down', $output );
+			self::assertStringContainsString( '<legend class="screen-reader-text">Starting point mode</legend>', $output );
+			self::assertStringContainsString( '<span class="plan-your-day__start-description">Start from Downtown.</span>', $output );
+			self::assertStringContainsString( '<button class="plan-your-day__submit" type="submit">Update results</button>', $output );
+			self::assertStringContainsString( '<label for="plan-your-day-1-custom-start">Custom starting point</label>', $output );
+			self::assertStringContainsString( '<p id="plan-your-day-1-category-help">Search for any category or use a category shortcut to load Google results.</p>', $output );
+			self::assertStringContainsString( '<label for="plan-your-day-1-category-search" class="screen-reader-text">Search categories</label>', $output );
+			self::assertStringContainsString( '<button class="plan-your-day__category-search-button" type="submit" data-plan-action="search-category-query">', $output );
+			self::assertStringContainsString( '"searchResultsFor":"Results for {search}"', $output );
+			self::assertStringContainsString( '"customSearchResultsDescription":"Custom category search results."', $output );
+			self::assertStringContainsString( '"moreResultsButton":"More results"', $output );
+			self::assertStringContainsString( '"viewInGoogleMaps":"View in Google Maps"', $output );
+			self::assertStringContainsString( '"addToTrip":"Add to trip"', $output );
+			self::assertStringContainsString( '"clearTrip":"Clear trip"', $output );
+			self::assertStringContainsString( '"moveUp":"Move up"', $output );
+			self::assertStringContainsString( '"moveDown":"Move down"', $output );
 		}
 
 		private function build_renderer(): PlannerRenderer {

@@ -50,6 +50,10 @@ switch ( $request_path ) {
 		plan_your_day_browser_render_page( 'shortcode' );
 		return;
 
+	case '/narrow-shortcode':
+		plan_your_day_browser_render_page( 'narrow-shortcode' );
+		return;
+
 	case '/block':
 		plan_your_day_browser_render_page( 'block' );
 		return;
@@ -140,6 +144,16 @@ function plan_your_day_browser_render_page( string $page ): void {
 			[
 				'action_url' => $base_url . '/shortcode',
 			]
+		);
+	} elseif ( 'narrow-shortcode' === $page ) {
+		$title   = 'Plan Your Day Narrow Shortcode Smoke';
+		$content = sprintf(
+			'<main class="browser-app browser-app--narrow" style="width: 645px; max-width: 645px; margin: 0 auto;">%s</main>',
+			$app['shortcode']->render(
+				[
+					'action_url' => $base_url . '/narrow-shortcode',
+				]
+			)
 		);
 	} elseif ( 'block' === $page ) {
 		$title   = 'Plan Your Day Block Smoke';

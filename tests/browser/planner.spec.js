@@ -1,5 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
+const START_PANEL_ANIMATION_MS = 480;
+
 function trackBrowserErrors(page) {
   const errors = [];
 
@@ -154,6 +156,33 @@ test('block render boots the planner and category browse works', async ({ page }
   await assertNoBrowserErrors();
 });
 
+test('visitor color mode toggle persists across reloads', async ({ page }) => {
+  const assertNoBrowserErrors = trackBrowserErrors(page);
+
+  await page.goto('/shortcode');
+
+  const root = page.locator('[data-plan-root]');
+  const toggle = page.locator('[data-plan-color-mode-toggle]');
+
+  await expect(root).toHaveAttribute('data-plan-color-mode', 'light');
+  await expect(toggle).toBeVisible();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  await expect(root).toHaveCSS('font-family', /Noto Sans/);
+
+  await toggle.click();
+
+  await expect(root).toHaveAttribute('data-plan-color-mode', 'dark');
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await expect(root).toHaveCSS('--pyd-primary-text', '#232323');
+
+  await page.reload();
+
+  await expect(root).toHaveAttribute('data-plan-color-mode', 'dark');
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+
+  await assertNoBrowserErrors();
+});
+
 test('start options toggle stays usable in a narrow viewport', async ({ page }) => {
   const assertNoBrowserErrors = trackBrowserErrors(page);
 
@@ -177,6 +206,70 @@ test('start options toggle stays usable in a narrow viewport', async ({ page }) 
 
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   await expect(panel).toBeVisible();
+
+  await assertNoBrowserErrors();
+});
+
+test('start options stay open until manually toggled', async ({ page }) => {
+  const assertNoBrowserErrors = trackBrowserErrors(page);
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/shortcode');
+
+  const panel = page.locator('[data-plan-start-panel]');
+
+  await expect(panel).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, 180));
+  await page.waitForTimeout(START_PANEL_ANIMATION_MS + 100);
+  await expect(panel).toBeVisible();
+
+  await page.locator('.plan-your-day__start-option').filter({ hasText: 'Custom starting point' }).click();
+  await expect(panel).toBeVisible();
+
+  const customStartInput = page.locator('[data-plan-custom-start]');
+  await customStartInput.fill('Union Station');
+  await customStartInput.blur();
+  await page.waitForTimeout(START_PANEL_ANIMATION_MS + 100);
+  await expect(panel).toBeVisible();
+
+  await page.locator('.plan-your-day__start-option').filter({ hasText: 'Test Harbor' }).click();
+  await page.waitForTimeout(START_PANEL_ANIMATION_MS + 100);
+  await expect(panel).toBeVisible();
+
+  await assertNoBrowserErrors();
+});
+
+test('planner cards stay inside a constrained content column', async ({ page }) => {
+  const assertNoBrowserErrors = trackBrowserErrors(page);
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/narrow-shortcode');
+  await expect(page.locator('[data-plan-root]')).toBeVisible();
+
+  const overflow = await page.evaluate(() => {
+    const surface = document.querySelector('.plan-your-day__surface');
+    const cards = Array.from(document.querySelectorAll('.plan-your-day__card'));
+
+    if (!(surface instanceof HTMLElement)) {
+      return ['planner surface was not rendered'];
+    }
+
+    const surfaceRect = surface.getBoundingClientRect();
+
+    return cards
+      .map((card) => {
+        const cardRect = card.getBoundingClientRect();
+
+        return {
+          className: card.className,
+          leftOverflow: Math.max(0, surfaceRect.left - cardRect.left),
+          rightOverflow: Math.max(0, cardRect.right - surfaceRect.right),
+        };
+      })
+      .filter((card) => card.leftOverflow > 0.5 || card.rightOverflow > 0.5);
+  });
+
+  expect(overflow).toEqual([]);
 
   await assertNoBrowserErrors();
 });

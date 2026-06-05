@@ -4,7 +4,7 @@ Tags: planning, maps, wayfinding
 Requires at least: 6.8
 Tested up to: 6.9
 Requires PHP: 8.2
-Stable tag: 0.1.0
+Stable tag: 0.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -104,11 +104,13 @@ architecture, settings, security, and troubleshooting notes.
 
 == Changelog ==
 
-= Unreleased =
+= 0.5 =
 * Added block-editor and shortcode entry points that share the same planner renderer.
 * Added admin-editable categories and interface copy settings.
 * Added REST-powered planner interactions, rate limiting, and Google API admin tools.
 * Added a reproducible release zip builder and manual release-process documentation.
+* Added color mode controls, Noto Sans assets, and a cleaned-up settings interface.
+* Added an upgrade cleanup that prunes removed interface-copy settings from existing installs.
 
 = 0.1.0 =
 * Initial plugin scaffold (GH issue #20): directory structure, main plugin file, activation / deactivation hooks, uninstall routine, PSR-4 autoloading.
