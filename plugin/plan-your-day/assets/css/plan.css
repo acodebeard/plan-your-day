@@ -452,6 +452,14 @@
   background: var(--pyd-radio-bg);
 }
 
+.plan-your-day__start-option:hover .plan-your-day__start-option-body,
+.plan-your-day__start-option:active .plan-your-day__start-option-body {
+  border-color: var(--pyd-accent-border);
+  background: var(--pyd-secondary-hover-bg);
+  box-shadow: var(--pyd-item-hover-shadow);
+  transform: translateY(-1px);
+}
+
 .plan-your-day__category-option input:checked + .plan-your-day__category-option-body,
 .plan-your-day__start-option input:checked + .plan-your-day__start-option-body {
   border-color: var(--pyd-accent-border);
