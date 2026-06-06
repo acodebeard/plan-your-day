@@ -15,6 +15,7 @@ final class RateLimiterTest extends TestCase {
 
 		$GLOBALS['plan_your_day_test_options']         = [];
 		$GLOBALS['plan_your_day_test_object_cache']    = [];
+		$GLOBALS['plan_your_day_test_transients']      = [];
 		$GLOBALS['plan_your_day_use_ext_object_cache'] = false;
 		$this->install_database_lock_driver();
 	}
@@ -123,6 +124,69 @@ final class RateLimiterTest extends TestCase {
 		self::assertArrayNotHasKey(
 			'plan_your_day_rate_lock_' . $key,
 			$GLOBALS['plan_your_day_test_object_cache']['plan-your-day']
+		);
+		self::assertFalse(
+			array_key_exists(
+				'plan_your_day_rate_' . $key,
+				$GLOBALS['plan_your_day_test_options']
+			)
+		);
+	}
+
+	public function test_enforce_uses_transient_storage_without_writing_rate_state_options(): void {
+		$now     = 1000.0;
+		$limiter = $this->build_limiter( 2, $now );
+		$key     = hash( 'sha256', 'browse|198.51.100.10' );
+
+		self::assertNull( $limiter->enforce( 'browse', [ 'REMOTE_ADDR' => '198.51.100.10' ] ) );
+		self::assertNull( $limiter->enforce( 'browse', [ 'REMOTE_ADDR' => '198.51.100.10' ] ) );
+
+		$error = $limiter->enforce( 'browse', [ 'REMOTE_ADDR' => '198.51.100.10' ] );
+
+		self::assertInstanceOf( WP_Error::class, $error );
+		self::assertSame(
+			[ $now, $now ],
+			$GLOBALS['plan_your_day_test_transients'][ 'plan_your_day_rate_' . $key ] ?? null
+		);
+		self::assertFalse(
+			array_key_exists(
+				'plan_your_day_rate_' . $key,
+				$GLOBALS['plan_your_day_test_options']
+			)
+		);
+	}
+
+	public function test_enforce_reads_existing_transient_rate_state(): void {
+		$now     = 1000.0;
+		$key     = hash( 'sha256', 'browse|198.51.100.10' );
+		$limiter = $this->build_limiter( 2, $now );
+
+		set_transient( 'plan_your_day_rate_' . $key, [ 980.0 ], 60 );
+
+		self::assertNull( $limiter->enforce( 'browse', [ 'REMOTE_ADDR' => '198.51.100.10' ] ) );
+
+		$error = $limiter->enforce( 'browse', [ 'REMOTE_ADDR' => '198.51.100.10' ] );
+
+		self::assertInstanceOf( WP_Error::class, $error );
+		self::assertSame( 'plan_your_day_rate_limited', $error->get_error_code() );
+		self::assertSame(
+			[ 980.0, $now ],
+			$GLOBALS['plan_your_day_test_transients'][ 'plan_your_day_rate_' . $key ] ?? null
+		);
+	}
+
+	public function test_enforce_migrates_legacy_rate_state_option_to_transient_storage(): void {
+		$now = 1000.0;
+		$key = hash( 'sha256', 'browse|198.51.100.10' );
+
+		update_option( 'plan_your_day_rate_' . $key, [ 980.0 ], false );
+
+		$limiter = $this->build_limiter( 2, $now );
+
+		self::assertNull( $limiter->enforce( 'browse', [ 'REMOTE_ADDR' => '198.51.100.10' ] ) );
+		self::assertSame(
+			[ 980.0, $now ],
+			$GLOBALS['plan_your_day_test_transients'][ 'plan_your_day_rate_' . $key ] ?? null
 		);
 		self::assertFalse(
 			array_key_exists(
