@@ -11,6 +11,8 @@ defined( 'ABSPATH' ) || exit;
 final class Settings {
 	private const EDITABLE_CATEGORY_SCHEMA_VERSION = 2;
 	private const SANITIZED_SETTINGS_SCHEMA_VERSION = 3;
+	private const DEFAULT_CATEGORY_QUERY_SCHEMA_VERSION = 4;
+	private const CATEGORY_STATE_SCHEMA_VERSION = 5;
 	public const OPTION_NAME = 'plan_your_day_settings';
 	public const OPTION_GROUP = 'plan_your_day_settings';
 	public const PAGE_SLUG = 'plan-your-day';
@@ -47,7 +49,6 @@ final class Settings {
 			'color_mode_default'              => self::COLOR_MODE_LIGHT,
 			'map_preview_enabled'             => true,
 			'maps_handoff_enabled'            => true,
-			'use_preset_categories'           => true,
 			'categories'                      => [],
 			'google_maps_embed_api_key'       => '',
 			'google_places_api_key'           => '',
@@ -125,7 +126,6 @@ final class Settings {
 			'color_mode_default'              => self::sanitize_color_mode( $raw_settings['color_mode_default'] ?? $defaults['color_mode_default'] ),
 			'map_preview_enabled'             => self::sanitize_boolean( $raw_settings['map_preview_enabled'] ?? $defaults['map_preview_enabled'] ),
 			'maps_handoff_enabled'            => self::sanitize_boolean( $raw_settings['maps_handoff_enabled'] ?? $defaults['maps_handoff_enabled'] ),
-			'use_preset_categories'           => self::sanitize_boolean( $raw_settings['use_preset_categories'] ?? $defaults['use_preset_categories'] ),
 			'categories'                      => self::sanitize_categories( $raw_settings['categories'] ?? $defaults['categories'] ),
 			'google_maps_embed_api_key'       => self::sanitize_api_key( $raw_settings['google_maps_embed_api_key'] ?? '' ),
 			'google_places_api_key'           => self::sanitize_api_key( $raw_settings['google_places_api_key'] ?? '' ),
@@ -415,6 +415,14 @@ final class Settings {
 			$this->sanitize_stored_settings();
 		}
 
+		if ( $current_schema_version < self::DEFAULT_CATEGORY_QUERY_SCHEMA_VERSION ) {
+			$this->migrate_default_category_queries();
+		}
+
+		if ( $current_schema_version < self::CATEGORY_STATE_SCHEMA_VERSION ) {
+			$this->seed_default_categories_if_needed();
+		}
+
 		update_option( 'plan_your_day_schema_version', self::current_schema_version() );
 	}
 
@@ -435,7 +443,7 @@ final class Settings {
 	private static function current_schema_version(): int {
 		return defined( 'PLAN_YOUR_DAY_SCHEMA_VERSION' )
 			? (int) PLAN_YOUR_DAY_SCHEMA_VERSION
-			: self::SANITIZED_SETTINGS_SCHEMA_VERSION;
+			: self::CATEGORY_STATE_SCHEMA_VERSION;
 	}
 
 	private function sanitize_stored_settings(): void {
@@ -443,6 +451,131 @@ final class Settings {
 		$settings = is_array( $settings ) ? $settings : [];
 
 		update_option( self::OPTION_NAME, self::sanitize( array_merge( self::defaults(), $settings ) ) );
+	}
+
+	private function migrate_default_category_queries(): void {
+		$settings   = get_option( self::OPTION_NAME, [] );
+		$settings   = is_array( $settings ) ? $settings : [];
+		$categories = self::sanitize_categories( $settings['categories'] ?? [] );
+
+		if ( [] === $categories ) {
+			return;
+		}
+
+		$legacy_categories = self::categories_by_slug( self::legacy_default_categories() );
+		$default_categories = self::categories_by_slug( self::default_categories() );
+		$migrated_categories = [];
+		$changed             = false;
+
+		foreach ( $categories as $category ) {
+			$slug = (string) ( $category['slug'] ?? '' );
+
+			if ( isset( $legacy_categories[ $slug ] ) && self::category_rows_match( $category, $legacy_categories[ $slug ] ) ) {
+				$changed = true;
+
+				if ( isset( $default_categories[ $slug ] ) ) {
+					$migrated_categories[] = $default_categories[ $slug ];
+				}
+
+				continue;
+			}
+
+			$migrated_categories[] = $category;
+		}
+
+		if ( ! $changed ) {
+			return;
+		}
+
+		$settings['categories'] = $migrated_categories;
+		update_option( self::OPTION_NAME, self::sanitize( array_merge( self::defaults(), $settings ) ) );
+	}
+
+	private static function category_rows_match( array $left, array $right ): bool {
+		foreach ( [ 'slug', 'label', 'description', 'text_query', 'enabled', 'sort_order' ] as $key ) {
+			if ( ( $left[ $key ] ?? null ) !== ( $right[ $key ] ?? null ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private static function categories_by_slug( array $categories ): array {
+		$categories_by_slug = [];
+
+		foreach ( $categories as $category ) {
+			$slug = (string) ( $category['slug'] ?? '' );
+
+			if ( '' !== $slug ) {
+				$categories_by_slug[ $slug ] = $category;
+			}
+		}
+
+		return $categories_by_slug;
+	}
+
+	private static function legacy_default_categories(): array {
+		return self::sanitize_categories(
+			[
+				[
+					'slug'        => 'coffee',
+					'label'       => __( 'Coffee', 'plan-your-day' ),
+					'description' => __( 'Search for coffee shops, cafes, tastings, and easy morning stops.', 'plan-your-day' ),
+					'text_query'  => __( 'coffee shops and cafes', 'plan-your-day' ),
+					'enabled'     => true,
+					'sort_order'  => 10,
+				],
+				[
+					'slug'        => 'food',
+					'label'       => __( 'Food', 'plan-your-day' ),
+					'description' => __( 'Search for restaurants, quick bites, and broader local food options.', 'plan-your-day' ),
+					'text_query'  => __( 'restaurants and local food', 'plan-your-day' ),
+					'enabled'     => true,
+					'sort_order'  => 20,
+				],
+				[
+					'slug'        => 'shopping',
+					'label'       => __( 'Shopping', 'plan-your-day' ),
+					'description' => __( 'Search for boutiques, markets, and places to browse local goods.', 'plan-your-day' ),
+					'text_query'  => __( 'shopping and local boutiques', 'plan-your-day' ),
+					'enabled'     => true,
+					'sort_order'  => 30,
+				],
+				[
+					'slug'        => 'outdoors',
+					'label'       => __( 'Outdoors', 'plan-your-day' ),
+					'description' => __( 'Search for parks, waterfront access, trails, and outdoor stops.', 'plan-your-day' ),
+					'text_query'  => __( 'parks and outdoor activities', 'plan-your-day' ),
+					'enabled'     => true,
+					'sort_order'  => 40,
+				],
+				[
+					'slug'        => 'history-culture',
+					'label'       => __( 'History / culture', 'plan-your-day' ),
+					'description' => __( 'Search for museums, landmarks, heritage sites, and cultural experiences.', 'plan-your-day' ),
+					'text_query'  => __( 'history and culture', 'plan-your-day' ),
+					'enabled'     => true,
+					'sort_order'  => 50,
+				],
+				[
+					'slug'        => 'scenic',
+					'label'       => __( 'Scenic spots', 'plan-your-day' ),
+					'description' => __( 'Search for viewpoints, waterfront stretches, and scenic lookouts.', 'plan-your-day' ),
+					'text_query'  => __( 'scenic spots and viewpoints', 'plan-your-day' ),
+					'enabled'     => true,
+					'sort_order'  => 60,
+				],
+				[
+					'slug'        => 'activities',
+					'label'       => __( 'Other activities', 'plan-your-day' ),
+					'description' => __( 'Search for tours, family-friendly attractions, and broader things to do.', 'plan-your-day' ),
+					'text_query'  => __( 'tours and activities', 'plan-your-day' ),
+					'enabled'     => true,
+					'sort_order'  => 70,
+				],
+			]
+		);
 	}
 
 	private function maybe_update_stored_plugin_version(): void {
@@ -550,12 +683,6 @@ final class Settings {
 		return $settings['maps_handoff_enabled'];
 	}
 
-	public function use_preset_categories(): bool {
-		$settings = $this->get_all();
-
-		return $settings['use_preset_categories'];
-	}
-
 	public function get_saved_categories(): array {
 		$settings = $this->get_all();
 
@@ -563,18 +690,7 @@ final class Settings {
 	}
 
 	public function get_categories(): array {
-		$settings   = $this->get_all();
-		$categories = $this->get_saved_categories();
-
-		if ( [] !== $categories ) {
-			return $categories;
-		}
-
-		if ( ! $settings['use_preset_categories'] ) {
-			return [];
-		}
-
-		return self::default_categories();
+		return $this->get_saved_categories();
 	}
 
 	public function get_google_maps_embed_api_key(): string {
@@ -651,11 +767,13 @@ final class Settings {
 	}
 
 	private function should_seed_default_categories( array $settings ): bool {
-		$saved_categories = self::sanitize_categories( $settings['categories'] ?? [] );
-		$use_fallback     = array_key_exists( 'use_preset_categories', $settings )
-			? self::sanitize_boolean( $settings['use_preset_categories'] )
-			: self::defaults()['use_preset_categories'];
+		if ( array_key_exists( 'categories', $settings ) ) {
+			return false;
+		}
 
-		return [] === $saved_categories && $use_fallback;
+		$legacy_fallback_enabled = ! array_key_exists( 'use_preset_categories', $settings )
+			|| self::sanitize_boolean( $settings['use_preset_categories'] );
+
+		return $legacy_fallback_enabled;
 	}
 }

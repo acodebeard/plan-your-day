@@ -224,7 +224,7 @@ final class SettingsTest extends TestCase {
 		self::assertArrayNotHasKey( 'loading_search_preview_mode', $sanitized['interface_copy'] );
 		self::assertArrayNotHasKey( 'loading_search_preview_heading', $sanitized['interface_copy'] );
 		self::assertArrayNotHasKey( 'loading_search_preview_body', $sanitized['interface_copy'] );
-		self::assertSame( 'Plan Your Day', $sanitized['interface_copy']['hero_title'] );
+		self::assertSame( 'Waypoints', $sanitized['interface_copy']['hero_title'] );
 	}
 
 	public function test_sanitize_categories_discards_invalid_rows_and_makes_unique_slugs(): void {
@@ -281,21 +281,21 @@ final class SettingsTest extends TestCase {
 		self::assertSame( 'places-key', $settings->get_google_geocoding_api_key() );
 	}
 
-	public function test_get_categories_returns_starter_rows_when_saved_list_is_empty_and_fallback_is_enabled(): void {
+	public function test_get_categories_returns_empty_when_saved_list_is_empty(): void {
 		update_option( Settings::OPTION_NAME, Settings::defaults() );
 
 		$settings = new Settings();
 
-		self::assertSame( Settings::default_categories(), $settings->get_categories() );
+		self::assertSame( [], $settings->get_categories() );
 	}
 
-	public function test_get_categories_returns_empty_when_saved_list_is_empty_and_fallback_is_disabled(): void {
+	public function test_get_categories_ignores_legacy_fallback_when_saved_list_is_empty(): void {
 		update_option(
 			Settings::OPTION_NAME,
 			array_merge(
 				Settings::defaults(),
 				[
-					'use_preset_categories' => false,
+					'use_preset_categories' => true,
 				]
 			)
 		);
@@ -305,8 +305,16 @@ final class SettingsTest extends TestCase {
 		self::assertSame( [], $settings->get_categories() );
 	}
 
-	public function test_seed_default_categories_if_needed_materializes_starter_rows_once(): void {
-		update_option( Settings::OPTION_NAME, Settings::defaults() );
+	public function test_seed_default_categories_if_needed_materializes_starter_rows_when_category_state_is_missing(): void {
+		update_option(
+			Settings::OPTION_NAME,
+			array_diff_key(
+				Settings::defaults(),
+				[
+					'categories' => true,
+				]
+			)
+		);
 
 		$settings = new Settings();
 
@@ -315,13 +323,27 @@ final class SettingsTest extends TestCase {
 		self::assertFalse( $settings->seed_default_categories_if_needed() );
 	}
 
-	public function test_seed_default_categories_if_needed_skips_when_fallback_is_disabled(): void {
+	public function test_seed_default_categories_if_needed_preserves_intentionally_empty_category_state(): void {
+		update_option( Settings::OPTION_NAME, Settings::defaults() );
+
+		$settings = new Settings();
+
+		self::assertFalse( $settings->seed_default_categories_if_needed() );
+		self::assertSame( [], get_option( Settings::OPTION_NAME )['categories'] ?? [] );
+	}
+
+	public function test_seed_default_categories_if_needed_skips_when_legacy_fallback_is_disabled(): void {
 		update_option(
 			Settings::OPTION_NAME,
-			array_merge(
-				Settings::defaults(),
+			array_diff_key(
+				array_merge(
+					Settings::defaults(),
+					[
+						'use_preset_categories' => false,
+					]
+				),
 				[
-					'use_preset_categories' => false,
+					'categories' => true,
 				]
 			)
 		);
@@ -332,8 +354,16 @@ final class SettingsTest extends TestCase {
 		self::assertSame( [], get_option( Settings::OPTION_NAME )['categories'] ?? [] );
 	}
 
-	public function test_maybe_upgrade_seeds_default_categories_and_updates_schema_version_for_existing_empty_installs(): void {
-		update_option( Settings::OPTION_NAME, Settings::defaults() );
+	public function test_maybe_upgrade_seeds_default_categories_and_updates_schema_version_when_category_state_is_missing(): void {
+		update_option(
+			Settings::OPTION_NAME,
+			array_diff_key(
+				Settings::defaults(),
+				[
+					'categories' => true,
+				]
+			)
+		);
 		update_option( 'plan_your_day_version', '0.0.1' );
 		update_option( 'plan_your_day_schema_version', 1 );
 
@@ -342,6 +372,18 @@ final class SettingsTest extends TestCase {
 
 		self::assertSame( PLAN_YOUR_DAY_VERSION, get_option( 'plan_your_day_version' ) );
 		self::assertSame( Settings::default_categories(), get_option( Settings::OPTION_NAME )['categories'] ?? [] );
+		self::assertSame( PLAN_YOUR_DAY_SCHEMA_VERSION, get_option( 'plan_your_day_schema_version' ) );
+	}
+
+	public function test_maybe_upgrade_preserves_intentionally_empty_categories(): void {
+		update_option( Settings::OPTION_NAME, Settings::defaults() );
+		update_option( 'plan_your_day_version', '0.0.1' );
+		update_option( 'plan_your_day_schema_version', 1 );
+
+		$settings = new Settings();
+		$settings->maybe_upgrade();
+
+		self::assertSame( [], get_option( Settings::OPTION_NAME )['categories'] ?? [] );
 		self::assertSame( PLAN_YOUR_DAY_SCHEMA_VERSION, get_option( 'plan_your_day_schema_version' ) );
 	}
 
@@ -382,7 +424,7 @@ final class SettingsTest extends TestCase {
 			)
 		);
 		update_option( 'plan_your_day_version', '0.1.0' );
-		update_option( 'plan_your_day_schema_version', PLAN_YOUR_DAY_SCHEMA_VERSION - 1 );
+		update_option( 'plan_your_day_schema_version', 2 );
 
 		$settings = new Settings();
 		$settings->maybe_upgrade();
@@ -396,6 +438,63 @@ final class SettingsTest extends TestCase {
 		self::assertArrayNotHasKey( 'unknown_setting', $saved_settings );
 		self::assertSame( PLAN_YOUR_DAY_VERSION, get_option( 'plan_your_day_version' ) );
 		self::assertSame( PLAN_YOUR_DAY_SCHEMA_VERSION, get_option( 'plan_your_day_schema_version' ) );
+	}
+
+	public function test_maybe_upgrade_replaces_unmodified_legacy_default_categories(): void {
+		update_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				Settings::defaults(),
+				[
+					'categories' => $this->legacy_default_categories(),
+				]
+			)
+		);
+		update_option( 'plan_your_day_schema_version', 3 );
+
+		$settings = new Settings();
+		$settings->maybe_upgrade();
+
+		self::assertSame( Settings::default_categories(), get_option( Settings::OPTION_NAME )['categories'] ?? [] );
+		self::assertSame( PLAN_YOUR_DAY_SCHEMA_VERSION, get_option( 'plan_your_day_schema_version' ) );
+	}
+
+	public function test_maybe_upgrade_preserves_customized_categories(): void {
+		$custom_categories = Settings::sanitize_categories(
+			[
+				[
+					'slug'        => 'coffee',
+					'label'       => 'Morning stops',
+					'description' => 'Custom copy',
+					'text_query'  => 'coffee near waterfront',
+					'enabled'     => true,
+					'sort_order'  => 10,
+				],
+				[
+					'slug'        => 'activities',
+					'label'       => 'Special activities',
+					'description' => 'Custom activities',
+					'text_query'  => 'guided activities',
+					'enabled'     => true,
+					'sort_order'  => 20,
+				],
+			]
+		);
+		update_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				Settings::defaults(),
+				[
+					'categories' => $custom_categories,
+				]
+			)
+		);
+		update_option( 'plan_your_day_schema_version', 3 );
+
+		$settings = new Settings();
+		$settings->maybe_upgrade();
+
+		self::assertSame( $custom_categories, get_option( Settings::OPTION_NAME )['categories'] ?? [] );
 	}
 
 	public function test_sanitize_trusted_proxy_cidrs_accepts_ipv4_and_ipv6_edge_masks(): void {
@@ -490,6 +589,69 @@ final class SettingsTest extends TestCase {
 		self::assertSame(
 			'Missing: Default location label.',
 			$settings->format_frontend_copy( 'setup_notice_body', [ 'settings' => 'Default location label' ] )
+		);
+	}
+
+	private function legacy_default_categories(): array {
+		return Settings::sanitize_categories(
+			[
+				[
+					'slug'        => 'coffee',
+					'label'       => 'Coffee',
+					'description' => 'Search for coffee shops, cafes, tastings, and easy morning stops.',
+					'text_query'  => 'coffee shops and cafes',
+					'enabled'     => true,
+					'sort_order'  => 10,
+				],
+				[
+					'slug'        => 'food',
+					'label'       => 'Food',
+					'description' => 'Search for restaurants, quick bites, and broader local food options.',
+					'text_query'  => 'restaurants and local food',
+					'enabled'     => true,
+					'sort_order'  => 20,
+				],
+				[
+					'slug'        => 'shopping',
+					'label'       => 'Shopping',
+					'description' => 'Search for boutiques, markets, and places to browse local goods.',
+					'text_query'  => 'shopping and local boutiques',
+					'enabled'     => true,
+					'sort_order'  => 30,
+				],
+				[
+					'slug'        => 'outdoors',
+					'label'       => 'Outdoors',
+					'description' => 'Search for parks, waterfront access, trails, and outdoor stops.',
+					'text_query'  => 'parks and outdoor activities',
+					'enabled'     => true,
+					'sort_order'  => 40,
+				],
+				[
+					'slug'        => 'history-culture',
+					'label'       => 'History / culture',
+					'description' => 'Search for museums, landmarks, heritage sites, and cultural experiences.',
+					'text_query'  => 'history and culture',
+					'enabled'     => true,
+					'sort_order'  => 50,
+				],
+				[
+					'slug'        => 'scenic',
+					'label'       => 'Scenic spots',
+					'description' => 'Search for viewpoints, waterfront stretches, and scenic lookouts.',
+					'text_query'  => 'scenic spots and viewpoints',
+					'enabled'     => true,
+					'sort_order'  => 60,
+				],
+				[
+					'slug'        => 'activities',
+					'label'       => 'Other activities',
+					'description' => 'Search for tours, family-friendly attractions, and broader things to do.',
+					'text_query'  => 'tours and activities',
+					'enabled'     => true,
+					'sort_order'  => 70,
+				],
+			]
 		);
 	}
 }
