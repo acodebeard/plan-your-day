@@ -30,6 +30,7 @@ final class PlannerPayloadBuilder {
 			'hasMoreResults'     => $planner_state['has_more_results'],
 			'searchResultsError' => $planner_state['search_results_error'],
 			'searchResultsLabel' => $planner_state['search_results_label'],
+			'customStartStatus'  => $this->custom_start_status( (string) ( $planner_state['custom_start_status'] ?? '' ) ),
 			'resultsEmptyState'  => $this->get_empty_results_state( $planner_state ),
 			'messages'           => array_values( $planner_state['messages'] ),
 		];
@@ -109,5 +110,9 @@ final class PlannerPayloadBuilder {
 		}
 
 		return InterfaceCopy::default_value( $key );
+	}
+
+	private function custom_start_status( string $status ): string {
+		return in_array( $status, [ 'found', 'not_found' ], true ) ? $status : '';
 	}
 }

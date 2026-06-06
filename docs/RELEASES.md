@@ -1,7 +1,7 @@
 # Release Process
 
-Plan Your Day v1 ships as a manual GitHub release zip. The plugin does not
-include a private updater or a custom `Update URI` workflow right now.
+Waypoints v1 ships as a manual GitHub release zip. The plugin does not include a
+private updater or a custom `Update URI` workflow right now.
 
 ## Release Metadata
 

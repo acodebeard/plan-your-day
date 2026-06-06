@@ -2,10 +2,9 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "plan-your-day/planner",
-	"title": "Plan Your Day",
+	"title": "Waypoints",
 	"category": "widgets",
-	"icon": "location-alt",
-	"description": "Render the Plan Your Day planner through the block editor.",
+	"description": "Render the Waypoints planner through the block editor.",
 	"textdomain": "plan-your-day",
 	"keywords": [
 		"planner",

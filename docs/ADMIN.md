@@ -1,9 +1,9 @@
 # Admin Workflows
 
-Plan Your Day settings live under:
+Waypoints settings live under:
 
 ```text
-Settings > Plan Your Day
+Settings > Waypoints
 ```
 
 Only administrators with `manage_options` can change plugin settings or run the
@@ -73,8 +73,8 @@ Each category row includes:
 - enabled state
 - sort order
 
-The starter category fallback setting controls whether fresh or empty installs
-show the built-in generic starter rows instead of no category buttons.
+Fresh installs start with the built-in starter rows. Administrators can delete
+all saved rows when they want visitors to use custom search only.
 
 ## Google API And Cache
 

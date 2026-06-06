@@ -1,15 +1,15 @@
 # Frontend Usage
 
-Plan Your Day can be rendered through either the block editor or the shortcode.
-Both entry points use the same server-rendered planner and the same frontend
-CSS and JavaScript assets.
+Waypoints can be rendered through either the block editor or the shortcode. Both
+entry points use the same server-rendered planner and the same frontend CSS and
+JavaScript assets.
 
 ## Before You Place The Planner
 
 Make sure the plugin has been configured under:
 
 ```text
-Settings > Plan Your Day
+Settings > Waypoints
 ```
 
 At minimum, set:
@@ -26,7 +26,7 @@ instead of the full planner.
 The plugin registers a dynamic block named:
 
 ```text
-Plan Your Day
+Waypoints
 ```
 
 Editor behavior:

@@ -2,9 +2,13 @@
 
 ## Project
 
-This repository contains the standalone **Plan Your Day** WordPress plugin.
+This repository contains the standalone **Plan Your Day** WordPress plugin. The
+plugin source lives in `plugin/plan-your-day/`.
 
 Plan Your Day is a reusable plugin. It must not be branded to, named after, or architecturally tied to any specific client/site.
+
+The latest published release is v0.5. The project is preparing for v1.0 with
+focused public-release hardening and cleanup.
 
 ## Hard rules
 
@@ -15,30 +19,51 @@ Plan Your Day is a reusable plugin. It must not be branded to, named after, or a
 - Inspect the existing code before editing.
 - Do not introduce a new build system unless absolutely necessary.
 - Do not remove accessibility features.
+- Do not introduce Font Awesome, icon fonts, bundled icon images, or SVG icon
+  assets for UI chrome. Use CSS-only details for carets, grips, toggles, and
+  similar controls unless the asset is real content.
+- Keep the bundled Noto Sans font files and their license together. Do not add
+  or replace fonts without confirming license coverage.
 - Escape and sanitize all WordPress output/input appropriately.
 - Do not allow raw HTML/JS injection through admin-editable copy/category fields unless a deliberate sanitized rich-text pattern already exists.
 
-## Current feature direction
+## Current product surface
 
 The plugin currently supports:
 - frontend place/category/custom searches,
+- "Get more results" pagination for category and custom searches,
 - waypoint selection,
+- waypoint reorder/remove and clear-trip behavior,
 - route/directions behavior,
-- admin-editable interface copy,
-- admin-editable/custom categories.
+- map preview and Google Maps handoff behavior,
+- distance labels and distance-unit settings,
+- frontend color mode switching with an admin default,
+- Noto Sans frontend/admin typography,
+- admin-editable interface copy where the setting is still useful,
+- admin-editable/custom categories with draggable ordering.
 
-Current planned features include:
-- “Get more results” for category and custom searches,
-- a mobile fixed waypoint-count tab,
-- distance preference controls,
-- transportation preference controls for walking, driving, or both,
-- a later compacting pass after copy and category settings are cleaned up.
+## Current v1.0 direction
+
+Prioritize release readiness over new feature breadth. Current hardening lanes
+include:
+
+- CSS-only UI details and removal of bundled icon assets.
+- REST token bootstrap cache safety.
+- Rate-limit state moving to expiring transients.
+- Google geocode failure handling.
+- Stable, quiet WordPress Plugin Check workflow coverage.
+
+PHPStan is not part of the current v1.0 gate. A one-off scan without WordPress
+stubs reports missing WordPress symbols, so do not add PHPStan to CI unless the
+project also adds reproducible WordPress-aware tooling.
 
 ## UI/accessibility expectations
 
 - Use real buttons for interactive controls.
 - Preserve keyboard access.
 - Preserve accessible names for controls.
+- Preserve color mode behavior: admin default first, system preference only
+  when configured, and explicit frontend user choice as the strongest signal.
 - Loading/error/status messages should be understandable to screen reader users.
 - Do not steal focus unexpectedly.
 - Use polite live/status announcements where helpful, but do not announce every result one-by-one.
@@ -57,7 +82,17 @@ Current planned features include:
 
 ## Testing expectations
 
-Before finishing a task, check:
+Before finishing a code task, choose checks that match the change. Common
+checks include:
+
+- `cd plugin/plan-your-day && composer test`
+- `npm ci && npx playwright install chromium && npm run browser-smoke`
+- `find plugin/plan-your-day -name '*.php' -print -exec php -l {} \;`
+- GitHub `Plugin Quality` workflow for PHP syntax, PHPCS, PHPUnit, browser
+  smoke, and WordPress Plugin Check.
+
+Also check, as relevant:
+
 - frontend still renders with default settings,
 - saved settings still load,
 - category/custom searches still work,
@@ -67,4 +102,4 @@ Before finishing a task, check:
 - no client/site-specific references were introduced.
 
 ## Additional Rules
-- when referring to an Issue on a  GitHub repo, capitalize the I. 
+- When referring to an Issue on a GitHub repo, capitalize the I.

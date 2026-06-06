@@ -188,7 +188,7 @@ final class InterfaceCopy {
 				'group'       => 'general',
 				'type'        => 'text',
 				'required'    => true,
-				'default'     => __( 'Plan Your Day setup needed', 'plan-your-day' ),
+				'default'     => __( 'Waypoints setup needed', 'plan-your-day' ),
 			],
 			'setup_notice_body'      => [
 				'label'       => __( 'Setup notice message', 'plan-your-day' ),
@@ -205,7 +205,7 @@ final class InterfaceCopy {
 				'group'       => 'general',
 				'type'        => 'text',
 				'required'    => true,
-				'default'     => __( 'Open Plan Your Day settings', 'plan-your-day' ),
+				'default'     => __( 'Open Waypoints settings', 'plan-your-day' ),
 			],
 			'hero_eyebrow'           => [
 				'label'       => __( 'Top section eyebrow', 'plan-your-day' ),
@@ -221,7 +221,7 @@ final class InterfaceCopy {
 				'group'       => 'general',
 				'type'        => 'text',
 				'required'    => true,
-				'default'     => __( 'Plan Your Day', 'plan-your-day' ),
+				'default'     => __( 'Waypoints', 'plan-your-day' ),
 			],
 			'hero_intro'             => [
 				'label'       => __( 'Top section intro', 'plan-your-day' ),

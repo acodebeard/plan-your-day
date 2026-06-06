@@ -43,7 +43,7 @@
 					el(
 						Placeholder,
 						{
-							label: __( 'Plan Your Day', 'plan-your-day' ),
+							label: __( 'Waypoints', 'plan-your-day' ),
 							instructions: __( 'The frontend uses the same planner renderer as the shortcode. Configure an optional action URL in the block settings.', 'plan-your-day' ),
 						},
 						el(

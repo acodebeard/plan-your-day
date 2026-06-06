@@ -271,9 +271,13 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		$first    = is_array( $results[0] ?? null ) ? $results[0] : [];
 		$geometry = is_array( $first['geometry'] ?? null ) ? $first['geometry'] : [];
 		$location = is_array( $geometry['location'] ?? null ) ? $geometry['location'] : [];
+		$status   = strtoupper( trim( (string) ( $body['status'] ?? '' ) ) );
+
+		if ( 'OK' !== $status ) {
+			return $this->geocode_status_failure( $status, $decoded['status_code'] );
+		}
 
 		if (
-			'OK' !== (string) ( $body['status'] ?? '' ) ||
 			! isset( $location['lat'], $location['lng'] ) ||
 			! is_numeric( $location['lat'] ) ||
 			! is_numeric( $location['lng'] )
@@ -295,6 +299,59 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		);
 	}
 
+	private function geocode_status_failure( string $status, int $status_code ): GoogleApiResult {
+		$result = match ( $status ) {
+			'OVER_QUERY_LIMIT' => GoogleApiResult::failure(
+				'geocoding_rate_limited',
+				__( 'Google geocoding is rate limited right now.', 'plan-your-day' ),
+				$status_code,
+				true
+			),
+			'OVER_DAILY_LIMIT' => GoogleApiResult::failure(
+				'geocoding_quota_exceeded',
+				__( 'Google geocoding quota is unavailable right now.', 'plan-your-day' ),
+				$status_code,
+				false
+			),
+			'REQUEST_DENIED' => GoogleApiResult::failure(
+				'geocoding_request_denied',
+				__( 'Google geocoding is not allowed for this API key.', 'plan-your-day' ),
+				$status_code,
+				false
+			),
+			'UNKNOWN_ERROR' => GoogleApiResult::failure(
+				'geocoding_unavailable',
+				__( 'Google geocoding is unavailable right now.', 'plan-your-day' ),
+				$status_code,
+				true
+			),
+			'ZERO_RESULTS' => GoogleApiResult::failure(
+				'geocoding_zero_results',
+				__( 'Google geocoding could not find this address.', 'plan-your-day' ),
+				$status_code,
+				false
+			),
+			default => GoogleApiResult::failure(
+				'geocoding_unavailable',
+				__( 'Google geocoding is unavailable right now.', 'plan-your-day' ),
+				$status_code,
+				$this->is_retryable_status( $status_code )
+			),
+		};
+
+		DebugLogger::log(
+			'google.geocode.provider_status',
+			[
+				'status_code'     => $status_code,
+				'provider_status' => '' !== $status ? $status : 'missing',
+				'error_code'      => $result->error_code(),
+				'retryable'       => $result->is_retryable(),
+			]
+		);
+
+		return $result;
+	}
+
 	/**
 	 * @return array{body: array, status_code: int}|GoogleApiResult
 	 */
@@ -303,11 +360,11 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 			DebugLogger::log(
 				'google.response.wp_error',
 				[
-					'error_code' => $error_code,
-					'response'   => $response,
+					'error_code'    => $error_code,
+					'wp_error_code' => $response->get_error_code(),
 				]
 			);
-			return GoogleApiResult::failure( $error_code, $message );
+			return GoogleApiResult::failure( $error_code, $message, 0, true );
 		}
 
 		if ( ! is_array( $response ) ) {
@@ -322,7 +379,8 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		}
 
 		$status_code = (int) wp_remote_retrieve_response_code( $response );
-		$body        = json_decode( (string) wp_remote_retrieve_body( $response ), true );
+		$raw_body    = (string) wp_remote_retrieve_body( $response );
+		$body        = json_decode( $raw_body, true );
 
 		if ( $status_code < 200 || $status_code >= 300 || ! is_array( $body ) ) {
 			DebugLogger::log(
@@ -330,7 +388,8 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 				[
 					'error_code'   => $error_code,
 					'status_code'  => $status_code,
-					'body_excerpt' => wp_remote_retrieve_body( $response ),
+					'body_length'  => strlen( $raw_body ),
+					'body_keys'    => is_array( $body ) ? array_keys( $body ) : [],
 				]
 			);
 			return GoogleApiResult::failure(

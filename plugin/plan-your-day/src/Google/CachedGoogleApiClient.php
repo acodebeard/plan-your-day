@@ -9,6 +9,11 @@ defined( 'ABSPATH' ) || exit;
 
 final class CachedGoogleApiClient implements GoogleApiClientInterface {
 	private const RETRYABLE_FAILURE_CACHE_TTL = 30;
+	private const COOLDOWN_FAILURE_CODES = [
+		'geocoding_quota_exceeded' => true,
+		'geocoding_request_denied' => true,
+		'geocoding_zero_results'   => true,
+	];
 	private GoogleApiClientInterface $client;
 	private Settings $settings;
 	private GoogleApiCache $cache;
@@ -96,8 +101,8 @@ final class CachedGoogleApiClient implements GoogleApiClientInterface {
 	}
 
 	private function remember( string $cache_key, int $ttl, string $scope, string $place_id, callable $callback ): GoogleApiResult {
-		// Retryable failures use a short cooldown cache even when the normal success TTL is disabled,
-		// so operators can disable success caching without reintroducing burst retries after 429/5xx responses.
+		// Failure cooldowns still apply when the normal success TTL is disabled,
+		// so operators can disable success caching without reintroducing provider retry bursts.
 		$cached = $this->cache->get( $cache_key );
 
 		if ( null !== $cached ) {
@@ -108,11 +113,15 @@ final class CachedGoogleApiClient implements GoogleApiClientInterface {
 
 		if ( $result->is_success() ) {
 			$this->cache->set( $cache_key, $result, $ttl, $scope, $place_id );
-		} elseif ( $result->is_retryable() ) {
+		} elseif ( $this->is_cooldown_failure( $result ) ) {
 			$this->cache->set( $cache_key, $result, self::RETRYABLE_FAILURE_CACHE_TTL, $scope, $place_id );
 		}
 
 		return $result;
+	}
+
+	private function is_cooldown_failure( GoogleApiResult $result ): bool {
+		return $result->is_retryable() || isset( self::COOLDOWN_FAILURE_CODES[ $result->error_code() ] );
 	}
 
 	private function normalize_coordinate( ?float $coordinate ): ?string {

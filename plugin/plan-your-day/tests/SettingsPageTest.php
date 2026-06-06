@@ -151,6 +151,17 @@ namespace Acodebeard\PlanYourDay\Tests {
 			self::assertStringContainsString( 'Distance Labels', $output );
 		}
 
+		public function test_register_uses_waypoints_display_name_for_settings_page(): void {
+			$settings_page = $this->settings_page();
+
+			$settings_page->register();
+
+			$page = $GLOBALS['plan_your_day_test_options_pages'][0] ?? [];
+
+			self::assertSame( 'Waypoints Settings', $page['page_title'] ?? null );
+			self::assertSame( 'Waypoints', $page['menu_title'] ?? null );
+		}
+
 		public function test_register_categories_editor_field_has_no_duplicate_label(): void {
 			$settings_page = $this->settings_page();
 
@@ -161,6 +172,39 @@ namespace Acodebeard\PlanYourDay\Tests {
 			self::assertSame( '', $field['title'] ?? null );
 			self::assertSame( 'plan_your_day_categories', $field['section'] ?? null );
 			self::assertSame( 'plan-your-day-categories-field', $field['args']['class'] ?? null );
+		}
+
+		public function test_register_places_interface_copy_after_google_sections(): void {
+			$settings_page = $this->settings_page();
+
+			$settings_page->register();
+
+			$section_ids = array_keys( $GLOBALS['plan_your_day_test_settings_sections'] );
+
+			self::assertGreaterThan(
+				array_search( 'plan_your_day_google_cache', $section_ids, true ),
+				array_search( 'plan_your_day_interface_copy', $section_ids, true )
+			);
+		}
+
+		public function test_register_does_not_register_legacy_default_categories_toggle(): void {
+			$settings_page = $this->settings_page();
+
+			$settings_page->register();
+
+			self::assertArrayNotHasKey( 'plan_your_day_use_preset_categories', $GLOBALS['plan_your_day_test_settings_fields'] );
+		}
+
+		public function test_categories_section_copy_allows_empty_category_list_without_fallback_copy(): void {
+			$settings_page = $this->settings_page();
+
+			ob_start();
+			$settings_page->render_categories_section();
+			$output = (string) ob_get_clean();
+
+			self::assertStringContainsString( 'custom search only', $output );
+			self::assertStringNotContainsString( 'fallback', $output );
+			self::assertStringNotContainsString( 'Use Default Categories', $output );
 		}
 
 		public function test_starting_point_cleanup_candidate_fields_are_removed_from_interface_copy_admin(): void {
@@ -327,9 +371,13 @@ namespace Acodebeard\PlanYourDay\Tests {
 				'https://example.test/wp-content/plugins/plan-your-day/assets/js/admin-settings.js',
 				$GLOBALS['plan_your_day_test_enqueued_scripts']['plan-your-day-admin-settings']['src']
 			);
+			self::assertSame(
+				[ 'jquery', 'jquery-ui-sortable' ],
+				$GLOBALS['plan_your_day_test_enqueued_scripts']['plan-your-day-admin-settings']['deps']
+			);
 		}
 
-		public function test_categories_field_renders_starter_rows_when_no_categories_have_been_saved(): void {
+		public function test_categories_field_renders_no_saved_rows_when_saved_category_list_is_empty(): void {
 			$settings_page = $this->settings_page();
 
 			ob_start();
@@ -343,9 +391,39 @@ namespace Acodebeard\PlanYourDay\Tests {
 			);
 			$output = (string) ob_get_clean();
 
-			self::assertStringContainsString( 'Coffee', $output );
-			self::assertStringContainsString( 'coffee shops and cafes', $output );
-			self::assertStringContainsString( 'View built-in starter categories', $output );
+			self::assertStringNotContainsString( 'Coffee near me', $output );
+			self::assertSame( 0, preg_match_all( '/plan_your_day_settings\[categories\]\[\d+\]\[label\]/', $output ) );
+		}
+
+		public function test_categories_field_renders_saved_default_rows(): void {
+			update_option(
+				Settings::OPTION_NAME,
+				array_merge(
+					Settings::defaults(),
+					[
+						'categories' => Settings::default_categories(),
+					]
+				)
+			);
+
+			$settings_page = $this->settings_page();
+
+			ob_start();
+			$settings_page->render_field(
+				[
+					'key'         => 'categories',
+					'type'        => 'categories',
+					'description' => '',
+					'attributes'  => [],
+				]
+			);
+			$output = (string) ob_get_clean();
+
+			self::assertStringContainsString( 'Coffee near me', $output );
+			self::assertStringNotContainsString( 'Leave a row empty to ignore it.', $output );
+			self::assertStringNotContainsString( 'View built-in starter categories', $output );
+			self::assertStringNotContainsString( 'Manage the category buttons shown to visitors.', $output );
+			self::assertSame( count( CategoryCatalog::default_rows() ), preg_match_all( '/plan_your_day_settings\[categories\]\[\d+\]\[label\]/', $output ) );
 		}
 
 		public function test_categories_field_template_keeps_new_row_form_controls(): void {
@@ -366,12 +444,80 @@ namespace Acodebeard\PlanYourDay\Tests {
 			self::assertStringContainsString( 'data-plan-category-row', $output );
 			self::assertStringContainsString( 'data-plan-category-drag-handle', $output );
 			self::assertStringContainsString( 'draggable="true"', $output );
+			self::assertStringNotContainsString( 'class="button plan-your-day-category-drag-handle"', $output );
 			self::assertStringContainsString( 'data-plan-category-sort-order', $output );
 			self::assertStringContainsString( 'plan_your_day_settings[categories][__INDEX__][label]', $output );
 			self::assertStringContainsString( 'plan_your_day_settings[categories][__INDEX__][description]', $output );
 			self::assertStringContainsString( 'plan_your_day_settings[categories][__INDEX__][text_query]', $output );
+			self::assertStringContainsString( 'data-plan-delete-category', $output );
+			self::assertStringContainsString( 'type="button"', $output );
+			self::assertStringContainsString( 'class="button button-primary plan-your-day-add-category-button"', $output );
+			self::assertStringContainsString( 'placeholder="Short button name, e.g. Farmers market"', $output );
+			self::assertStringContainsString( 'placeholder="A helpful one-sentence description for visitors"', $output );
+			self::assertStringContainsString( 'placeholder="Google search phrase, e.g. farmers markets near me"', $output );
 			self::assertStringContainsString( 'type="hidden" name="plan_your_day_settings[categories][__INDEX__][sort_order]"', $output );
 			self::assertStringNotContainsString( 'type="number" name="plan_your_day_settings[categories][__INDEX__][sort_order]"', $output );
+			self::assertStringNotContainsString( 'plan_your_day_settings[categories][__INDEX__][remove]', $output );
+		}
+
+		public function test_categories_field_marks_columns_for_admin_widths_and_delete_confirmation(): void {
+			$settings_page = $this->settings_page();
+
+			ob_start();
+			$settings_page->render_field(
+				[
+					'key'         => 'categories',
+					'type'        => 'categories',
+					'description' => '',
+					'attributes'  => [],
+				]
+			);
+			$output = (string) ob_get_clean();
+
+			self::assertStringContainsString( 'class="plan-your-day-category-label-column"', $output );
+			self::assertStringContainsString( 'class="plan-your-day-category-description-column"', $output );
+			self::assertStringContainsString( 'class="plan-your-day-category-label-cell"', $output );
+			self::assertStringContainsString( 'class="plan-your-day-category-description-cell"', $output );
+			self::assertStringContainsString( 'data-plan-delete-category-confirm=', $output );
+		}
+
+		public function test_categories_table_uses_dedicated_compact_columns_for_order_and_enabled(): void {
+			$settings_page = $this->settings_page();
+
+			ob_start();
+			$settings_page->render_field(
+				[
+					'key'         => 'categories',
+					'type'        => 'categories',
+					'description' => '',
+					'attributes'  => [],
+				]
+			);
+			$output = (string) ob_get_clean();
+
+			self::assertStringContainsString( '<colgroup>', $output );
+			self::assertStringContainsString( 'class="plan-your-day-category-order-col"', $output );
+			self::assertStringContainsString( 'class="plan-your-day-category-enabled-col"', $output );
+			self::assertStringNotContainsString( 'width="42"', $output );
+			self::assertStringNotContainsString( 'width="32"', $output );
+		}
+
+		public function test_categories_field_uses_external_admin_script_for_sorting_behavior(): void {
+			$settings_page = $this->settings_page();
+
+			ob_start();
+			$settings_page->render_field(
+				[
+					'key'         => 'categories',
+					'type'        => 'categories',
+					'description' => '',
+					'attributes'  => [],
+				]
+			);
+			$output = (string) ob_get_clean();
+
+			self::assertStringNotContainsString( '<script>', $output );
+			self::assertStringNotContainsString( 'document.currentScript', $output );
 		}
 
 		private function settings_page(): SettingsPage {
