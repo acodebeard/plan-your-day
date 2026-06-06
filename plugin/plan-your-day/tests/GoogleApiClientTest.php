@@ -97,6 +97,64 @@ final class GoogleApiClientTest extends TestCase {
 		self::assertSame( 'page-3', $result->data()['nextPageToken'] ?? '' );
 	}
 
+	public function test_geocode_classifies_provider_body_statuses(): void {
+		$cases = [
+			'OVER_QUERY_LIMIT' => [
+				'error_code' => 'geocoding_rate_limited',
+				'retryable'  => true,
+			],
+			'OVER_DAILY_LIMIT' => [
+				'error_code' => 'geocoding_quota_exceeded',
+				'retryable'  => false,
+			],
+			'REQUEST_DENIED'   => [
+				'error_code' => 'geocoding_request_denied',
+				'retryable'  => false,
+			],
+			'UNKNOWN_ERROR'    => [
+				'error_code' => 'geocoding_unavailable',
+				'retryable'  => true,
+			],
+			'ZERO_RESULTS'     => [
+				'error_code' => 'geocoding_zero_results',
+				'retryable'  => false,
+			],
+		];
+
+		foreach ( $cases as $provider_status => $expected ) {
+			$transport                    = new RecordingGoogleHttpTransport();
+			$transport->get_response_body = wp_json_encode(
+				[
+					'status'        => $provider_status,
+					'error_message' => 'Provider detail containing places-key must not be surfaced.',
+					'results'       => [],
+				]
+			);
+			$client                       = new GoogleApiClient( new Settings(), $transport, new PlaceParser() );
+
+			$result = $client->geocode( 'Unknown Test Address' );
+
+			self::assertFalse( $result->is_success(), $provider_status );
+			self::assertSame( $expected['error_code'], $result->error_code(), $provider_status );
+			self::assertSame( $expected['retryable'], $result->is_retryable(), $provider_status );
+			self::assertSame( 200, $result->status_code(), $provider_status );
+			self::assertStringNotContainsString( 'places-key', $result->message(), $provider_status );
+		}
+	}
+
+	public function test_geocode_transport_wp_error_failure_is_retryable(): void {
+		$transport               = new RecordingGoogleHttpTransport();
+		$transport->get_response = new \WP_Error( 'http_request_failed', 'Connection timed out while calling provider.' );
+		$client                  = new GoogleApiClient( new Settings(), $transport, new PlaceParser() );
+
+		$result = $client->geocode( '123 Test St' );
+
+		self::assertFalse( $result->is_success() );
+		self::assertSame( 'geocoding_unavailable', $result->error_code() );
+		self::assertSame( 0, $result->status_code() );
+		self::assertTrue( $result->is_retryable() );
+	}
+
 	public function test_cached_text_search_key_includes_request_shaping_settings(): void {
 		$cache            = new GoogleApiCache();
 		$recording_client = new RecordingGoogleApiClient();
@@ -198,22 +256,55 @@ final class GoogleApiClientTest extends TestCase {
 		self::assertSame( 1, $recording_client->text_search_calls );
 		self::assertNotEmpty( $GLOBALS['plan_your_day_test_transients'] );
 	}
+
+	public function test_cached_geocode_briefly_reuses_provider_cooldown_failure_results(): void {
+		$settings                               = $GLOBALS['plan_your_day_test_options'][ Settings::OPTION_NAME ];
+		$settings['google_geocoding_cache_ttl'] = 0;
+		update_option( Settings::OPTION_NAME, $settings );
+
+		$recording_client                 = new RecordingGoogleApiClient();
+		$recording_client->geocode_result = GoogleApiResult::failure(
+			'geocoding_zero_results',
+			'Google geocoding could not find this address.',
+			200,
+			false
+		);
+		$client                           = new CachedGoogleApiClient( $recording_client, new Settings(), new GoogleApiCache() );
+
+		$first  = $client->geocode( 'Unknown Test Address' );
+		$second = $client->geocode( 'Unknown Test Address' );
+
+		self::assertFalse( $first->is_success() );
+		self::assertFalse( $first->is_retryable() );
+		self::assertSame( $first->to_array(), $second->to_array() );
+		self::assertSame( 1, $recording_client->geocode_calls );
+		self::assertNotEmpty( $GLOBALS['plan_your_day_test_transients'] );
+	}
 }
 
 final class RecordingGoogleHttpTransport implements GoogleHttpTransportInterface {
 	public array $last_get_args = [];
+	public string $last_get_url = '';
 	public array $last_post_args = [];
 	public array $last_post_body = [];
+	public mixed $get_response = null;
+	public int $get_response_code = 200;
+	public string $get_response_body = '';
 	public string $post_response_body = '{}';
 
 	public function get( string $url, array $args = [] ) {
 		$this->last_get_args = $args;
+		$this->last_get_url  = $url;
+
+		if ( null !== $this->get_response ) {
+			return $this->get_response;
+		}
 
 		return [
 			'response' => [
-				'code' => 200,
+				'code' => $this->get_response_code,
 			],
-			'body'     => wp_json_encode(
+			'body'     => '' !== $this->get_response_body ? $this->get_response_body : wp_json_encode(
 				[
 					'id'               => 'place-1',
 					'displayName'      => [
@@ -241,8 +332,10 @@ final class RecordingGoogleHttpTransport implements GoogleHttpTransportInterface
 
 final class RecordingGoogleApiClient implements GoogleApiClientInterface {
 	public int $text_search_calls = 0;
+	public int $geocode_calls = 0;
 	public array $text_search_page_tokens = [];
 	public ?GoogleApiResult $text_search_result = null;
+	public ?GoogleApiResult $geocode_result = null;
 
 	public function text_search( string $query, ?float $origin_latitude = null, ?float $origin_longitude = null, string $page_token = '' ): GoogleApiResult {
 		++$this->text_search_calls;
@@ -268,6 +361,12 @@ final class RecordingGoogleApiClient implements GoogleApiClientInterface {
 	}
 
 	public function geocode( string $address ): GoogleApiResult {
+		++$this->geocode_calls;
+
+		if ( $this->geocode_result instanceof GoogleApiResult ) {
+			return $this->geocode_result;
+		}
+
 		return GoogleApiResult::success( [] );
 	}
 }
