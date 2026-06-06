@@ -8,6 +8,7 @@
 /.gitignore
 /.github
 /dist
+/docs
 /.phpunit.cache
 /node_modules
 /vendor
