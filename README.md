@@ -73,6 +73,13 @@ checks above for this release.
 - `docs/` contains installation, usage, admin, release, architecture, settings,
   security, troubleshooting, and historical planning notes for the plugin.
 
+## Naming Note
+
+The public plugin name is **Waypoints**. The source still uses `plan-your-day`
+for the plugin directory, text domain, shortcode, option names, namespaces, and
+other internal identifiers because the plugin was renamed after those
+compatibility surfaces already existed.
+
 ## Documentation
 
 Start with [docs/README.md](docs/README.md). Current docs cover installation,
