@@ -58,6 +58,16 @@ final class PlannerRoutes {
 	public function register(): void {
 		register_rest_route(
 			self::REST_NAMESPACE,
+			'/bootstrap',
+			[
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => [ $this, 'bootstrap' ],
+				'permission_callback' => '__return_true',
+			]
+		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
 			'/browse',
 			[
 				'methods'             => WP_REST_Server::CREATABLE,
@@ -75,6 +85,32 @@ final class PlannerRoutes {
 				'callback'            => [ $this, 'route' ],
 				'permission_callback' => '__return_true',
 				'args'                => $this->route_args(),
+			]
+		);
+	}
+
+	public function bootstrap( WP_REST_Request $request ): WP_REST_Response|WP_Error {
+		$guard = $this->guard_bootstrap_request();
+
+		if ( $guard instanceof WP_Error ) {
+			return $guard;
+		}
+
+		$endpoint_token = $this->visitor_token_manager->get_endpoint_token();
+
+		if ( '' === $endpoint_token ) {
+			return new WP_Error(
+				'plan_your_day_token_unavailable',
+				$this->request_verification_failed_message(),
+				[
+					'status' => 403,
+				]
+			);
+		}
+
+		return new WP_REST_Response(
+			[
+				'endpointToken' => $endpoint_token,
 			]
 		);
 	}
@@ -178,6 +214,20 @@ final class PlannerRoutes {
 				'route' => $this->planner_payload_builder->build_route_payload( $planner_state ),
 			]
 		);
+	}
+
+	private function guard_bootstrap_request(): ?WP_Error {
+		if ( ! $this->request_origin_validator->is_same_site_request( $_SERVER ) ) {
+			return new WP_Error(
+				'plan_your_day_invalid_origin',
+				$this->request_verification_failed_message(),
+				[
+					'status' => 403,
+				]
+			);
+		}
+
+		return $this->rate_limiter->enforce( 'bootstrap', $_SERVER, self::RATE_LIMIT_BASE_COST );
 	}
 
 	private function guard_request( WP_REST_Request $request, string $scope, array $request_state ): ?WP_Error {
