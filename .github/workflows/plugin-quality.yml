@@ -104,9 +104,72 @@ jobs:
           working-directory: plugin/plan-your-day
           composer-options: "--no-dev --optimize-autoloader"
 
-      - uses: wordpress/plugin-check-action@v1
+      - uses: actions/setup-node@v4
         with:
-          build-dir: ./plugin/plan-your-day
-          exclude-directories: tests,tools
-          exclude-files: .distignore,DECISIONS.md,phpcs.xml.dist,phpunit.xml.dist
-          ignore-warnings: true
+          node-version: "22"
+
+      - name: Run Plugin Check
+        env:
+          WP_ENV_HOME: ${{ runner.temp }}/wp-env
+        run: |
+          trap 'status=$?; if [ "$status" -ne 0 ]; then docker ps -a || true; find "$WP_ENV_HOME" -maxdepth 3 -type f -print || true; fi; exit "$status"' EXIT
+
+          plugin_dir="$(realpath ./plugin/plan-your-day)"
+
+          cat > .wp-env.json <<EOF
+          {
+            "core": null,
+            "port": 8880,
+            "testsEnvironment": false,
+            "plugins": [ "https://downloads.wordpress.org/plugin/plugin-check.zip" ],
+            "mappings": {
+              "wp-content/plugins/plan-your-day": "$plugin_dir"
+            }
+          }
+          EOF
+
+          npm -g --no-fund install @wordpress/env@11.5.0
+          command -v wp-env
+          wp-env --version
+          cat .wp-env.json
+          wp-env start --update
+          wp-env run cli wp cli info
+          wp-env run cli wp plugin list
+          wp-env run cli wp plugin list-checks
+          wp-env run cli wp plugin list-check-categories
+
+          wp-env run cli wp plugin activate plan-your-day
+
+          set +e
+          wp-env run cli wp plugin check plan-your-day \
+            --format=json \
+            --ignore-warnings \
+            --exclude-files=.distignore,DECISIONS.md,phpcs.xml.dist,phpunit.xml.dist,.wp-env.json \
+            --exclude-directories=tests,tools \
+            --require=./wp-content/plugins/plugin-check/cli.php \
+            > "$RUNNER_TEMP/plugin-check-results.txt"
+          status=$?
+          set -e
+
+          cat "$RUNNER_TEMP/plugin-check-results.txt"
+          if grep -Eq '"type"[[:space:]]*:[[:space:]]*"ERROR"' "$RUNNER_TEMP/plugin-check-results.txt"; then
+            exit 1
+          fi
+
+          exit "$status"
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: plugin-check-results
+          path: ${{ runner.temp }}/plugin-check-results.txt
+          if-no-files-found: ignore
+
+      - name: Stop wp-env
+        if: ${{ always() }}
+        env:
+          WP_ENV_HOME: ${{ runner.temp }}/wp-env
+        run: |
+          if command -v wp-env >/dev/null 2>&1; then
+            wp-env destroy --force || true
+          fi
