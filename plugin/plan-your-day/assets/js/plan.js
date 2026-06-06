@@ -1008,14 +1008,19 @@
       browse: config.initialData?.browse || {},
       route: config.initialData?.route || {},
     };
+    const canBootstrapEndpointToken =
+      typeof config.rest?.bootstrapUrl === 'string' &&
+      config.rest.bootstrapUrl !== '';
+    let endpointToken = typeof config.rest?.endpointToken === 'string' ? config.rest.endpointToken : '';
+    let hasBootstrappedEndpointToken = false;
+    let endpointTokenRequest = null;
     const hasRestConfig =
       refs.form instanceof HTMLFormElement &&
       typeof config.rest?.browseUrl === 'string' &&
       config.rest.browseUrl !== '' &&
       typeof config.rest?.routeUrl === 'string' &&
       config.rest.routeUrl !== '' &&
-      typeof config.rest?.endpointToken === 'string' &&
-      config.rest.endpointToken !== '';
+      (endpointToken !== '' || canBootstrapEndpointToken);
     const shouldHydrateOnLoad = Boolean(config.hydration?.shouldHydrateOnLoad);
     const colorModeDefault = normalizeColorModeDefault(
       config.colorModeDefault || root.getAttribute('data-plan-color-mode-default')
@@ -1190,6 +1195,58 @@
       animateStartPanel(false);
     };
 
+    const ensureEndpointToken = async () => {
+      if (!canBootstrapEndpointToken) {
+        return endpointToken;
+      }
+
+      if (hasBootstrappedEndpointToken && endpointToken !== '') {
+        return endpointToken;
+      }
+
+      if (endpointTokenRequest) {
+        return endpointTokenRequest;
+      }
+
+      endpointTokenRequest = fetch(config.rest.bootstrapUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      })
+        .then(async (response) => {
+          const responseBody = await response.json().catch(() => ({}));
+          debugLog(config, response.ok ? 'info' : 'warn', 'request:bootstrap', {
+            status: response.status,
+            ok: response.ok,
+            body: responseBody,
+          });
+
+          if (!response.ok) {
+            throw new Error(responseBody?.message || strings.requestFailed || '');
+          }
+
+          const freshToken = String(responseBody?.endpointToken || '');
+
+          if (freshToken === '') {
+            throw new Error(strings.requestFailed || '');
+          }
+
+          endpointToken = freshToken;
+          hasBootstrappedEndpointToken = true;
+
+          return endpointToken;
+        })
+        .finally(() => {
+          endpointTokenRequest = null;
+        });
+
+      return endpointTokenRequest;
+    };
+
     const sendRequest = async (endpointKey, payload, requestOptions = {}) => {
       if (!hasRestConfig) {
         return 'unsupported';
@@ -1259,9 +1316,15 @@
       });
 
       try {
+        const requestEndpointToken = await ensureEndpointToken();
+
+        if (requestEndpointToken === '') {
+          throw new Error(strings.requestFailed || '');
+        }
+
         const requestBody = {
           ...payload,
-          endpoint_token: config.rest.endpointToken,
+          endpoint_token: requestEndpointToken,
         };
 
         if (endpointKey === 'browse') {

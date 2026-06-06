@@ -132,7 +132,6 @@ namespace Acodebeard\PlanYourDay\Tests {
 	use Acodebeard\PlanYourDay\Planner\StartContextResolver;
 	use Acodebeard\PlanYourDay\Planner\WaypointList;
 	use Acodebeard\PlanYourDay\Security\RequestOriginValidator;
-	use Acodebeard\PlanYourDay\Security\VisitorTokenManager;
 	use Acodebeard\PlanYourDay\Settings\Settings;
 	use PHPUnit\Framework\TestCase;
 
@@ -224,6 +223,10 @@ namespace Acodebeard\PlanYourDay\Tests {
 			self::assertStringContainsString( 'class="plan-your-day"', $output );
 			self::assertStringContainsString( 'data-plan-color-mode-default="dark"', $output );
 			self::assertStringContainsString( '"colorModeDefault":"dark"', $output );
+			self::assertStringContainsString( '"bootstrapUrl":"https:\/\/example.test\/wp-json\/plan-your-day\/v1\/bootstrap"', $output );
+			self::assertStringContainsString( '"endpointToken":""', $output );
+			self::assertStringNotContainsString( 'plan_your_day_visitor', $output );
+			self::assertStringNotContainsString( hash_hmac( 'sha256', str_repeat( 'ab', 24 ), 'tests-auth|plan-your-day' ), $output );
 			self::assertStringContainsString( 'action="https://example.test/planner#plan-your-day-1"', $output );
 			self::assertStringNotContainsString( 'Editable starting point helper.', $output );
 			self::assertStringNotContainsString( 'Editable custom start label', $output );
@@ -287,8 +290,7 @@ namespace Acodebeard\PlanYourDay\Tests {
 				$category_catalog,
 				$request_state_parser,
 				$planner_state_builder,
-				new PlannerPayloadBuilder( $settings ),
-				new VisitorTokenManager()
+				new PlannerPayloadBuilder( $settings )
 			);
 		}
 	}

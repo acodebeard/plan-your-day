@@ -62,6 +62,10 @@ switch ( $request_path ) {
 		plan_your_day_browser_render_page( 'plain' );
 		return;
 
+	case '/wp-json/plan-your-day/v1/bootstrap':
+		plan_your_day_browser_dispatch_rest( 'bootstrap' );
+		return;
+
 	case '/wp-json/plan-your-day/v1/browse':
 		plan_your_day_browser_dispatch_rest( 'browse' );
 		return;
@@ -109,8 +113,7 @@ function plan_your_day_browser_app(): array {
 		$category_catalog,
 		$request_state_parser,
 		$planner_state_builder,
-		$planner_payload_builder,
-		$visitor_token_manager
+		$planner_payload_builder
 	);
 
 	$planner_routes = new PlannerRoutes(
@@ -192,9 +195,13 @@ function plan_your_day_browser_dispatch_rest( string $route_name ): void {
 		$request->set_param( (string) $key, $value );
 	}
 
-	$result = 'browse' === $route_name
-		? $app['routes']->browse( $request )
-		: $app['routes']->route( $request );
+	if ( 'bootstrap' === $route_name ) {
+		$result = $app['routes']->bootstrap( $request );
+	} elseif ( 'browse' === $route_name ) {
+		$result = $app['routes']->browse( $request );
+	} else {
+		$result = $app['routes']->route( $request );
+	}
 
 	if ( $result instanceof WP_Error ) {
 		plan_your_day_browser_send_json(

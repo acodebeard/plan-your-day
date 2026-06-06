@@ -204,6 +204,46 @@ final class PlannerRoutesTest extends TestCase {
 		self::assertSame( 'plan_your_day_rate_limited', $second->get_error_code() );
 	}
 
+	public function test_bootstrap_returns_endpoint_token_for_same_site_request(): void {
+		$visitor_token = str_repeat( 'ab', 24 );
+		$routes        = $this->build_routes( 10 );
+		$request       = new WP_REST_Request( 'POST', '/plan-your-day/v1/bootstrap' );
+
+		$_SERVER = $this->same_site_server( '198.51.100.10' );
+		$_COOKIE['plan_your_day_visitor'] = $visitor_token;
+
+		$response = $routes->bootstrap( $request );
+
+		self::assertInstanceOf( WP_REST_Response::class, $response );
+		self::assertSame(
+			[
+				'endpointToken' => hash_hmac( 'sha256', $visitor_token, 'tests-auth|plan-your-day' ),
+			],
+			$response->get_data()
+		);
+	}
+
+	public function test_bootstrap_rejects_cross_site_request_before_token_creation(): void {
+		$routes  = $this->build_routes( 10 );
+		$request = new WP_REST_Request( 'POST', '/plan-your-day/v1/bootstrap' );
+
+		$_SERVER = $this->same_site_server(
+			'198.51.100.10',
+			[
+				'HTTP_ORIGIN'         => 'https://evil.example',
+				'HTTP_REFERER'        => 'https://evil.example/planner',
+				'HTTP_SEC_FETCH_SITE' => 'cross-site',
+			]
+		);
+
+		$response = $routes->bootstrap( $request );
+
+		self::assertInstanceOf( WP_Error::class, $response );
+		self::assertSame( 'plan_your_day_invalid_origin', $response->get_error_code() );
+		self::assertSame( 403, $response->get_error_data()['status'] ?? null );
+		self::assertArrayNotHasKey( 'plan_your_day_visitor', $_COOKIE );
+	}
+
 	public function test_browse_append_results_uses_cached_search_context_ids_and_skips_route_refresh(): void {
 		$google_api_client = new PlannerRoutesGoogleApiClient(
 			GoogleApiResult::success(
