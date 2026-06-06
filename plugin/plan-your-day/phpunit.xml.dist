@@ -7,7 +7,7 @@
 	failOnWarning="true"
 >
 	<testsuites>
-		<testsuite name="Plan Your Day">
+		<testsuite name="Waypoints">
 			<directory>tests</directory>
 		</testsuite>
 	</testsuites>

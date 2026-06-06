@@ -9,6 +9,7 @@ use Acodebeard\PlanYourDay\Google\GoogleApiResult;
 use Acodebeard\PlanYourDay\Planner\CategoryCatalog;
 use Acodebeard\PlanYourDay\Planner\DistanceFormatter;
 use Acodebeard\PlanYourDay\Planner\MapUrlBuilder;
+use Acodebeard\PlanYourDay\Planner\PlannerPayloadBuilder;
 use Acodebeard\PlanYourDay\Planner\PlannerStateBuilder;
 use Acodebeard\PlanYourDay\Planner\StartContextResolver;
 use Acodebeard\PlanYourDay\Planner\WaypointList;
@@ -28,6 +29,11 @@ final class PlannerStateBuilderTest extends TestCase {
 				'map_preview_enabled'      => false,
 				'maps_handoff_enabled'     => false,
 				'google_api_timeout'       => 15,
+				'allowed_start_modes'      => [
+					Settings::START_MODE_CURRENT,
+					Settings::START_MODE_DEFAULT,
+					Settings::START_MODE_CUSTOM,
+				],
 			]
 		);
 	}
@@ -206,6 +212,195 @@ final class PlannerStateBuilderTest extends TestCase {
 		self::assertSame( [ 'place-a' ], $state['selected_waypoint_ids'] );
 	}
 
+	public function test_build_does_not_add_status_message_for_current_location_start_mode(): void {
+		update_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				$GLOBALS['plan_your_day_test_options'][ Settings::OPTION_NAME ],
+				[
+					'interface_copy' => array_merge(
+						InterfaceCopy::defaults(),
+						[
+							'start_current_handoff_label'   => 'Editable current handoff label',
+							'start_current_handoff_summary' => 'editable current handoff summary',
+						]
+					),
+				]
+			)
+		);
+
+		$google_api_client = new FakePlannerGoogleApiClient( [] );
+		$builder           = $this->planner_state_builder( $google_api_client );
+
+		$state = $builder->build(
+			[
+				'category_search' => 'coffee',
+				'start_mode'      => Settings::START_MODE_CURRENT,
+			],
+			[
+				'include_results'        => false,
+				'include_trip_waypoints' => false,
+			]
+		);
+
+		self::assertSame( Settings::START_MODE_CURRENT, $state['start_mode'] );
+		self::assertSame( 'Current location', $state['handoff_start_label'] );
+		self::assertStringContainsString( 'near your current location', $state['overview'] );
+		self::assertStringNotContainsString( 'Editable current handoff label', $state['overview'] );
+		self::assertStringNotContainsString( 'editable current handoff summary', $state['overview'] );
+		self::assertSame( [], $state['messages'] );
+	}
+
+	public function test_build_uses_fixed_default_location_fallback_copy_when_label_is_missing(): void {
+		update_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				$GLOBALS['plan_your_day_test_options'][ Settings::OPTION_NAME ],
+				[
+					'default_location_label' => '',
+					'interface_copy'         => array_merge(
+						InterfaceCopy::defaults(),
+						[
+							'start_default_location_fallback' => 'Editable fallback location',
+						]
+					),
+				]
+			)
+		);
+
+		$google_api_client = new FakePlannerGoogleApiClient( [] );
+		$builder           = $this->planner_state_builder( $google_api_client );
+
+		$state = $builder->build(
+			[
+				'start_mode' => Settings::START_MODE_DEFAULT,
+			],
+			[
+				'include_results'        => false,
+				'include_trip_waypoints' => false,
+			]
+		);
+
+		self::assertSame( 'Default location', $state['preview_start_label'] );
+		self::assertSame( 'Default location', $state['handoff_start_label'] );
+	}
+
+	public function test_build_uses_fixed_custom_start_fallback_copy_when_custom_start_is_missing(): void {
+		update_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				$GLOBALS['plan_your_day_test_options'][ Settings::OPTION_NAME ],
+				[
+					'interface_copy' => array_merge(
+						InterfaceCopy::defaults(),
+						[
+							'start_default_fallback_label' => 'Editable fallback label',
+							'start_custom_missing_message' => 'Editable custom missing message.',
+						]
+					),
+				]
+			)
+		);
+
+		$google_api_client = new FakePlannerGoogleApiClient( [] );
+		$builder           = $this->planner_state_builder( $google_api_client );
+
+		$state = $builder->build(
+			[
+				'start_mode' => Settings::START_MODE_CUSTOM,
+			],
+			[
+				'include_results'        => false,
+				'include_trip_waypoints' => false,
+			]
+		);
+
+		self::assertSame( Settings::START_MODE_CUSTOM, $state['start_mode'] );
+		self::assertSame( 'Default location fallback', $state['handoff_start_label'] );
+		self::assertSame(
+			'Add a custom address to replace the default fallback before finalizing the trip start.',
+			$state['messages'][0]['text'] ?? ''
+		);
+	}
+
+	public function test_build_marks_custom_start_found_when_geocode_returns_coordinates(): void {
+		$google_api_client = new FakePlannerGoogleApiClient(
+			[],
+			GoogleApiResult::success(
+				[
+					'places' => [
+						$this->place( 'place-a', 'Alpha' ),
+					],
+				]
+			)
+		);
+		$builder           = $this->planner_state_builder( $google_api_client );
+
+		$state = $builder->build(
+			[
+				'category_search' => 'coffee',
+				'start_mode'      => Settings::START_MODE_CUSTOM,
+				'custom_start'    => '100 Test Ave',
+			]
+		);
+
+		self::assertSame( 'found', $state['custom_start_status'] );
+	}
+
+	public function test_build_marks_custom_start_not_found_when_geocode_fails(): void {
+		$google_api_client = new FakePlannerGoogleApiClient(
+			[],
+			GoogleApiResult::success(
+				[
+					'places' => [
+						$this->place( 'place-a', 'Alpha' ),
+					],
+				]
+			),
+			GoogleApiResult::failure( 'geocoding_unavailable', 'Google geocoding is unavailable right now.', 200, false )
+		);
+		$builder           = $this->planner_state_builder( $google_api_client );
+
+		$state = $builder->build(
+			[
+				'category_search' => 'coffee',
+				'start_mode'      => Settings::START_MODE_CUSTOM,
+				'custom_start'    => 'Not a real address',
+			]
+		);
+
+		self::assertSame( 'not_found', $state['custom_start_status'] );
+	}
+
+	public function test_browse_payload_includes_custom_start_status(): void {
+		$payload_builder = new PlannerPayloadBuilder( new Settings() );
+		$payload         = $payload_builder->build_browse_payload(
+			[
+				'category_key'          => '',
+				'category_search'       => 'coffee',
+				'has_search'            => true,
+				'active_search_label'   => 'coffee',
+				'has_category'          => false,
+				'has_categories'        => true,
+				'is_custom_search'      => true,
+				'search_context_key'    => 'context',
+				'search_results'        => [],
+				'next_page_token'       => '',
+				'has_more_results'      => false,
+				'search_results_error'  => '',
+				'search_results_label'  => 'No Google results loaded',
+				'custom_start_status'   => 'found',
+				'messages'              => [],
+				'results_empty_state'   => [
+					'heading' => 'No matching Google results',
+					'body'    => 'Try a different search or change the starting area.',
+				],
+			]
+		);
+
+		self::assertSame( 'found', $payload['customStartStatus'] );
+	}
+
 	public function test_build_uses_custom_interface_copy_for_trip_labels_and_warnings(): void {
 		update_option(
 			Settings::OPTION_NAME,
@@ -268,6 +463,59 @@ final class PlannerStateBuilderTest extends TestCase {
 
 		self::assertSame( 'Custom timeout warning.', $warning_state['messages'][0]['text'] ?? '' );
 		self::assertSame( '2 saved stops', $count_state['trip_count_label'] );
+	}
+
+	public function test_build_uses_fixed_search_result_summary_copy(): void {
+		update_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				$GLOBALS['plan_your_day_test_options'][ Settings::OPTION_NAME ],
+				[
+					'map_preview_enabled' => true,
+					'interface_copy'      => array_merge(
+						InterfaceCopy::defaults(),
+						[
+							'maps_link_label_search'      => 'Editable maps link',
+							'preview_mode_label_search'   => 'Editable preview mode',
+							'overview_browse_search'      => 'Editable overview {search} {start}',
+							'search_results_count_single' => 'Editable single count {count}',
+							'search_preview_key_warning'  => 'Editable preview key warning.',
+						]
+					),
+				]
+			)
+		);
+
+		$google_api_client = new FakePlannerGoogleApiClient(
+			[],
+			GoogleApiResult::success(
+				[
+					'places' => [
+						$this->place( 'place-a', 'Alpha' ),
+					],
+				]
+			)
+		);
+		$builder           = $this->planner_state_builder( $google_api_client );
+
+		$state = $builder->build(
+			[
+				'category_search' => 'coffee',
+				'start_mode'      => Settings::START_MODE_DEFAULT,
+			]
+		);
+
+		self::assertSame( '1 Google result', $state['search_results_label'] );
+		self::assertSame( 'Explore in Google Maps', $state['maps_link_label'] );
+		self::assertSame( 'Google place search', $state['preview_mode_label'] );
+		self::assertSame(
+			'Browsing Google results for coffee near Downtown. Add any result to start building a walking trip.',
+			$state['overview']
+		);
+		self::assertSame(
+			'Add a valid Google Maps Embed API key before relying on the on-site search preview.',
+			$state['messages'][0]['text'] ?? ''
+		);
 	}
 
 	public function test_build_uses_saved_category_label_and_query_for_category_searches(): void {
@@ -492,14 +740,22 @@ final class FakePlannerGoogleApiClient implements GoogleApiClientInterface {
 
 	private GoogleApiResult $text_search_result;
 
+	private GoogleApiResult $geocode_result;
+
 	/**
 	 * @param array<string, GoogleApiResult> $place_details_results
 	 */
-	public function __construct( array $place_details_results, ?GoogleApiResult $text_search_result = null ) {
+	public function __construct( array $place_details_results, ?GoogleApiResult $text_search_result = null, ?GoogleApiResult $geocode_result = null ) {
 		$this->place_details_results = $place_details_results;
 		$this->text_search_result    = $text_search_result ?? GoogleApiResult::success(
 			[
 				'places' => [],
+			]
+		);
+		$this->geocode_result        = $geocode_result ?? GoogleApiResult::success(
+			[
+				'latitude'  => 33.4484,
+				'longitude' => -112.0740,
 			]
 		);
 	}
@@ -522,11 +778,6 @@ final class FakePlannerGoogleApiClient implements GoogleApiClientInterface {
 	public function geocode( string $address ): GoogleApiResult {
 		++$this->geocode_calls;
 
-		return GoogleApiResult::success(
-			[
-				'latitude'  => 33.4484,
-				'longitude' => -112.0740,
-			]
-		);
+		return $this->geocode_result;
 	}
 }

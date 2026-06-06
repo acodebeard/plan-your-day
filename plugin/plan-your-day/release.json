@@ -1,9 +1,9 @@
 {
-    "name": "Plan Your Day",
+    "name": "Waypoints",
     "slug": "plan-your-day",
-    "version": "0.1.0",
-    "schemaVersion": 2,
-    "artifact": "../../dist/plan-your-day-0.1.0.zip",
+    "version": "0.5",
+    "schemaVersion": 5,
+    "artifact": "../../dist/plan-your-day-0.5.zip",
     "distribution": "github-release-zip",
     "notes": "Installable WordPress admin zip built from this source repository with Composer production autoload files included."
 }

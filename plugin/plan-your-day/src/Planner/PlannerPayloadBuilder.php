@@ -30,6 +30,7 @@ final class PlannerPayloadBuilder {
 			'hasMoreResults'     => $planner_state['has_more_results'],
 			'searchResultsError' => $planner_state['search_results_error'],
 			'searchResultsLabel' => $planner_state['search_results_label'],
+			'customStartStatus'  => $this->custom_start_status( (string) ( $planner_state['custom_start_status'] ?? '' ) ),
 			'resultsEmptyState'  => $this->get_empty_results_state( $planner_state ),
 			'messages'           => array_values( $planner_state['messages'] ),
 		];
@@ -60,23 +61,23 @@ final class PlannerPayloadBuilder {
 	public function get_empty_results_state( array $planner_state ): array {
 		if ( ! empty( $planner_state['search_results_error'] ) ) {
 			return [
-				'heading' => $this->copy_value( 'search_results_unavailable_heading' ),
-				'body'    => $this->copy_value( 'search_results_unavailable_body' ),
+				'heading' => __( 'Google results unavailable', 'plan-your-day' ),
+				'body'    => __( 'Google place results are unavailable right now. Try again later or open the Google Maps handoff link.', 'plan-your-day' ),
 			];
 		}
 
 		if ( ! $planner_state['has_search'] ) {
 			return [
-				'heading' => $this->copy_value( 'search_results_prompt_heading' ),
+				'heading' => __( 'Search for any category', 'plan-your-day' ),
 				'body'    => $planner_state['has_categories']
-					? $this->copy_value( 'search_results_prompt_body_with_categories' )
-					: $this->copy_value( 'search_results_prompt_body_no_categories' ),
+					? __( 'Use the search box or choose a category to load real place results.', 'plan-your-day' )
+					: __( 'Use the search box to load real place results.', 'plan-your-day' ),
 			];
 		}
 
 		return [
-			'heading' => $this->copy_value( 'no_matching_results_heading' ),
-			'body'    => $this->copy_value( 'no_matching_results_body' ),
+			'heading' => __( 'No matching Google results', 'plan-your-day' ),
+			'body'    => __( 'Try a different search or change the starting area.', 'plan-your-day' ),
 		];
 	}
 
@@ -109,5 +110,9 @@ final class PlannerPayloadBuilder {
 		}
 
 		return InterfaceCopy::default_value( $key );
+	}
+
+	private function custom_start_status( string $status ): string {
+		return in_array( $status, [ 'found', 'not_found' ], true ) ? $status : '';
 	}
 }

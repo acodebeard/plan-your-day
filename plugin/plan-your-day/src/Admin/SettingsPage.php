@@ -33,8 +33,8 @@ final class SettingsPage {
 
 	public function register(): void {
 		add_options_page(
-			__( 'Plan Your Day Settings', 'plan-your-day' ),
-			__( 'Plan Your Day', 'plan-your-day' ),
+			__( 'Waypoints Settings', 'plan-your-day' ),
+			__( 'Waypoints', 'plan-your-day' ),
 			'manage_options',
 			Settings::PAGE_SLUG,
 			[ $this, 'render' ]
@@ -100,6 +100,24 @@ final class SettingsPage {
 			'text',
 			[],
 			'plan_your_day_default_location'
+		);
+
+		add_settings_section(
+			'plan_your_day_appearance',
+			__( 'Appearance', 'plan-your-day' ),
+			[ $this, 'render_appearance_section' ],
+			Settings::PAGE_SLUG
+		);
+
+		$this->add_field(
+			'color_mode_default',
+			__( 'Default color mode', 'plan-your-day' ),
+			__( 'Choose the public planner color mode before a visitor makes their own choice. System follows the visitor browser or OS preference.', 'plan-your-day' ),
+			'select',
+			[
+				'choices' => Settings::color_mode_choices(),
+			],
+			'plan_your_day_appearance'
 		);
 
 		add_settings_section(
@@ -174,13 +192,6 @@ final class SettingsPage {
 		);
 
 		add_settings_section(
-			'plan_your_day_interface_copy',
-			__( 'Interface Copy', 'plan-your-day' ),
-			[ $this, 'render_interface_copy_section' ],
-			Settings::PAGE_SLUG
-		);
-
-		add_settings_section(
 			'plan_your_day_categories',
 			__( 'Categories', 'plan-your-day' ),
 			[ $this, 'render_categories_section' ],
@@ -188,20 +199,13 @@ final class SettingsPage {
 		);
 
 		$this->add_field(
-			'use_preset_categories',
-			__( 'Starter category fallback', 'plan-your-day' ),
-			__( 'When the saved category list is empty, show the built-in starter categories instead of no category buttons.', 'plan-your-day' ),
-			'checkbox',
-			[],
-			'plan_your_day_categories'
-		);
-
-		$this->add_field(
 			'categories',
-			__( 'Categories', 'plan-your-day' ),
-			__( 'Manage the category buttons shown to visitors. The Google search query is the phrase sent to Google Places.', 'plan-your-day' ),
+			'',
+			'',
 			'categories',
-			[],
+			[
+				'field_class' => 'plan-your-day-categories-field',
+			],
 			'plan_your_day_categories'
 		);
 
@@ -288,6 +292,13 @@ final class SettingsPage {
 		);
 
 		add_settings_section(
+			'plan_your_day_interface_copy',
+			__( 'Interface Copy', 'plan-your-day' ),
+			[ $this, 'render_interface_copy_section' ],
+			Settings::PAGE_SLUG
+		);
+
+		add_settings_section(
 			'plan_your_day_rate_limiting',
 			__( 'Rate Limiting', 'plan-your-day' ),
 			[ $this, 'render_rate_limiting_section' ],
@@ -327,7 +338,7 @@ final class SettingsPage {
 
 	public function render(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage Plan Your Day settings.', 'plan-your-day' ) );
+			wp_die( esc_html__( 'You do not have permission to manage Waypoints settings.', 'plan-your-day' ) );
 		}
 
 		?>
@@ -408,7 +419,7 @@ final class SettingsPage {
 		wp_enqueue_script(
 			'plan-your-day-admin-settings',
 			PLAN_YOUR_DAY_PLUGIN_URL . 'assets/js/admin-settings.js',
-			[],
+			[ 'jquery', 'jquery-ui-sortable' ],
 			PLAN_YOUR_DAY_VERSION,
 			[
 				'in_footer' => true,
@@ -527,7 +538,7 @@ final class SettingsPage {
 						count( $active_categories ),
 						count( $saved_categories )
 					)
-					: __( 'No active categories are available. Add at least one category or re-enable the starter category fallback.', 'plan-your-day' ),
+					: __( 'No active categories are available. Add at least one category, or leave the planner to custom search only.', 'plan-your-day' ),
 				'type'   => [] !== $active_categories ? 'success' : 'warning',
 			],
 		];
@@ -554,6 +565,13 @@ final class SettingsPage {
 		);
 	}
 
+	public function render_appearance_section(): void {
+		printf(
+			'<p>%s</p>',
+			esc_html__( 'Set the public planner default color mode. Visitors can switch modes on the planner without changing the saved plugin setting.', 'plan-your-day' )
+		);
+	}
+
 	public function render_interface_copy_section(): void {
 		printf(
 			'<p>%s</p>',
@@ -566,7 +584,7 @@ final class SettingsPage {
 	public function render_categories_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Edit the category buttons shown on the public planner. You can add, disable, remove, and reorder rows here. Fresh installs start from the built-in starter list, and the fallback toggle only applies when the saved list is empty.', 'plan-your-day' )
+			esc_html__( 'Edit the category buttons shown on the public planner. You can add, disable, delete, and reorder rows here, or leave the list empty to use custom search only.', 'plan-your-day' )
 		);
 	}
 
@@ -604,7 +622,7 @@ final class SettingsPage {
 				esc_html(
 					sprintf(
 						/* translators: %s is a comma-separated list of missing settings. */
-						__( 'Plan Your Day needs required settings before the public planner can render: %s.', 'plan-your-day' ),
+						__( 'Waypoints needs required settings before the public planner can render: %s.', 'plan-your-day' ),
 						$missing
 					)
 				),
@@ -615,7 +633,7 @@ final class SettingsPage {
 
 	public function handle_clear_google_cache(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage Plan Your Day settings.', 'plan-your-day' ) );
+			wp_die( esc_html__( 'You do not have permission to manage Waypoints settings.', 'plan-your-day' ) );
 		}
 
 		check_admin_referer( 'plan_your_day_clear_google_cache' );
@@ -635,7 +653,7 @@ final class SettingsPage {
 
 	public function handle_clear_google_cache_scope(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage Plan Your Day settings.', 'plan-your-day' ) );
+			wp_die( esc_html__( 'You do not have permission to manage Waypoints settings.', 'plan-your-day' ) );
 		}
 
 		check_admin_referer( 'plan_your_day_clear_google_cache_scope' );
@@ -657,7 +675,7 @@ final class SettingsPage {
 
 	public function handle_clear_google_cache_place(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage Plan Your Day settings.', 'plan-your-day' ) );
+			wp_die( esc_html__( 'You do not have permission to manage Waypoints settings.', 'plan-your-day' ) );
 		}
 
 		check_admin_referer( 'plan_your_day_clear_google_cache_place' );
@@ -679,7 +697,7 @@ final class SettingsPage {
 
 	public function handle_test_google_api(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage Plan Your Day settings.', 'plan-your-day' ) );
+			wp_die( esc_html__( 'You do not have permission to manage Waypoints settings.', 'plan-your-day' ) );
 		}
 
 		check_admin_referer( 'plan_your_day_test_google_api' );
@@ -891,18 +909,27 @@ final class SettingsPage {
 		array $attributes = [],
 		string $section = 'plan_your_day_google_api'
 	): void {
+		$field_class = (string) ( $attributes['field_class'] ?? '' );
+		unset( $attributes['field_class'] );
+
+		$args = [
+			'attributes'  => $attributes,
+			'description' => $description,
+			'key'         => $key,
+			'type'        => $type,
+		];
+
+		if ( '' !== $field_class ) {
+			$args['class'] = $field_class;
+		}
+
 		add_settings_field(
 			'plan_your_day_' . $key,
 			$label,
 			[ $this, 'render_field' ],
 			Settings::PAGE_SLUG,
 			$section,
-			[
-				'attributes'  => $attributes,
-				'description' => $description,
-				'key'         => $key,
-				'type'        => $type,
-			]
+			$args
 		);
 	}
 
@@ -982,9 +1009,11 @@ final class SettingsPage {
 				$type        = (string) $definition['type'];
 				$description = (string) $definition['description'];
 				?>
-				<div>
+				<div
+					class="plan-your-day-interface-copy-field"
+					data-plan-interface-copy-key="<?php echo esc_attr( $key ); ?>">
 					<label for="<?php echo esc_attr( $id ); ?>" class="plan-your-day-interface-copy-field-label">
-						<?php echo esc_html( (string) $definition['label'] ); ?>
+						<span><?php echo esc_html( (string) $definition['label'] ); ?></span>
 					</label>
 					<?php if ( 'textarea' === $type ) : ?>
 						<textarea
@@ -1021,9 +1050,8 @@ final class SettingsPage {
 		}
 		?>
 		<div class="plan-your-day-admin-accordion">
-			<?php $is_first_group = true; ?>
 			<?php foreach ( $groups as $group_key => $group ) : ?>
-				<details class="plan-your-day-admin-accordion__item"<?php echo $is_first_group ? ' open' : ''; ?>>
+				<details class="plan-your-day-admin-accordion__item">
 					<summary class="plan-your-day-admin-accordion__summary">
 						<span class="plan-your-day-admin-accordion__summary-copy">
 							<span class="plan-your-day-admin-accordion__title"><?php echo esc_html( (string) $group['label'] ); ?></span>
@@ -1036,7 +1064,6 @@ final class SettingsPage {
 						<?php $this->render_interface_copy_group( $group_key ); ?>
 					</div>
 				</details>
-				<?php $is_first_group = false; ?>
 			<?php endforeach; ?>
 		</div>
 		<?php
@@ -1057,29 +1084,46 @@ final class SettingsPage {
 	private function render_categories_editor( string $name ): void {
 		$categories  = $this->settings->get_categories();
 		$row_index   = 0;
-		$seed_rows   = CategoryCatalog::default_rows();
 		$next_sort   = ( count( $categories ) + 1 ) * 10;
 		?>
-		<div class="plan-your-day-categories-editor" data-plan-category-editor>
+		<div
+			class="plan-your-day-categories-editor"
+			data-plan-category-editor
+			data-plan-delete-category-confirm="<?php echo esc_attr( __( 'Delete this category row? Save changes to make the deletion permanent.', 'plan-your-day' ) ); ?>">
 			<table class="widefat striped">
+				<colgroup>
+					<col class="plan-your-day-category-order-col" />
+					<col class="plan-your-day-category-enabled-col" />
+					<col class="plan-your-day-category-label-col" />
+					<col class="plan-your-day-category-description-col" />
+					<col class="plan-your-day-category-query-col" />
+					<col class="plan-your-day-category-delete-col" />
+				</colgroup>
 				<thead>
 					<tr>
-						<th><?php esc_html_e( 'Enabled', 'plan-your-day' ); ?></th>
-						<th><?php esc_html_e( 'Label', 'plan-your-day' ); ?></th>
-						<th><?php esc_html_e( 'Description', 'plan-your-day' ); ?></th>
-						<th><?php esc_html_e( 'Google search query', 'plan-your-day' ); ?></th>
-						<th><?php esc_html_e( 'Sort', 'plan-your-day' ); ?></th>
-						<th><?php esc_html_e( 'Remove', 'plan-your-day' ); ?></th>
+						<th class="plan-your-day-category-order-column"><span class="screen-reader-text"><?php esc_html_e( 'Order', 'plan-your-day' ); ?></span></th>
+						<th class="plan-your-day-category-enabled-column"><span class="screen-reader-text"><?php esc_html_e( 'Enabled', 'plan-your-day' ); ?></span></th>
+						<th class="plan-your-day-category-label-column"><?php esc_html_e( 'Label', 'plan-your-day' ); ?></th>
+						<th class="plan-your-day-category-description-column"><?php esc_html_e( 'Description', 'plan-your-day' ); ?></th>
+						<th class="plan-your-day-category-query-column"><?php esc_html_e( 'Google search query', 'plan-your-day' ); ?></th>
+						<th class="plan-your-day-category-delete-column"><?php esc_html_e( 'Delete', 'plan-your-day' ); ?></th>
 					</tr>
 				</thead>
 				<tbody data-plan-category-rows>
 					<?php foreach ( $categories as $category ) : ?>
 						<?php $this->render_category_editor_row( $name, $row_index++, is_array( $category ) ? $category : [] ); ?>
 					<?php endforeach; ?>
+				</tbody>
+			</table>
+			<p class="plan-your-day-add-category-action">
+				<button type="button" class="button button-primary plan-your-day-add-category-button" data-plan-add-category><?php esc_html_e( 'Add category', 'plan-your-day' ); ?></button>
+			</p>
+				<template data-plan-category-row-template>
 					<?php
+					ob_start();
 					$this->render_category_editor_row(
 						$name,
-						$row_index++,
+						'__INDEX__',
 						[
 							'slug'        => '',
 							'label'       => '',
@@ -1087,85 +1131,19 @@ final class SettingsPage {
 							'text_query'  => '',
 							'enabled'     => true,
 							'sort_order'  => $next_sort,
-						]
+						],
+						true
 					);
+					$template_row_markup = trim( (string) ob_get_clean() );
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Markup is assembled by render_category_editor_row() from escaped field values.
+					echo $template_row_markup;
 					?>
-				</tbody>
-			</table>
-			<p>
-				<button type="button" class="button" data-plan-add-category><?php esc_html_e( 'Add category', 'plan-your-day' ); ?></button>
-			</p>
-			<p class="description">
-				<?php esc_html_e( 'Leave a row empty to ignore it. Use Enabled to hide a category without deleting it, Remove to delete it on save, and Sort to control the public order. The starter category fallback above is only used when this saved list is empty.', 'plan-your-day' ); ?>
-			</p>
-			<details>
-				<summary><?php esc_html_e( 'View built-in starter categories', 'plan-your-day' ); ?></summary>
-				<ul>
-					<?php foreach ( $seed_rows as $seed_row ) : ?>
-						<li>
-							<?php
-							echo esc_html(
-								sprintf(
-									/* translators: 1: preset category label, 2: Google query. */
-									__( '%1$s: %2$s', 'plan-your-day' ),
-									(string) $seed_row['label'],
-									(string) $seed_row['text_query']
-								)
-							);
-							?>
-						</li>
-					<?php endforeach; ?>
-				</ul>
-			</details>
-			<template data-plan-category-row-template>
-				<?php
-				ob_start();
-				$this->render_category_editor_row(
-					$name,
-					'__INDEX__',
-					[
-						'slug'        => '',
-						'label'       => '',
-						'description' => '',
-						'text_query'  => '',
-						'enabled'     => true,
-						'sort_order'  => $next_sort,
-					]
-				);
-				$template_row_markup = trim( (string) ob_get_clean() );
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Markup is assembled by render_category_editor_row() from escaped field values.
-				echo $template_row_markup;
-				?>
 			</template>
 		</div>
-		<script>
-		(() => {
-			const editor = document.currentScript?.previousElementSibling;
-			if (!(editor instanceof HTMLElement)) {
-				return;
-			}
-
-			const rows = editor.querySelector('[data-plan-category-rows]');
-			const template = editor.querySelector('[data-plan-category-row-template]');
-			const addButton = editor.querySelector('[data-plan-add-category]');
-
-			if (!(rows instanceof HTMLElement) || !(template instanceof HTMLTemplateElement) || !(addButton instanceof HTMLButtonElement)) {
-				return;
-			}
-
-			let nextIndex = rows.querySelectorAll('tr').length;
-
-			addButton.addEventListener('click', () => {
-				const markup = template.innerHTML.replace(/__INDEX__/g, String(nextIndex));
-				rows.insertAdjacentHTML('beforeend', markup);
-				nextIndex += 1;
-			});
-		})();
-		</script>
 		<?php
 	}
 
-	private function render_category_editor_row( string $name, int|string $index, array $category ): void {
+	private function render_category_editor_row( string $name, int|string $index, array $category, bool $include_placeholders = false ): void {
 		$row_name    = $name . '[' . $index . ']';
 		$slug        = sanitize_title( (string) ( $category['slug'] ?? '' ) );
 		$label       = (string) ( $category['label'] ?? '' );
@@ -1173,27 +1151,48 @@ final class SettingsPage {
 		$text_query  = (string) ( $category['text_query'] ?? '' );
 		$enabled     = ! array_key_exists( 'enabled', $category ) || (bool) $category['enabled'];
 		$sort_order  = isset( $category['sort_order'] ) && is_numeric( $category['sort_order'] ) ? (int) $category['sort_order'] : 0;
+		$placeholders = $include_placeholders
+			? [
+				'label'       => __( 'Short button name, e.g. Farmers market', 'plan-your-day' ),
+				'description' => __( 'A helpful one-sentence description for visitors', 'plan-your-day' ),
+				'text_query'  => __( 'Google search phrase, e.g. farmers markets near me', 'plan-your-day' ),
+			]
+			: [
+				'label'       => '',
+				'description' => '',
+				'text_query'  => '',
+			];
 		?>
-		<tr>
-			<td>
+		<tr class="plan-your-day-category-row" data-plan-category-row>
+			<td class="plan-your-day-category-order-cell">
+				<button
+					type="button"
+					class="plan-your-day-category-drag-handle"
+					data-plan-category-drag-handle
+					draggable="true"
+					aria-label="<?php echo esc_attr( __( 'Drag or use arrow keys to reorder category', 'plan-your-day' ) ); ?>"
+					title="<?php echo esc_attr( __( 'Drag or use arrow keys to reorder category', 'plan-your-day' ) ); ?>"
+				></button>
+				<input type="hidden" name="<?php echo esc_attr( $row_name . '[sort_order]' ); ?>" value="<?php echo esc_attr( (string) $sort_order ); ?>" data-plan-category-sort-order />
+			</td>
+			<td class="plan-your-day-category-enabled-cell">
 				<input type="hidden" name="<?php echo esc_attr( $row_name . '[enabled]' ); ?>" value="0" />
 				<input type="checkbox" name="<?php echo esc_attr( $row_name . '[enabled]' ); ?>" value="1" <?php checked( $enabled ); ?> />
 				<input type="hidden" name="<?php echo esc_attr( $row_name . '[slug]' ); ?>" value="<?php echo esc_attr( $slug ); ?>" />
 			</td>
-			<td>
-				<input type="text" name="<?php echo esc_attr( $row_name . '[label]' ); ?>" value="<?php echo esc_attr( $label ); ?>" class="regular-text" />
+			<td class="plan-your-day-category-label-cell">
+				<input type="text" name="<?php echo esc_attr( $row_name . '[label]' ); ?>" value="<?php echo esc_attr( $label ); ?>" class="regular-text" placeholder="<?php echo esc_attr( $placeholders['label'] ); ?>" />
 			</td>
-			<td>
-				<textarea name="<?php echo esc_attr( $row_name . '[description]' ); ?>" rows="2" class="large-text"><?php echo esc_textarea( $description ); ?></textarea>
+			<td class="plan-your-day-category-description-cell">
+				<textarea name="<?php echo esc_attr( $row_name . '[description]' ); ?>" rows="2" class="large-text" placeholder="<?php echo esc_attr( $placeholders['description'] ); ?>"><?php echo esc_textarea( $description ); ?></textarea>
 			</td>
-			<td>
-				<input type="text" name="<?php echo esc_attr( $row_name . '[text_query]' ); ?>" value="<?php echo esc_attr( $text_query ); ?>" class="regular-text" />
+			<td class="plan-your-day-category-query-cell">
+				<input type="text" name="<?php echo esc_attr( $row_name . '[text_query]' ); ?>" value="<?php echo esc_attr( $text_query ); ?>" class="regular-text" placeholder="<?php echo esc_attr( $placeholders['text_query'] ); ?>" />
 			</td>
-			<td>
-				<input type="number" name="<?php echo esc_attr( $row_name . '[sort_order]' ); ?>" value="<?php echo esc_attr( (string) $sort_order ); ?>" min="0" max="999" step="1" class="small-text" />
-			</td>
-			<td>
-				<input type="checkbox" name="<?php echo esc_attr( $row_name . '[remove]' ); ?>" value="1" />
+			<td class="plan-your-day-category-delete-cell">
+				<button type="button" class="button button-link-delete plan-your-day-category-delete-button" data-plan-delete-category>
+					<?php esc_html_e( 'Delete', 'plan-your-day' ); ?>
+				</button>
 			</td>
 		</tr>
 		<?php

@@ -11,7 +11,7 @@ defined( 'ABSPATH' ) || exit;
 final class RateLimiter {
 	private const WINDOW_SECONDS                = 60;
 	private const CACHE_GROUP                   = 'plan-your-day';
-	private const STATE_OPTION_PREFIX           = 'plan_your_day_rate_';
+	private const STATE_STORAGE_KEY_PREFIX      = 'plan_your_day_rate_';
 	private const LOCK_OPTION_PREFIX            = 'plan_your_day_rate_lock_';
 	private const LOCK_TIMEOUT_SECONDS          = 5.0;
 	private const LOCK_RETRY_ATTEMPTS           = 5;
@@ -74,8 +74,8 @@ final class RateLimiter {
 		return (float) call_user_func( $this->time_provider );
 	}
 
-	private function state_option_name( string $key ): string {
-		return self::STATE_OPTION_PREFIX . $key;
+	private function state_storage_key( string $key ): string {
+		return self::STATE_STORAGE_KEY_PREFIX . $key;
 	}
 
 	private function lock_option_name( string $key ): string {
@@ -83,19 +83,31 @@ final class RateLimiter {
 	}
 
 	private function load_state( string $key ): array {
+		$storage_key = $this->state_storage_key( $key );
+
 		if ( $this->uses_external_object_cache() ) {
-			$state = wp_cache_get( $this->state_option_name( $key ), self::CACHE_GROUP );
+			$state = wp_cache_get( $storage_key, self::CACHE_GROUP );
 
 			return is_array( $state ) ? $state : [];
 		}
 
-		$state = get_option( $this->state_option_name( $key ), [] );
+		$state = get_transient( $storage_key );
 
-		return is_array( $state ) ? $state : [];
+		if ( is_array( $state ) ) {
+			return $state;
+		}
+
+		$legacy_state = get_option( $storage_key, null );
+
+		if ( null !== $legacy_state ) {
+			delete_option( $storage_key );
+		}
+
+		return is_array( $legacy_state ) ? $legacy_state : [];
 	}
 
 	private function persist_state( string $key, array $timestamps ): void {
-		$storage_key = $this->state_option_name( $key );
+		$storage_key = $this->state_storage_key( $key );
 		$timestamps  = array_values(
 			array_map(
 				static function ( mixed $timestamp ): float {
@@ -111,6 +123,7 @@ final class RateLimiter {
 				return;
 			}
 
+			delete_transient( $storage_key );
 			delete_option( $storage_key );
 			return;
 		}
@@ -120,7 +133,7 @@ final class RateLimiter {
 			return;
 		}
 
-		update_option( $storage_key, $timestamps, false );
+		set_transient( $storage_key, $timestamps, self::WINDOW_SECONDS );
 	}
 
 	private function acquire_lock( string $key, float $now ): bool {

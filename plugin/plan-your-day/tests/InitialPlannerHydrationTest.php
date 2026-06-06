@@ -82,7 +82,7 @@ final class InitialPlannerHydrationTest extends TestCase {
 		self::assertSame( 'Loading planner state through a verified request.', $planner_state['messages'][0]['text'] );
 	}
 
-	public function test_apply_loading_placeholders_uses_custom_copy_overrides(): void {
+	public function test_apply_loading_placeholders_uses_fixed_search_loading_copy(): void {
 		$planner_state = InitialPlannerHydration::apply_loading_placeholders(
 			[
 				'has_search'            => true,
@@ -93,20 +93,72 @@ final class InitialPlannerHydrationTest extends TestCase {
 				'messages'              => [],
 			],
 			[
-				'hydration_loading_message' => 'Loading saved planner state.',
-				'loading_results_label'     => 'Loading places...',
-				'loading_results_heading'   => 'Loading places',
-				'loading_results_body'      => 'Saved places are loading now.',
-				'loading_search_preview_mode' => 'Loading map preview',
-				'loading_search_preview_heading' => 'Loading map preview',
-				'loading_search_preview_body' => 'Saved map preview is loading now.',
+				'hydration_loading_message'       => 'Loading saved planner state.',
+				'loading_results_label'           => 'Editable loading results label.',
+				'loading_results_heading'         => 'Editable loading results heading',
+				'loading_results_body'            => 'Editable loading results body.',
+				'loading_search_preview_mode'     => 'Editable loading search preview mode',
+				'loading_search_preview_heading'  => 'Editable loading search preview heading',
+				'loading_search_preview_body'     => 'Editable loading search preview body.',
 			]
 		);
 
-		self::assertSame( 'Loading places...', $planner_state['search_results_label'] );
-		self::assertSame( 'Loading places', $planner_state['results_empty_state']['heading'] );
-		self::assertSame( 'Saved places are loading now.', $planner_state['overview'] );
-		self::assertSame( 'Loading map preview', $planner_state['preview_mode_label'] );
+		self::assertSame( 'Loading Google results...', $planner_state['search_results_label'] );
+		self::assertSame( 'Loading Google results', $planner_state['results_empty_state']['heading'] );
+		self::assertSame(
+			'The planner is loading your saved search through the secure request path.',
+			$planner_state['results_empty_state']['body']
+		);
+		self::assertSame(
+			'The planner is loading your saved search through the secure request path.',
+			$planner_state['overview']
+		);
+		self::assertSame( 'Loading search preview', $planner_state['preview_mode_label'] );
+		self::assertSame( 'Loading search preview', $planner_state['preview_empty_state']['heading'] );
+		self::assertSame(
+			'The planner is loading your saved search through the secure request path.',
+			$planner_state['preview_empty_state']['body']
+		);
+		self::assertSame( 'Loading saved planner state.', $planner_state['messages'][0]['text'] );
+	}
+
+	public function test_apply_loading_placeholders_uses_fixed_trip_loading_copy(): void {
+		$planner_state = InitialPlannerHydration::apply_loading_placeholders(
+			[
+				'has_search'            => false,
+				'selected_waypoint_ids' => [ 'place-1' ],
+				'trip_count_label'      => '',
+				'overview'              => '',
+				'preview_mode_label'    => '',
+				'messages'              => [],
+			],
+			[
+				'hydration_loading_message'          => 'Loading saved planner state.',
+				'loading_trip_count'                 => 'Editable loading trip count.',
+				'loading_trip_heading'               => 'Editable loading trip heading',
+				'loading_trip_body'                  => 'Editable loading trip body.',
+				'loading_trip_preview_mode'          => 'Editable loading trip preview mode',
+				'loading_trip_preview_heading'       => 'Editable loading trip preview heading',
+				'loading_trip_preview_body'          => 'Editable loading trip preview body.',
+			]
+		);
+
+		self::assertSame( 'Loading trip waypoints...', $planner_state['trip_count_label'] );
+		self::assertSame( 'Loading trip waypoints', $planner_state['trip_empty_state']['heading'] );
+		self::assertSame(
+			'The planner is loading your saved trip through the secure request path.',
+			$planner_state['trip_empty_state']['body']
+		);
+		self::assertSame(
+			'The planner is loading your saved trip through the secure request path.',
+			$planner_state['overview']
+		);
+		self::assertSame( 'Loading trip preview', $planner_state['preview_mode_label'] );
+		self::assertSame( 'Loading trip preview', $planner_state['preview_empty_state']['heading'] );
+		self::assertSame(
+			'The planner is loading your saved trip through the secure request path.',
+			$planner_state['preview_empty_state']['body']
+		);
 		self::assertSame( 'Loading saved planner state.', $planner_state['messages'][0]['text'] );
 	}
 }

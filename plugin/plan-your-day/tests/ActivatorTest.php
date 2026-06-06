@@ -16,7 +16,7 @@ namespace Acodebeard\PlanYourDay\Tests {
 			}
 
 			if ( ! defined( 'PLAN_YOUR_DAY_SCHEMA_VERSION' ) ) {
-				define( 'PLAN_YOUR_DAY_SCHEMA_VERSION', 2 );
+				define( 'PLAN_YOUR_DAY_SCHEMA_VERSION', 3 );
 			}
 		}
 
@@ -26,7 +26,7 @@ namespace Acodebeard\PlanYourDay\Tests {
 			$settings = get_option( Settings::OPTION_NAME );
 
 			self::assertSame( 'test-version', get_option( 'plan_your_day_version' ) );
-			self::assertSame( 2, get_option( 'plan_your_day_schema_version' ) );
+			self::assertSame( PLAN_YOUR_DAY_SCHEMA_VERSION, get_option( 'plan_your_day_schema_version' ) );
 			self::assertSame( Settings::default_categories(), $settings['categories'] ?? [] );
 		}
 
@@ -48,7 +48,7 @@ namespace Acodebeard\PlanYourDay\Tests {
 
 			self::assertSame( 'Existing location', $settings['default_location_label'] );
 			self::assertSame( 'Existing address', $settings['default_location_address'] );
-			self::assertSame( Settings::default_categories(), $settings['categories'] ?? [] );
+			self::assertSame( [], $settings['categories'] ?? [] );
 		}
 	}
 }

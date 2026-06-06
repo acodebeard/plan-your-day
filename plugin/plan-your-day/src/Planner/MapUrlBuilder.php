@@ -19,6 +19,10 @@ final class MapUrlBuilder {
 			return '';
 		}
 
+		if ( preg_match( '/\bnear\s+me\b/i', $text_query ) ) {
+			return $text_query;
+		}
+
 		if ( $use_current_location ) {
 			return $text_query . ' near me';
 		}

@@ -1,10 +1,10 @@
-=== Plan Your Day ===
+=== Waypoints ===
 Contributors: acodebeard
 Tags: planning, maps, wayfinding
 Requires at least: 6.8
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.1.0
+Stable tag: 0.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,7 +12,7 @@ A configurable day planning plugin for WordPress.
 
 == Description ==
 
-Plan Your Day is a configurable day planning plugin for WordPress.
+Waypoints is a configurable day planning plugin for WordPress.
 
 Current development builds include the plugin scaffold, Settings API
 registration, admin settings screen, editable categories and interface copy,
@@ -34,13 +34,13 @@ Source checkout:
 2. Run `composer install` inside the plugin directory to generate
    `vendor/autoload.php`.
 3. Activate the plugin through the Plugins screen in WordPress.
-4. Open Settings > Plan Your Day and configure the required default location
+4. Open Settings > Waypoints and configure the required default location
    and Google API keys.
 
 == Configuration ==
 
 Settings are stored in the `plan_your_day_settings` option and managed through
-Settings > Plan Your Day.
+Settings > Waypoints.
 
 Current settings include:
 
@@ -55,7 +55,7 @@ Current settings include:
 
 == External services ==
 
-Plan Your Day uses Google services to load place results, place details,
+Waypoints uses Google services to load place results, place details,
 geocoding data, embedded map previews, and Google Maps handoff links.
 
 The plugin can send data to Google from the server when:
@@ -93,7 +93,7 @@ still in progress.
 
 = How do I display the planner? =
 
-Use the Plan Your Day block in the block editor or add `[plan_your_day]` to a
+Use the Waypoints block in the block editor or add `[plan_your_day]` to a
 page, post, or Shortcode block. The repository docs cover placement guidance
 and the optional `action_url` / `Action URL` setting.
 
@@ -104,11 +104,13 @@ architecture, settings, security, and troubleshooting notes.
 
 == Changelog ==
 
-= Unreleased =
+= 0.5 =
 * Added block-editor and shortcode entry points that share the same planner renderer.
 * Added admin-editable categories and interface copy settings.
 * Added REST-powered planner interactions, rate limiting, and Google API admin tools.
 * Added a reproducible release zip builder and manual release-process documentation.
+* Added color mode controls, Noto Sans assets, and a cleaned-up settings interface.
+* Added an upgrade cleanup that prunes removed interface-copy settings from existing installs.
 
 = 0.1.0 =
 * Initial plugin scaffold (GH issue #20): directory structure, main plugin file, activation / deactivation hooks, uninstall routine, PSR-4 autoloading.

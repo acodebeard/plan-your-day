@@ -89,8 +89,7 @@ final class Plugin {
 			$this->category_catalog,
 			$this->request_state_parser,
 			$this->planner_state_builder(),
-			$this->planner_payload_builder,
-			$this->visitor_token_manager
+			$this->planner_payload_builder
 		);
 		$this->planner_shortcode        = new PlannerShortcode( $this->planner_renderer, $this->frontend_assets );
 		$this->planner_block            = new PlannerBlock( $this->planner_renderer, $this->frontend_assets );

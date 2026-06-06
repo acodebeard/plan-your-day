@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: Plan Your Day
+ * Plugin Name: Waypoints
  * Description: A configurable day planning plugin for WordPress.
- * Version: 0.1.0
+ * Version: 0.5
  * Requires at least: 6.8
  * Requires PHP: 8.2
  * Author: acodebeard
@@ -16,8 +16,8 @@ declare( strict_types=1 );
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PLAN_YOUR_DAY_VERSION', '0.1.0' );
-define( 'PLAN_YOUR_DAY_SCHEMA_VERSION', 2 );
+define( 'PLAN_YOUR_DAY_VERSION', '0.5' );
+define( 'PLAN_YOUR_DAY_SCHEMA_VERSION', 5 );
 define( 'PLAN_YOUR_DAY_PLUGIN_FILE', __FILE__ );
 define( 'PLAN_YOUR_DAY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PLAN_YOUR_DAY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -37,7 +37,7 @@ register_deactivation_hook( __FILE__, [ \Acodebeard\PlanYourDay\Deactivator::cla
 \Acodebeard\PlanYourDay\Plugin::instance()->init();
 
 function plan_your_day_missing_autoloader_message(): string {
-	return 'Plan Your Day is missing Composer dependencies. Install a built release zip that includes vendor/autoload.php, '
+	return 'Waypoints is missing Composer dependencies. Install a built release zip that includes vendor/autoload.php, '
 		. 'or run composer install inside the plugin directory for a source checkout.';
 }
 
@@ -48,7 +48,7 @@ function plan_your_day_missing_autoloader_activation(): void {
 
 	wp_die(
 		esc_html( plan_your_day_missing_autoloader_message() ),
-		esc_html( 'Plan Your Day activation failed' ),
+		esc_html( 'Waypoints activation failed' ),
 		[ 'back_link' => true ]
 	);
 }

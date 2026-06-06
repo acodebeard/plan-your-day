@@ -37,7 +37,7 @@ final class StartContextResolver {
 		}
 
 		if ( '' === $default_location_label ) {
-			$default_location_label = $this->settings->get_frontend_copy_value( 'start_default_location_fallback' );
+			$default_location_label = __( 'Default location', 'plan-your-day' );
 		}
 
 		$preview_start_label = $default_location_label;
@@ -49,14 +49,10 @@ final class StartContextResolver {
 		$use_current_handoff = false;
 
 		if ( Settings::START_MODE_CURRENT === $start_mode ) {
-			$handoff_start_label = $this->settings->get_frontend_copy_value( 'start_current_handoff_label' );
-			$handoff_summary     = $this->settings->get_frontend_copy_value( 'start_current_handoff_summary' );
+			$handoff_start_label = __( 'Current location', 'plan-your-day' );
+			$handoff_summary     = __( 'your current location', 'plan-your-day' );
 			$directions_origin   = null;
 			$use_current_handoff = true;
-			$messages[]          = [
-				'type' => 'note',
-				'text' => $this->settings->get_frontend_copy_value( 'start_current_message' ),
-			];
 		} elseif ( Settings::START_MODE_CUSTOM === $start_mode && '' !== $custom_start ) {
 			$search_area         = $custom_start;
 			$preview_start_label = $custom_start;
@@ -64,11 +60,11 @@ final class StartContextResolver {
 			$handoff_summary     = $custom_start;
 			$directions_origin   = $custom_start;
 		} elseif ( Settings::START_MODE_CUSTOM === $start_mode ) {
-			$handoff_start_label = $this->settings->get_frontend_copy_value( 'start_default_fallback_label' );
-			$handoff_summary     = $this->settings->get_frontend_copy_value( 'start_default_fallback_summary' );
+			$handoff_start_label = __( 'Default location fallback', 'plan-your-day' );
+			$handoff_summary     = __( 'the default location until a custom starting point is provided', 'plan-your-day' );
 			$messages[]          = [
 				'type' => 'warning',
-				'text' => $this->settings->get_frontend_copy_value( 'start_custom_missing_message' ),
+				'text' => __( 'Add a custom address to replace the default fallback before finalizing the trip start.', 'plan-your-day' ),
 			];
 		}
 

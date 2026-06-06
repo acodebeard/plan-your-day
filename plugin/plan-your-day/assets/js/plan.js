@@ -2,6 +2,20 @@
   const ROOT_SELECTOR = '[data-plan-root]';
   const ENHANCED_FLAG = 'planYourDayEnhanced';
   const START_PANEL_ANIMATION_MS = 480;
+  const COLOR_MODE_STORAGE_KEY = 'planYourDayColorMode';
+  const COLOR_MODE_LIGHT = 'light';
+  const COLOR_MODE_DARK = 'dark';
+  const COLOR_MODE_SYSTEM = 'system';
+  const COLOR_MODE_VALUES = [COLOR_MODE_LIGHT, COLOR_MODE_DARK];
+  const COLOR_MODE_DEFAULT_VALUES = [...COLOR_MODE_VALUES, COLOR_MODE_SYSTEM];
+  const CUSTOM_START_STATUS_CHECKING = 'checking';
+  const CUSTOM_START_STATUS_FOUND = 'found';
+  const CUSTOM_START_STATUS_NOT_FOUND = 'not_found';
+  const CUSTOM_START_STATUSES = [
+    CUSTOM_START_STATUS_CHECKING,
+    CUSTOM_START_STATUS_FOUND,
+    CUSTOM_START_STATUS_NOT_FOUND,
+  ];
 
   const parseConfig = (root) => {
     const configElement = root.querySelector('[data-plan-config]');
@@ -100,10 +114,107 @@
     });
   };
 
+  const isColorMode = (value) => COLOR_MODE_VALUES.includes(String(value || ''));
+
+  const normalizeColorModeDefault = (value) => {
+    const colorModeDefault = String(value || '');
+
+    return COLOR_MODE_DEFAULT_VALUES.includes(colorModeDefault) ? colorModeDefault : COLOR_MODE_LIGHT;
+  };
+
+  const getStoredColorMode = () => {
+    try {
+      const storedMode = window.localStorage?.getItem(COLOR_MODE_STORAGE_KEY);
+
+      return isColorMode(storedMode) ? storedMode : '';
+    } catch (error) {
+      return '';
+    }
+  };
+
+  const setStoredColorMode = (colorMode) => {
+    if (!isColorMode(colorMode)) {
+      return;
+    }
+
+    try {
+      window.localStorage?.setItem(COLOR_MODE_STORAGE_KEY, colorMode);
+    } catch (error) {
+      // Local storage can be blocked; the in-page mode still applies.
+    }
+  };
+
+  const getColorModeMediaQuery = () => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return null;
+    }
+
+    return window.matchMedia('(prefers-color-scheme: dark)');
+  };
+
+  const resolveColorMode = (colorModeDefault, mediaQuery = getColorModeMediaQuery()) => {
+    const storedMode = getStoredColorMode();
+
+    if (isColorMode(storedMode)) {
+      return storedMode;
+    }
+
+    const defaultMode = normalizeColorModeDefault(colorModeDefault);
+
+    if (defaultMode === COLOR_MODE_SYSTEM) {
+      return mediaQuery?.matches ? COLOR_MODE_DARK : COLOR_MODE_LIGHT;
+    }
+
+    return defaultMode;
+  };
+
+  const syncColorModeToggle = (refs, colorMode, strings) => {
+    if (!(refs.colorModeToggle instanceof HTMLButtonElement)) {
+      return;
+    }
+
+    refs.colorModeToggle.hidden = false;
+    refs.colorModeToggle.setAttribute('aria-pressed', String(colorMode === COLOR_MODE_DARK));
+    refs.colorModeToggle.setAttribute('aria-label', String(strings.darkModeLabel || 'Dark mode'));
+
+    if (refs.colorModeToggleLabel instanceof HTMLElement) {
+      refs.colorModeToggleLabel.textContent = String(strings.darkModeLabel || 'Dark mode');
+    }
+  };
+
+  const applyColorMode = (root, refs, colorMode, strings) => {
+    const nextMode = isColorMode(colorMode) ? colorMode : COLOR_MODE_LIGHT;
+
+    root.setAttribute('data-plan-color-mode', nextMode);
+    syncColorModeToggle(refs, nextMode, strings);
+  };
+
   const getCheckedStartMode = (startModeInputs) => {
     const checkedInput = startModeInputs.find((input) => input.checked);
 
     return checkedInput ? checkedInput.value : '';
+  };
+
+  const normalizeCustomStartStatus = (status) => {
+    const normalizedStatus = String(status || '');
+
+    return CUSTOM_START_STATUSES.includes(normalizedStatus) ? normalizedStatus : '';
+  };
+
+  const getCustomStartStatusMessage = (status, strings) => {
+    if (status === CUSTOM_START_STATUS_CHECKING) {
+      return String(strings.customStartChecking || 'Checking starting address.');
+    }
+
+    if (status === CUSTOM_START_STATUS_FOUND) {
+      return String(strings.customStartFound || 'Starting address found. Results are ready.');
+    }
+
+    if (status === CUSTOM_START_STATUS_NOT_FOUND) {
+      return String(strings.customStartNotFound || 'Starting address was not found.');
+    }
+
+    return '';
   };
 
   const buildPayload = (refs, state) => {
@@ -703,7 +814,19 @@
 
   const shouldRefreshBrowseRoute = (routeData) => toStringArray(routeData?.selectedWaypointIds).length === 0;
 
-  const syncStartUi = (refs, state) => {
+  const syncCustomStartStatusUi = (refs, status, strings) => {
+    const normalizedStatus = normalizeCustomStartStatus(status);
+
+    if (refs.customStartWrap instanceof HTMLElement) {
+      refs.customStartWrap.setAttribute('data-plan-custom-start-state', normalizedStatus);
+    }
+
+    if (refs.customStartStatus instanceof HTMLElement) {
+      refs.customStartStatus.textContent = getCustomStartStatusMessage(normalizedStatus, strings);
+    }
+  };
+
+  const syncStartUi = (refs, state, strings) => {
     refs.startModeInputs.forEach((input) => {
       input.checked = input.value === state.startMode;
     });
@@ -722,6 +845,8 @@
     if (refs.customStartInput) {
       refs.customStartInput.disabled = !isCustom;
     }
+
+    syncCustomStartStatusUi(refs, isCustom ? state.customStartStatus : '', strings);
   };
 
   const syncCategorySearchUi = (refs, state) => {
@@ -850,9 +975,12 @@
       startModeInputs: Array.from(root.querySelectorAll('input[name="start_mode"]')),
       customStartWrap: root.querySelector('[data-plan-custom-start-wrap]'),
       customStartInput: root.querySelector('[data-plan-custom-start]'),
+      customStartStatus: root.querySelector('[data-plan-custom-start-status]'),
       startToggle: root.querySelector('[data-plan-start-toggle]'),
       startToggleLabel: root.querySelector('[data-plan-start-toggle-label]'),
       startPanel: root.querySelector('[data-plan-start-panel]'),
+      colorModeToggle: root.querySelector('[data-plan-color-mode-toggle]'),
+      colorModeToggleLabel: root.querySelector('[data-plan-color-mode-toggle-label]'),
       tripHeaderActions: root.querySelector('[data-plan-trip-header-actions]'),
       tripHeading: root.querySelector('[data-plan-trip-heading]'),
       tripRegion: root.querySelector('[data-plan-trip-region]'),
@@ -873,35 +1001,54 @@
       categorySearch: String(config.initialState?.categorySearch || ''),
       startMode: String(config.initialState?.startMode || 'default'),
       customStart: String(config.initialState?.customStart || ''),
+      customStartStatus: normalizeCustomStartStatus(config.initialData?.browse?.customStartStatus || ''),
       expandedCategory: String(config.initialState?.category || ''),
       customResultsExpanded: Boolean(config.initialData?.browse?.isCustomSearch),
       isLoadingMore: false,
       browse: config.initialData?.browse || {},
       route: config.initialData?.route || {},
     };
+    const canBootstrapEndpointToken =
+      typeof config.rest?.bootstrapUrl === 'string' &&
+      config.rest.bootstrapUrl !== '';
+    let endpointToken = typeof config.rest?.endpointToken === 'string' ? config.rest.endpointToken : '';
+    let hasBootstrappedEndpointToken = false;
+    let endpointTokenRequest = null;
     const hasRestConfig =
       refs.form instanceof HTMLFormElement &&
       typeof config.rest?.browseUrl === 'string' &&
       config.rest.browseUrl !== '' &&
       typeof config.rest?.routeUrl === 'string' &&
       config.rest.routeUrl !== '' &&
-      typeof config.rest?.endpointToken === 'string' &&
-      config.rest.endpointToken !== '';
+      (endpointToken !== '' || canBootstrapEndpointToken);
     const shouldHydrateOnLoad = Boolean(config.hydration?.shouldHydrateOnLoad);
+    const colorModeDefault = normalizeColorModeDefault(
+      config.colorModeDefault || root.getAttribute('data-plan-color-mode-default')
+    );
+    const colorModeMediaQuery = getColorModeMediaQuery();
 
     let isStartPanelOpen = true;
     let activeRequestController = null;
     let activeRequestEndpointKey = '';
     let activeRequestId = 0;
     let pendingRouteFocusRequest = null;
-    let hasTouchedStartSelection = false;
-    let hasAutoCollapsedDefaultStart = false;
-    const initialWindowScrollY = typeof window === 'undefined' ? 0 : window.scrollY;
     const prefersReducedMotion =
       typeof window !== 'undefined' &&
       typeof window.matchMedia === 'function' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let startPanelAnimationFrame = 0;
+
+    applyColorMode(root, refs, resolveColorMode(colorModeDefault, colorModeMediaQuery), strings);
+
+    if (colorModeDefault === COLOR_MODE_SYSTEM && colorModeMediaQuery) {
+      colorModeMediaQuery.addEventListener('change', () => {
+        if (getStoredColorMode()) {
+          return;
+        }
+
+        applyColorMode(root, refs, resolveColorMode(colorModeDefault, colorModeMediaQuery), strings);
+      });
+    }
 
     const renderAll = () => {
       renderCategoryPanels(refs, state, strings, {
@@ -910,7 +1057,7 @@
       renderTrip(refs, state, strings);
       renderPreview(refs, state, strings);
       syncHiddenInputs(refs, state);
-      syncStartUi(refs, state);
+      syncStartUi(refs, state, strings);
       syncCategorySearchUi(refs, state);
       setRouteMutationBusyState(root, false);
     };
@@ -953,23 +1100,7 @@
         ? 4 * progress * progress * progress
         : 1 - Math.pow(-2 * progress + 2, 3) / 2;
 
-    const getViewportTopOffset = () => {
-      const adminBar = document.getElementById('wpadminbar');
-
-      return (adminBar instanceof HTMLElement ? adminBar.offsetHeight : 0) + 16;
-    };
-
-    const getStartSelectionScrollTargetY = (closingHeight) => {
-      if (!(refs.resultsHeading instanceof HTMLElement) || typeof window === 'undefined') {
-        return null;
-      }
-
-      const headingTop = refs.resultsHeading.getBoundingClientRect().top;
-
-      return Math.max(window.scrollY + headingTop - getViewportTopOffset() - closingHeight, 0);
-    };
-
-    const animateStartPanel = (nextOpenState, options = {}) => {
+    const animateStartPanel = (nextOpenState) => {
       if (!(refs.startPanel instanceof HTMLElement) || !refs.startToggle) {
         isStartPanelOpen = nextOpenState;
         updateStartPanelState();
@@ -978,7 +1109,6 @@
 
       const panel = refs.startPanel;
       const duration = prefersReducedMotion ? 0 : START_PANEL_ANIMATION_MS;
-      const scrollToY = typeof options.scrollToY === 'number' ? options.scrollToY : null;
 
       if (startPanelAnimationFrame) {
         window.cancelAnimationFrame(startPanelAnimationFrame);
@@ -1013,13 +1143,6 @@
         panel.hidden = !nextOpenState;
         updateStartPanelState();
 
-        if (scrollToY !== null && typeof window !== 'undefined') {
-          window.scrollTo({
-            top: scrollToY,
-            behavior: 'auto',
-          });
-        }
-
         return;
       }
 
@@ -1032,13 +1155,6 @@
         panel.style.opacity = '';
         panel.hidden = !nextOpenState;
         updateStartPanelState();
-
-        if (scrollToY !== null && typeof window !== 'undefined') {
-          window.scrollTo({
-            top: scrollToY,
-            behavior: 'auto',
-          });
-        }
 
         startPanelAnimationFrame = 0;
       };
@@ -1071,37 +1187,64 @@
       animateStartPanel(true);
     };
 
-    const closeStartPanel = (options = {}) => {
+    const closeStartPanel = () => {
       if (!isStartPanelOpen) {
         return;
       }
 
-      const currentHeight = refs.startPanel instanceof HTMLElement ? refs.startPanel.getBoundingClientRect().height : 0;
-      const scrollToY = options.scrollToResults ? getStartSelectionScrollTargetY(currentHeight) : null;
-
-      animateStartPanel(false, {
-        scrollToY,
-      });
+      animateStartPanel(false);
     };
 
-    const maybeAutoCollapseDefaultStart = () => {
-      if (
-        typeof window === 'undefined' ||
-        hasTouchedStartSelection ||
-        hasAutoCollapsedDefaultStart ||
-        !isStartPanelOpen ||
-        state.startMode !== 'default' ||
-        String(state.customStart || '').trim() !== ''
-      ) {
-        return;
+    const ensureEndpointToken = async () => {
+      if (!canBootstrapEndpointToken) {
+        return endpointToken;
       }
 
-      if (window.scrollY - initialWindowScrollY < 100) {
-        return;
+      if (hasBootstrappedEndpointToken && endpointToken !== '') {
+        return endpointToken;
       }
 
-      hasAutoCollapsedDefaultStart = true;
-      closeStartPanel();
+      if (endpointTokenRequest) {
+        return endpointTokenRequest;
+      }
+
+      endpointTokenRequest = fetch(config.rest.bootstrapUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      })
+        .then(async (response) => {
+          const responseBody = await response.json().catch(() => ({}));
+          debugLog(config, response.ok ? 'info' : 'warn', 'request:bootstrap', {
+            status: response.status,
+            ok: response.ok,
+            body: responseBody,
+          });
+
+          if (!response.ok) {
+            throw new Error(responseBody?.message || strings.requestFailed || '');
+          }
+
+          const freshToken = String(responseBody?.endpointToken || '');
+
+          if (freshToken === '') {
+            throw new Error(strings.requestFailed || '');
+          }
+
+          endpointToken = freshToken;
+          hasBootstrappedEndpointToken = true;
+
+          return endpointToken;
+        })
+        .finally(() => {
+          endpointTokenRequest = null;
+        });
+
+      return endpointTokenRequest;
     };
 
     const sendRequest = async (endpointKey, payload, requestOptions = {}) => {
@@ -1115,6 +1258,19 @@
       const searchContextKey = String(requestOptions.searchContextKey || '');
       const refreshRoute = endpointKey === 'browse' ? requestOptions.refreshRoute !== false : false;
       const routeFocusRequest = endpointKey === 'route' ? requestOptions.routeFocusRequest ?? null : null;
+      const payloadStartMode = String(payload.start_mode || '');
+      const payloadCustomStart = String(payload.custom_start || '');
+      const shouldCheckCustomStart =
+        endpointKey === 'browse' &&
+        !appendBrowseResults &&
+        payloadStartMode === 'custom' &&
+        payloadCustomStart.trim() !== '';
+      const shouldClearRouteCustomStartStatus =
+        endpointKey === 'route' &&
+        (state.customStartStatus === CUSTOM_START_STATUS_CHECKING ||
+          payloadStartMode !== 'custom' ||
+          payloadCustomStart.trim() === '' ||
+          payloadCustomStart !== String(state.customStart || ''));
 
       if (activeRequestController instanceof AbortController) {
         if (activeRequestEndpointKey === 'route') {
@@ -1147,15 +1303,28 @@
       setRegionBusyState(refs, state, true);
       setRouteMutationBusyState(root, endpointKey === 'route');
       setBrowseControlsBusyState(root, endpointKey === 'route');
+      if (shouldCheckCustomStart) {
+        state.customStartStatus = CUSTOM_START_STATUS_CHECKING;
+        syncStartUi(refs, state, strings);
+      } else if ((endpointKey === 'browse' && !appendBrowseResults) || shouldClearRouteCustomStartStatus) {
+        state.customStartStatus = '';
+        syncStartUi(refs, state, strings);
+      }
       debugLog(config, 'info', 'request:start', {
         endpointKey,
         payload,
       });
 
       try {
+        const requestEndpointToken = await ensureEndpointToken();
+
+        if (requestEndpointToken === '') {
+          throw new Error(strings.requestFailed || '');
+        }
+
         const requestBody = {
           ...payload,
-          endpoint_token: config.rest.endpointToken,
+          endpoint_token: requestEndpointToken,
         };
 
         if (endpointKey === 'browse') {
@@ -1225,6 +1394,7 @@
           state.route = responseBody?.route || state.route || {};
           state.category = String(state.browse.categoryKey || payload.category || '');
           state.categorySearch = String(state.browse.categorySearch || payload.category_search || '');
+          state.customStartStatus = normalizeCustomStartStatus(state.browse.customStartStatus || '');
           state.isLoadingMore = false;
 
           if (state.category) {
@@ -1247,7 +1417,7 @@
             renderTrip(refs, state, strings);
             renderPreview(refs, state, strings);
             syncHiddenInputs(refs, state);
-            syncStartUi(refs, state);
+            syncStartUi(refs, state, strings);
             syncCategorySearchUi(refs, state);
             setRouteMutationBusyState(root, false);
             announce(
@@ -1285,7 +1455,15 @@
           debugLog(config, 'info', 'request:aborted', {
             endpointKey,
           });
+          if (requestId === activeRequestId && shouldCheckCustomStart) {
+            state.customStartStatus = '';
+            syncStartUi(refs, state, strings);
+          }
           return 'aborted';
+        }
+
+        if (requestId !== activeRequestId) {
+          return 'stale';
         }
 
         debugLog(config, 'error', 'request:failed', {
@@ -1306,6 +1484,10 @@
           appendBrowseResults ? errorMessage || strings.requestFailed || '' : error instanceof Error ? error.message : strings.requestFailed || '',
           appendBrowseResults ? errorMessage || strings.requestFailed || '' : ''
         );
+        if (shouldCheckCustomStart) {
+          state.customStartStatus = '';
+          syncStartUi(refs, state, strings);
+        }
 
         return 'failed';
       } finally {
@@ -1334,12 +1516,7 @@
     refs.startModeInputs.forEach((input) => {
       input.addEventListener('change', () => {
         state.startMode = getCheckedStartMode(refs.startModeInputs) || state.startMode || 'default';
-        syncStartUi(refs, state);
-        hasTouchedStartSelection = true;
-
-        if (state.startMode !== 'custom' || state.customStart.trim() !== '') {
-          closeStartPanel({ scrollToResults: true });
-        }
+        syncStartUi(refs, state, strings);
 
         if (!hasRestConfig) {
           announce(refs.liveRegion, strings.startingPointUpdated || '');
@@ -1356,12 +1533,7 @@
     if (refs.customStartInput instanceof HTMLInputElement) {
       refs.customStartInput.addEventListener('change', () => {
         state.customStart = refs.customStartInput.value || '';
-        syncStartUi(refs, state);
-        hasTouchedStartSelection = true;
-
-        if (state.startMode === 'custom' && state.customStart.trim() !== '') {
-          closeStartPanel({ scrollToResults: true });
-        }
+        syncStartUi(refs, state, strings);
 
         if (!hasRestConfig) {
           announce(refs.liveRegion, strings.startingPointUpdated || '');
@@ -1373,10 +1545,6 @@
           refreshRoute: true,
         });
       });
-    }
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('scroll', maybeAutoCollapseDefaultStart, { passive: true });
     }
 
     if (refs.categorySearchInput instanceof HTMLInputElement) {
@@ -1500,6 +1668,21 @@
           refs.liveRegion,
           isStartPanelOpen ? strings.startOptionsExpanded || '' : strings.startOptionsCollapsed || ''
         );
+        return;
+      }
+
+      const colorModeToggle = target.closest('[data-plan-color-mode-toggle]');
+
+      if (colorModeToggle instanceof HTMLButtonElement) {
+        event.preventDefault();
+
+        const currentMode = root.getAttribute('data-plan-color-mode') === COLOR_MODE_DARK
+          ? COLOR_MODE_DARK
+          : COLOR_MODE_LIGHT;
+        const nextMode = currentMode === COLOR_MODE_DARK ? COLOR_MODE_LIGHT : COLOR_MODE_DARK;
+
+        setStoredColorMode(nextMode);
+        applyColorMode(root, refs, nextMode, strings);
         return;
       }
 

@@ -1,6 +1,6 @@
 # Architecture
 
-Plan Your Day is a generic WordPress plugin for building configurable day-trip
+Waypoints is a generic WordPress plugin for building configurable day-trip
 planners with Google Maps and Places data.
 
 ## Plugin Entry Point
@@ -46,7 +46,7 @@ plan_your_day_settings
 The admin page is registered under:
 
 ```text
-Settings > Plan Your Day
+Settings > Waypoints
 ```
 
 The admin screen currently exposes required default location fields, planner
@@ -96,8 +96,7 @@ Maps Embed key is separate.
 Planner helpers extracted so far:
 
 - `CategoryCatalog`: owns the built-in starter category list for fresh installs
-  and empty saved-category fallbacks, then filters the saved category rows down
-  to the enabled frontend catalog.
+  and filters the saved category rows down to the enabled frontend catalog.
 - `PlaceParser`: shapes Google place responses and sanitizes Place IDs / HTTPS
   map URLs.
 - `WaypointList`: normalizes, deduplicates, caps, and reorders waypoint IDs.
@@ -136,10 +135,10 @@ Built-in starter rows for fresh installs live in:
 plugin/plan-your-day/src/Planner/CategoryCatalog.php
 ```
 
-Use `CategoryCatalog::default_rows()` when changing the starter list for new or
-empty installs. `Settings::get_categories()` resolves the saved rows first and
-falls back to that starter list only when the saved category list is empty and
-the fallback toggle remains enabled.
+Use `CategoryCatalog::default_rows()` when changing the starter list for fresh
+installs. `Settings::get_categories()` returns the saved list as-is, including an
+intentionally empty list, so visitors can use custom search without category
+buttons.
 
 ## Security Helpers
 

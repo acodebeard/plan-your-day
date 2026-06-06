@@ -14,15 +14,42 @@ final class CategoryCatalogTest extends TestCase {
 		$GLOBALS['plan_your_day_test_option_reads'] = [];
 	}
 
-	public function test_get_all_returns_built_in_starter_categories_when_saved_list_is_empty(): void {
+	public function test_get_all_returns_empty_when_saved_list_is_empty(): void {
 		update_option( Settings::OPTION_NAME, Settings::defaults() );
 
 		$settings = new Settings();
 		$catalog  = new CategoryCatalog( $settings );
 
+		self::assertSame( [], $catalog->get_all() );
+	}
+
+	public function test_built_in_starter_categories_use_near_me_search_terms(): void {
+		update_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				Settings::defaults(),
+				[
+					'categories' => Settings::default_categories(),
+				]
+			)
+		);
+
+		$settings = new Settings();
+		$catalog  = new CategoryCatalog( $settings );
+
 		self::assertSame(
-			[ 'coffee', 'food', 'shopping', 'outdoors', 'history-culture', 'scenic', 'activities' ],
-			array_keys( $catalog->get_all() )
+			[
+				'coffee'          => 'Coffee near me',
+				'food'            => 'Food near me',
+				'shopping'        => 'Shopping near me',
+				'outdoors'        => 'Outdoors near me',
+				'history-culture' => 'History / culture near me',
+				'scenic'          => 'Scenic spots near me',
+			],
+			array_map(
+				static fn ( array $category ): string => (string) $category['text_query'],
+				$catalog->get_all()
+			)
 		);
 	}
 
@@ -72,13 +99,13 @@ final class CategoryCatalogTest extends TestCase {
 		self::assertArrayNotHasKey( 'hidden', $catalog->get_all() );
 	}
 
-	public function test_get_all_returns_empty_when_saved_list_is_empty_and_fallback_is_disabled(): void {
+	public function test_get_all_returns_empty_when_saved_list_is_empty_even_if_legacy_fallback_is_enabled(): void {
 		update_option(
 			Settings::OPTION_NAME,
 			array_merge(
 				Settings::defaults(),
 				[
-					'use_preset_categories' => false,
+					'use_preset_categories' => true,
 				]
 			)
 		);

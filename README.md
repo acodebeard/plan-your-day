@@ -1,12 +1,16 @@
-# Plan Your Day
+# Waypoints
 
-Plan Your Day is a configurable WordPress plugin for building day-trip planners
-with Google Maps and Places data. The plugin source lives in
+Waypoints is a configurable WordPress plugin for building day-trip planners with
+Google Maps and Places data. The plugin source lives in
 `plugin/plan-your-day/`.
 
 ## Status
 
-The plugin is under active development. Completed foundation work includes:
+The latest published release is **v0.5**. The project is in v1.0 release
+preparation, with UI polish and final hardening work happening in focused pull
+requests.
+
+Completed foundation work includes:
 
 - WordPress plugin scaffold, activation/deactivation hooks, uninstall routine,
   release metadata, and Composer PSR-4 autoloading.
@@ -25,14 +29,28 @@ The plugin is under active development. Completed foundation work includes:
   shared planner renderer.
 - WordPress REST browse/route endpoints with POST-only requests, guest-safe
   visitor token validation, same-site request checks, trusted-proxy-aware client
-  IP resolution, and file-backed rate limiting.
+  IP resolution, and configurable rate limiting.
 - Frontend JavaScript that updates browse and trip state through REST instead of
   full-page planner reloads.
 - Admin-editable categories, admin-editable interface copy, cache-clear tools,
   and a Google API test tool.
+- Browser smoke coverage for shortcode and block renders, category browsing,
+  load-more, waypoint add/reorder/remove, clear-trip behavior, focus recovery,
+  and narrow-viewport start-options behavior.
+- GitHub Actions quality checks for PHP syntax, PHPCS, PHPUnit, browser smoke,
+  and WordPress Plugin Check.
 
-Browser automation and broader production QA are still tracked in GitHub
-issues.
+Current v1.0 hardening work is split into open PRs for:
+
+- Removing bundled icon assets in favor of CSS-only UI details.
+- Making REST token bootstrap cache behavior safer.
+- Moving rate-limit state to expiring transients.
+- Hardening Google geocode failure handling.
+- Keeping the Plugin Check workflow stable and quiet.
+
+PHPStan is not part of the current v1.0 gate. A one-off scan without WordPress
+stubs only reports missing WordPress symbols, so the project is relying on the
+checks above for this release.
 
 ## Requirements
 
@@ -55,6 +73,14 @@ issues.
 - `docs/` contains installation, usage, admin, release, architecture, settings,
   security, troubleshooting, and historical planning notes for the plugin.
 
+## Naming Note
+
+The public plugin name is **Waypoints**. The source still uses `plan-your-day`
+for the plugin directory and text domain, `[plan_your_day]` for the shortcode,
+`plan_your_day_*` for settings/options/hooks, `Acodebeard\PlanYourDay` for the
+PHP namespace, and related REST, asset, and CSS identifiers because the plugin
+was renamed after those compatibility surfaces already existed.
+
 ## Documentation
 
 Start with [docs/README.md](docs/README.md). Current docs cover installation,
@@ -71,8 +97,8 @@ security, and troubleshooting.
    composer install
    ```
 
-3. Activate **Plan Your Day** from the WordPress Plugins screen.
-4. Open **Settings > Plan Your Day**.
+3. Activate **Waypoints** from the WordPress Plugins screen.
+4. Open **Settings > Waypoints**.
 5. Configure the required default location and Google API keys.
 
 Release zips should include generated Composer autoload files so production
@@ -86,7 +112,7 @@ From `plugin/plan-your-day/`, build an installable WordPress admin zip with:
 ./tools/build-release-zip.sh
 ```
 
-The script creates `dist/plan-your-day-0.1.0.zip` at the repository root,
+The script creates `dist/plan-your-day-0.5.zip` at the repository root,
 installs production-only Composer autoload files into a temporary staging copy,
 and packages the final artifact with a top-level `plan-your-day/` directory
 suitable for **Plugins > Add New > Upload Plugin**.
@@ -127,7 +153,22 @@ Server-side Google API keys must not be exposed to frontend runtime config.
 
 ## Useful Checks
 
-Run PHP syntax checks from the repository root:
+Run the PHP checks from the plugin directory:
+
+```sh
+cd plugin/plan-your-day
+composer test
+```
+
+Run the browser smoke suite from the repository root:
+
+```sh
+npm ci
+npx playwright install chromium
+npm run browser-smoke
+```
+
+Run a quick PHP syntax-only sweep from the repository root:
 
 ```sh
 find plugin/plan-your-day -name '*.php' -print -exec php -l {} \;
@@ -140,4 +181,5 @@ rg "localhost|example\\.test|Kona|pier" plugin/plan-your-day
 ```
 
 The plugin PHPUnit suite covers current service, settings, and activation
-behavior. Browser and broader integration QA are still tracked separately.
+behavior. The GitHub `Plugin Quality` workflow also runs WordPress Plugin Check
+against an installable wp-env-backed plugin checkout.

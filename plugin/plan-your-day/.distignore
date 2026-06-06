@@ -8,11 +8,13 @@
 /.gitignore
 /.github
 /dist
+/docs
 /.phpunit.cache
 /node_modules
 /vendor
 /tests
 /tools
+/phpstan.neon
 /phpcs.xml.dist
 /phpunit.xml
 /phpunit.xml.dist

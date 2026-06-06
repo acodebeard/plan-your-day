@@ -35,6 +35,9 @@ Then activate the plugin from the WordPress admin Plugins screen or with WP-CLI:
 wp --path=/path/to/wordpress plugin activate plan-your-day
 ```
 
+In the WordPress admin, the plugin appears as **Waypoints**. Open
+**Settings > Waypoints** after activation.
+
 ## Local Test Install
 
 One local development setup can look like this:
@@ -91,5 +94,5 @@ cd plugin/plan-your-day
 ./tools/build-release-zip.sh
 ```
 
-The script writes `dist/plan-your-day-0.1.0.zip` at the repository root, which
+The script writes `dist/plan-your-day-0.5.zip` at the repository root, which
 can be uploaded through the WordPress Plugins screen.

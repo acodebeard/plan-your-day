@@ -1,0 +1,11 @@
+{
+  "name": "plan-your-day-qa",
+  "private": true,
+  "description": "Browser smoke tests for the Plan Your Day plugin repository.",
+  "scripts": {
+    "browser-smoke": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.59.1"
+  }
+}
