@@ -1,7 +1,7 @@
-# Plan Your Day
+# Waypoints
 
-Plan Your Day is a configurable WordPress plugin for building day-trip planners
-with Google Maps and Places data. The plugin source lives in
+Waypoints is a configurable WordPress plugin for building day-trip planners with
+Google Maps and Places data. The plugin source lives in
 `plugin/plan-your-day/`.
 
 ## Status
@@ -89,8 +89,8 @@ security, and troubleshooting.
    composer install
    ```
 
-3. Activate **Plan Your Day** from the WordPress Plugins screen.
-4. Open **Settings > Plan Your Day**.
+3. Activate **Waypoints** from the WordPress Plugins screen.
+4. Open **Settings > Waypoints**.
 5. Configure the required default location and Google API keys.
 
 Release zips should include generated Composer autoload files so production
