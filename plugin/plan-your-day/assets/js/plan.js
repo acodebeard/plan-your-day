@@ -8,6 +8,14 @@
   const COLOR_MODE_SYSTEM = 'system';
   const COLOR_MODE_VALUES = [COLOR_MODE_LIGHT, COLOR_MODE_DARK];
   const COLOR_MODE_DEFAULT_VALUES = [...COLOR_MODE_VALUES, COLOR_MODE_SYSTEM];
+  const CUSTOM_START_STATUS_CHECKING = 'checking';
+  const CUSTOM_START_STATUS_FOUND = 'found';
+  const CUSTOM_START_STATUS_NOT_FOUND = 'not_found';
+  const CUSTOM_START_STATUSES = [
+    CUSTOM_START_STATUS_CHECKING,
+    CUSTOM_START_STATUS_FOUND,
+    CUSTOM_START_STATUS_NOT_FOUND,
+  ];
 
   const parseConfig = (root) => {
     const configElement = root.querySelector('[data-plan-config]');
@@ -185,6 +193,28 @@
     const checkedInput = startModeInputs.find((input) => input.checked);
 
     return checkedInput ? checkedInput.value : '';
+  };
+
+  const normalizeCustomStartStatus = (status) => {
+    const normalizedStatus = String(status || '');
+
+    return CUSTOM_START_STATUSES.includes(normalizedStatus) ? normalizedStatus : '';
+  };
+
+  const getCustomStartStatusMessage = (status, strings) => {
+    if (status === CUSTOM_START_STATUS_CHECKING) {
+      return String(strings.customStartChecking || 'Checking starting address.');
+    }
+
+    if (status === CUSTOM_START_STATUS_FOUND) {
+      return String(strings.customStartFound || 'Starting address found. Results are ready.');
+    }
+
+    if (status === CUSTOM_START_STATUS_NOT_FOUND) {
+      return String(strings.customStartNotFound || 'Starting address was not found.');
+    }
+
+    return '';
   };
 
   const buildPayload = (refs, state) => {
@@ -784,7 +814,19 @@
 
   const shouldRefreshBrowseRoute = (routeData) => toStringArray(routeData?.selectedWaypointIds).length === 0;
 
-  const syncStartUi = (refs, state) => {
+  const syncCustomStartStatusUi = (refs, status, strings) => {
+    const normalizedStatus = normalizeCustomStartStatus(status);
+
+    if (refs.customStartWrap instanceof HTMLElement) {
+      refs.customStartWrap.setAttribute('data-plan-custom-start-state', normalizedStatus);
+    }
+
+    if (refs.customStartStatus instanceof HTMLElement) {
+      refs.customStartStatus.textContent = getCustomStartStatusMessage(normalizedStatus, strings);
+    }
+  };
+
+  const syncStartUi = (refs, state, strings) => {
     refs.startModeInputs.forEach((input) => {
       input.checked = input.value === state.startMode;
     });
@@ -803,6 +845,8 @@
     if (refs.customStartInput) {
       refs.customStartInput.disabled = !isCustom;
     }
+
+    syncCustomStartStatusUi(refs, isCustom ? state.customStartStatus : '', strings);
   };
 
   const syncCategorySearchUi = (refs, state) => {
@@ -931,6 +975,7 @@
       startModeInputs: Array.from(root.querySelectorAll('input[name="start_mode"]')),
       customStartWrap: root.querySelector('[data-plan-custom-start-wrap]'),
       customStartInput: root.querySelector('[data-plan-custom-start]'),
+      customStartStatus: root.querySelector('[data-plan-custom-start-status]'),
       startToggle: root.querySelector('[data-plan-start-toggle]'),
       startToggleLabel: root.querySelector('[data-plan-start-toggle-label]'),
       startPanel: root.querySelector('[data-plan-start-panel]'),
@@ -956,6 +1001,7 @@
       categorySearch: String(config.initialState?.categorySearch || ''),
       startMode: String(config.initialState?.startMode || 'default'),
       customStart: String(config.initialState?.customStart || ''),
+      customStartStatus: normalizeCustomStartStatus(config.initialData?.browse?.customStartStatus || ''),
       expandedCategory: String(config.initialState?.category || ''),
       customResultsExpanded: Boolean(config.initialData?.browse?.isCustomSearch),
       isLoadingMore: false,
@@ -1006,7 +1052,7 @@
       renderTrip(refs, state, strings);
       renderPreview(refs, state, strings);
       syncHiddenInputs(refs, state);
-      syncStartUi(refs, state);
+      syncStartUi(refs, state, strings);
       syncCategorySearchUi(refs, state);
       setRouteMutationBusyState(root, false);
     };
@@ -1155,6 +1201,12 @@
       const searchContextKey = String(requestOptions.searchContextKey || '');
       const refreshRoute = endpointKey === 'browse' ? requestOptions.refreshRoute !== false : false;
       const routeFocusRequest = endpointKey === 'route' ? requestOptions.routeFocusRequest ?? null : null;
+      const previousCustomStartStatus = state.customStartStatus;
+      const shouldCheckCustomStart =
+        endpointKey === 'browse' &&
+        !appendBrowseResults &&
+        String(payload.start_mode || '') === 'custom' &&
+        String(payload.custom_start || '').trim() !== '';
 
       if (activeRequestController instanceof AbortController) {
         if (activeRequestEndpointKey === 'route') {
@@ -1187,6 +1239,13 @@
       setRegionBusyState(refs, state, true);
       setRouteMutationBusyState(root, endpointKey === 'route');
       setBrowseControlsBusyState(root, endpointKey === 'route');
+      if (shouldCheckCustomStart) {
+        state.customStartStatus = CUSTOM_START_STATUS_CHECKING;
+        syncStartUi(refs, state, strings);
+      } else if (endpointKey === 'browse' && !appendBrowseResults) {
+        state.customStartStatus = '';
+        syncStartUi(refs, state, strings);
+      }
       debugLog(config, 'info', 'request:start', {
         endpointKey,
         payload,
@@ -1265,6 +1324,7 @@
           state.route = responseBody?.route || state.route || {};
           state.category = String(state.browse.categoryKey || payload.category || '');
           state.categorySearch = String(state.browse.categorySearch || payload.category_search || '');
+          state.customStartStatus = normalizeCustomStartStatus(state.browse.customStartStatus || '');
           state.isLoadingMore = false;
 
           if (state.category) {
@@ -1287,7 +1347,7 @@
             renderTrip(refs, state, strings);
             renderPreview(refs, state, strings);
             syncHiddenInputs(refs, state);
-            syncStartUi(refs, state);
+            syncStartUi(refs, state, strings);
             syncCategorySearchUi(refs, state);
             setRouteMutationBusyState(root, false);
             announce(
@@ -1346,6 +1406,10 @@
           appendBrowseResults ? errorMessage || strings.requestFailed || '' : error instanceof Error ? error.message : strings.requestFailed || '',
           appendBrowseResults ? errorMessage || strings.requestFailed || '' : ''
         );
+        if (shouldCheckCustomStart) {
+          state.customStartStatus = previousCustomStartStatus;
+          syncStartUi(refs, state, strings);
+        }
 
         return 'failed';
       } finally {
@@ -1374,7 +1438,7 @@
     refs.startModeInputs.forEach((input) => {
       input.addEventListener('change', () => {
         state.startMode = getCheckedStartMode(refs.startModeInputs) || state.startMode || 'default';
-        syncStartUi(refs, state);
+        syncStartUi(refs, state, strings);
 
         if (!hasRestConfig) {
           announce(refs.liveRegion, strings.startingPointUpdated || '');
@@ -1391,7 +1455,7 @@
     if (refs.customStartInput instanceof HTMLInputElement) {
       refs.customStartInput.addEventListener('change', () => {
         state.customStart = refs.customStartInput.value || '';
-        syncStartUi(refs, state);
+        syncStartUi(refs, state, strings);
 
         if (!hasRestConfig) {
           announce(refs.liveRegion, strings.startingPointUpdated || '');

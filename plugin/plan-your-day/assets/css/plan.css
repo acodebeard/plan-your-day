@@ -83,6 +83,8 @@
   --pyd-warning-border: rgba(138, 79, 15, 0.2);
   --pyd-warning-bg: rgba(255, 243, 225, 0.9);
   --pyd-warning-text: #6e410d;
+  --pyd-success: #167c3b;
+  --pyd-danger: #a73525;
   --pyd-map-bg: #f3ede0;
   --pyd-scrollbar-track: rgba(23, 48, 56, 0.08);
   --pyd-scrollbar-thumb: rgba(138, 79, 15, 0.55);
@@ -147,6 +149,8 @@
   --pyd-warning-border: rgba(241, 181, 67, 0.34);
   --pyd-warning-bg: rgba(78, 57, 24, 0.68);
   --pyd-warning-text: #ffe1a3;
+  --pyd-success: #78d690;
+  --pyd-danger: #ff9a8a;
   --pyd-map-bg: #303030;
   --pyd-scrollbar-track: rgba(255, 255, 255, 0.08);
   --pyd-scrollbar-thumb: rgba(241, 181, 67, 0.62);
@@ -208,6 +212,8 @@
     --pyd-warning-border: rgba(241, 181, 67, 0.34);
     --pyd-warning-bg: rgba(78, 57, 24, 0.68);
     --pyd-warning-text: #ffe1a3;
+    --pyd-success: #78d690;
+    --pyd-danger: #ff9a8a;
     --pyd-map-bg: #303030;
     --pyd-scrollbar-track: rgba(255, 255, 255, 0.08);
     --pyd-scrollbar-thumb: rgba(241, 181, 67, 0.62);
@@ -1068,14 +1074,91 @@
   color: var(--pyd-heading);
 }
 
+.plan-your-day__custom-start-field {
+  position: relative;
+}
+
 .plan-your-day__custom-start input {
   width: 100%;
   min-height: 2.85rem;
-  padding: 0.75rem 0.9rem;
+  padding: 0.75rem 2.85rem 0.75rem 0.9rem;
   border: thin solid var(--pyd-border-strong);
   border-radius: 0.5rem;
   background: var(--pyd-panel-bg);
   color: var(--pyd-heading);
+}
+
+.plan-your-day__custom-start-indicator {
+  position: absolute;
+  top: 50%;
+  right: 0.9rem;
+  display: none;
+  width: 1rem;
+  height: 1rem;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.plan-your-day__custom-start[data-plan-custom-start-state="checking"] .plan-your-day__custom-start-indicator,
+.plan-your-day__custom-start[data-plan-custom-start-state="found"] .plan-your-day__custom-start-indicator,
+.plan-your-day__custom-start[data-plan-custom-start-state="not_found"] .plan-your-day__custom-start-indicator {
+  display: block;
+}
+
+.plan-your-day__custom-start[data-plan-custom-start-state="checking"] .plan-your-day__custom-start-indicator {
+  border: 2px solid var(--pyd-border-emphasis);
+  border-top-color: var(--pyd-accent);
+  border-radius: 999px;
+  animation: plan-your-day-spin 0.8s linear infinite;
+}
+
+.plan-your-day__custom-start[data-plan-custom-start-state="found"] .plan-your-day__custom-start-indicator::before {
+  content: "";
+  position: absolute;
+  top: 0.05rem;
+  left: 0.3rem;
+  width: 0.38rem;
+  height: 0.72rem;
+  border-right: 0.18rem solid var(--pyd-success);
+  border-bottom: 0.18rem solid var(--pyd-success);
+  transform: rotate(45deg);
+}
+
+.plan-your-day__custom-start[data-plan-custom-start-state="not_found"] .plan-your-day__custom-start-indicator {
+  border: 2px solid var(--pyd-danger);
+  border-radius: 999px;
+}
+
+.plan-your-day__custom-start[data-plan-custom-start-state="not_found"] .plan-your-day__custom-start-indicator::before,
+.plan-your-day__custom-start[data-plan-custom-start-state="not_found"] .plan-your-day__custom-start-indicator::after {
+  content: "";
+  position: absolute;
+  top: 0.2rem;
+  left: 0.4rem;
+  width: 0.15rem;
+  height: 0.52rem;
+  border-radius: 999px;
+  background: var(--pyd-danger);
+}
+
+.plan-your-day__custom-start[data-plan-custom-start-state="not_found"] .plan-your-day__custom-start-indicator::before {
+  transform: rotate(45deg);
+}
+
+.plan-your-day__custom-start[data-plan-custom-start-state="not_found"] .plan-your-day__custom-start-indicator::after {
+  transform: rotate(-45deg);
+}
+
+@keyframes plan-your-day-spin {
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-your-day__custom-start[data-plan-custom-start-state="checking"] .plan-your-day__custom-start-indicator {
+    animation: none;
+  }
 }
 
 .plan-your-day__input-help,

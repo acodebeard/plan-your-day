@@ -79,8 +79,9 @@ final class PlannerStateBuilder {
 			? $this->map_url_builder->build_search_query( $active_search_term, $search_context['search_area'], $search_context['use_current_handoff'] )
 			: '';
 		$search_origin_coordinates = [
-			'latitude'  => null,
-			'longitude' => null,
+			'latitude'            => null,
+			'longitude'           => null,
+			'custom_start_status' => '',
 		];
 		$search_results       = [];
 		$search_results_error = '';
@@ -97,7 +98,7 @@ final class PlannerStateBuilder {
 		$search_results_count = 0;
 
 		if ( $include_results && '' !== $search_query ) {
-			$search_origin_coordinates = $this->geocode_search_area( $search_context['search_area'] );
+			$search_origin_coordinates = $this->geocode_search_area( $search_context['search_area'], $start_mode, $custom_start );
 			$text_search_response      = $this->google_api_client->text_search(
 				$search_query,
 				$search_origin_coordinates['latitude'],
@@ -231,6 +232,7 @@ final class PlannerStateBuilder {
 			'has_trip'              => $has_trip,
 			'start_mode'            => $start_mode,
 			'custom_start'          => $custom_start,
+			'custom_start_status'   => $search_origin_coordinates['custom_start_status'],
 			'preview_start_label'   => $search_context['preview_start_label'],
 			'handoff_start_label'   => $search_context['handoff_start_label'],
 			'iframe_src'            => $iframe_src,
@@ -299,9 +301,10 @@ final class PlannerStateBuilder {
 		);
 	}
 
-	private function geocode_search_area( string $search_area ): array {
+	private function geocode_search_area( string $search_area, string $start_mode, string $custom_start ): array {
 		$configured_latitude  = $this->settings->get_default_location_latitude();
 		$configured_longitude = $this->settings->get_default_location_longitude();
+		$is_custom_start      = Settings::START_MODE_CUSTOM === $start_mode && '' !== $custom_start;
 
 		if (
 			$search_area === $this->settings->get_default_location_address() &&
@@ -309,8 +312,9 @@ final class PlannerStateBuilder {
 			null !== $configured_longitude
 		) {
 			return [
-				'latitude'  => $configured_latitude,
-				'longitude' => $configured_longitude,
+				'latitude'            => $configured_latitude,
+				'longitude'           => $configured_longitude,
+				'custom_start_status' => $is_custom_start ? 'found' : '',
 			];
 		}
 
@@ -318,14 +322,20 @@ final class PlannerStateBuilder {
 
 		if ( ! $geocode_response->is_success() ) {
 			return [
-				'latitude'  => null,
-				'longitude' => null,
+				'latitude'            => null,
+				'longitude'           => null,
+				'custom_start_status' => $is_custom_start ? 'not_found' : '',
 			];
 		}
 
+		$latitude  = $geocode_response->data()['latitude'] ?? null;
+		$longitude = $geocode_response->data()['longitude'] ?? null;
+		$is_found  = null !== $latitude && null !== $longitude;
+
 		return [
-			'latitude'  => $geocode_response->data()['latitude'] ?? null,
-			'longitude' => $geocode_response->data()['longitude'] ?? null,
+			'latitude'            => $latitude,
+			'longitude'           => $longitude,
+			'custom_start_status' => $is_custom_start ? ( $is_found ? 'found' : 'not_found' ) : '',
 		];
 	}
 
