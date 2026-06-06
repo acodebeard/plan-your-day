@@ -216,8 +216,7 @@
   }
 }
 
-.plan-your-day img,
-.plan-your-day svg {
+.plan-your-day img {
   display: block;
   max-width: 100%;
 }
@@ -585,7 +584,7 @@
   flex-shrink: 0;
 }
 
-.plan-your-day__category-trigger-icon {
+.plan-your-day__category-trigger-chevron {
   width: 0.72rem;
   height: 0.72rem;
   border-right: 2px solid currentColor;
@@ -594,7 +593,7 @@
   transition: transform 0.18s ease;
 }
 
-.plan-your-day__category-trigger[aria-expanded="true"] .plan-your-day__category-trigger-icon {
+.plan-your-day__category-trigger[aria-expanded="true"] .plan-your-day__category-trigger-chevron {
   transform: rotate(-135deg);
 }
 
@@ -729,7 +728,7 @@
   background: var(--pyd-secondary-hover-bg);
 }
 
-.plan-your-day__start-toggle-icon {
+.plan-your-day__start-toggle-chevron {
   width: 0.6rem;
   height: 0.6rem;
   border-right: 2px solid currentColor;
@@ -738,7 +737,7 @@
   transition: transform 0.18s ease;
 }
 
-.plan-your-day__start-toggle.is-collapsed .plan-your-day__start-toggle-icon {
+.plan-your-day__start-toggle.is-collapsed .plan-your-day__start-toggle-chevron {
   transform: rotate(45deg);
 }
 
@@ -1009,9 +1008,12 @@
 .plan-your-day__drag-handle:before {
   content: '';
   display: inline-block;
-  aspect-ratio: 94/150;
-  background: url("../icons/grip-vertical-solid.svg") center no-repeat;
-  background-size: 10px;
+  width: 10px;
+  height: 18px;
+  background-image:
+    repeating-radial-gradient(circle, currentColor 0 2px, transparent 2.5px 100%);
+  background-size: 5px 6px;
+  background-position: center;
   position: absolute;
   left: 8px;
   top:5px;

@@ -4,7 +4,6 @@
 	"name": "plan-your-day/planner",
 	"title": "Plan Your Day",
 	"category": "widgets",
-	"icon": "location-alt",
 	"description": "Render the Plan Your Day planner through the block editor.",
 	"textdomain": "plan-your-day",
 	"keywords": [

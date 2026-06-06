@@ -180,7 +180,7 @@ final class PlannerRenderer {
 					aria-controls="<?php echo esc_attr( $start_panel_id ); ?>"
 					aria-expanded="true">
 					<span data-plan-start-toggle-label><?php esc_html_e( 'Hide options', 'plan-your-day' ); ?></span>
-					<span class="plan-your-day__start-toggle-icon" aria-hidden="true"></span>
+					<span class="plan-your-day__start-toggle-chevron" aria-hidden="true"></span>
 				</button>
 			</div>
 
@@ -306,7 +306,7 @@ final class PlannerRenderer {
 								</span>
 							</span>
 							<span class="plan-your-day__category-trigger-side" aria-hidden="true">
-								<span class="plan-your-day__category-trigger-icon"></span>
+								<span class="plan-your-day__category-trigger-chevron"></span>
 							</span>
 						</button>
 					</h4>
@@ -350,7 +350,7 @@ final class PlannerRenderer {
 										<span class="plan-your-day__category-description"><?php echo esc_html( (string) $category['description'] ); ?></span>
 									</span>
 									<span class="plan-your-day__category-trigger-side" aria-hidden="true">
-										<span class="plan-your-day__category-trigger-icon"></span>
+										<span class="plan-your-day__category-trigger-chevron"></span>
 									</span>
 								</button>
 							</h4>
