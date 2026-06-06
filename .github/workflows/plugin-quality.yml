@@ -128,7 +128,23 @@ jobs:
           }
           EOF
 
-          npm -g --no-fund install @wordpress/env@11.5.0
+          wp_env_tools="$RUNNER_TEMP/wp-env-tools"
+          mkdir -p "$wp_env_tools"
+          cat > "$wp_env_tools/package.json" <<'EOF'
+          {
+            "private": true,
+            "dependencies": {
+              "@wordpress/env": "11.5.0"
+            },
+            "overrides": {
+              "rimraf": {
+                "glob": "^13.0.6"
+              }
+            }
+          }
+          EOF
+          npm --prefix "$wp_env_tools" --no-audit --no-fund install
+          export PATH="$wp_env_tools/node_modules/.bin:$PATH"
           command -v wp-env
           wp-env --version
           cat .wp-env.json
@@ -170,6 +186,7 @@ jobs:
         env:
           WP_ENV_HOME: ${{ runner.temp }}/wp-env
         run: |
+          export PATH="$RUNNER_TEMP/wp-env-tools/node_modules/.bin:$PATH"
           if command -v wp-env >/dev/null 2>&1; then
             wp-env destroy --force || true
           fi
