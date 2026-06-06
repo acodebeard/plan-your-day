@@ -1,0 +1,10 @@
+parameters:
+  level: 3
+  paths:
+    - plan-your-day.php
+    - uninstall.php
+    - src
+  bootstrapFiles:
+    - tools/phpstan/bootstrap.php
+  scanFiles:
+    - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php

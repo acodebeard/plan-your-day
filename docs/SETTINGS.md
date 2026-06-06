@@ -1,6 +1,6 @@
 # Settings Reference
 
-Plan Your Day stores plugin configuration in:
+Waypoints stores plugin configuration in:
 
 ```text
 plan_your_day_settings
@@ -63,7 +63,7 @@ Each saved category row includes:
 - `enabled`
 - `sort_order`
 
-Built-in starter rows for fresh installs and empty-list fallbacks live in:
+Built-in starter rows for fresh installs live in:
 
 ```text
 plugin/plan-your-day/src/Planner/CategoryCatalog.php
@@ -71,9 +71,9 @@ plugin/plan-your-day/src/Planner/CategoryCatalog.php
 
 Important behavior:
 
-- `Settings::get_categories()` returns the saved category rows when any exist.
-- If the saved list is empty and `use_preset_categories` remains enabled, the
-  plugin falls back to the built-in starter rows.
+- `Settings::get_categories()` returns the saved category rows as-is, including
+  an intentionally empty list.
+- Fresh installs seed the default rows; upgrades preserve the saved list.
 - `CategoryCatalog` filters those rows down to enabled frontend categories and
   keys them by slug for renderer and planner-state use.
 - `Settings::sanitize_categories()` trims text fields, strips HTML/JS, creates

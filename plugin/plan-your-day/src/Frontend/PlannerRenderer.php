@@ -164,8 +164,18 @@ final class PlannerRenderer {
 	private function render_start_card( string $instance_id, array $planner_state, array $start_points ): void {
 		$start_panel_id     = $instance_id . '-start-panel';
 		$custom_start_id    = $instance_id . '-custom-start';
+		$custom_status_id   = $instance_id . '-custom-start-status';
 		$start_heading_id   = $instance_id . '-start-heading';
 		$selected_waypoints = (array) $planner_state['selected_waypoint_ids'];
+		$custom_status      = (string) ( $planner_state['custom_start_status'] ?? '' );
+		$custom_status      = in_array( $custom_status, [ 'found', 'not_found' ], true ) ? $custom_status : '';
+		$custom_status_text = '';
+
+		if ( 'found' === $custom_status ) {
+			$custom_status_text = __( 'Starting address found. Results are ready.', 'plan-your-day' );
+		} elseif ( 'not_found' === $custom_status ) {
+			$custom_status_text = __( 'Starting address was not found.', 'plan-your-day' );
+		}
 		?>
 		<section class="plan-your-day__card" aria-labelledby="<?php echo esc_attr( $start_heading_id ); ?>">
 			<div class="plan-your-day__card-header">
@@ -180,7 +190,7 @@ final class PlannerRenderer {
 					aria-controls="<?php echo esc_attr( $start_panel_id ); ?>"
 					aria-expanded="true">
 					<span data-plan-start-toggle-label><?php esc_html_e( 'Hide options', 'plan-your-day' ); ?></span>
-					<span class="plan-your-day__start-toggle-icon" aria-hidden="true"></span>
+					<span class="plan-your-day__start-toggle-chevron" aria-hidden="true"></span>
 				</button>
 			</div>
 
@@ -208,16 +218,22 @@ final class PlannerRenderer {
 					<div
 						class="plan-your-day__custom-start"
 						data-plan-custom-start-wrap
+						data-plan-custom-start-state="<?php echo esc_attr( $custom_status ); ?>"
 						<?php echo Settings::START_MODE_CUSTOM === $planner_state['start_mode'] ? '' : 'hidden'; ?>>
 						<label for="<?php echo esc_attr( $custom_start_id ); ?>"><?php esc_html_e( 'Custom starting point', 'plan-your-day' ); ?></label>
-						<input
-							id="<?php echo esc_attr( $custom_start_id ); ?>"
-							type="text"
-							name="custom_start"
-							value="<?php echo esc_attr( $planner_state['custom_start'] ); ?>"
-							placeholder="<?php echo esc_attr( $this->settings->get_frontend_copy_value( 'custom_start_placeholder' ) ); ?>"
-							autocomplete="street-address"
-							data-plan-custom-start>
+						<div class="plan-your-day__custom-start-field">
+							<input
+								id="<?php echo esc_attr( $custom_start_id ); ?>"
+								type="text"
+								name="custom_start"
+								value="<?php echo esc_attr( $planner_state['custom_start'] ); ?>"
+								placeholder="<?php echo esc_attr( $this->settings->get_frontend_copy_value( 'custom_start_placeholder' ) ); ?>"
+								autocomplete="street-address"
+								aria-describedby="<?php echo esc_attr( $custom_status_id ); ?>"
+								data-plan-custom-start>
+							<span class="plan-your-day__custom-start-indicator" data-plan-custom-start-indicator aria-hidden="true"></span>
+						</div>
+						<p class="screen-reader-text" id="<?php echo esc_attr( $custom_status_id ); ?>" role="status" aria-live="polite" aria-atomic="true" data-plan-custom-start-status><?php echo esc_html( $custom_status_text ); ?></p>
 					</div>
 				</fieldset>
 
@@ -306,7 +322,7 @@ final class PlannerRenderer {
 								</span>
 							</span>
 							<span class="plan-your-day__category-trigger-side" aria-hidden="true">
-								<span class="plan-your-day__category-trigger-icon"></span>
+								<span class="plan-your-day__category-trigger-chevron"></span>
 							</span>
 						</button>
 					</h4>
@@ -350,7 +366,7 @@ final class PlannerRenderer {
 										<span class="plan-your-day__category-description"><?php echo esc_html( (string) $category['description'] ); ?></span>
 									</span>
 									<span class="plan-your-day__category-trigger-side" aria-hidden="true">
-										<span class="plan-your-day__category-trigger-icon"></span>
+										<span class="plan-your-day__category-trigger-chevron"></span>
 									</span>
 								</button>
 							</h4>
@@ -707,6 +723,9 @@ final class PlannerRenderer {
 				'customResultsCollapsed'   => $this->settings->get_frontend_copy_value( 'custom_results_collapsed_announcement' ),
 				'tripUpdated'              => $this->settings->get_frontend_copy_value( 'trip_updated_announcement' ),
 				'startingPointUpdated'     => $this->settings->get_frontend_copy_value( 'starting_point_updated_announcement' ),
+				'customStartChecking'      => __( 'Checking starting address.', 'plan-your-day' ),
+				'customStartFound'         => __( 'Starting address found. Results are ready.', 'plan-your-day' ),
+				'customStartNotFound'      => __( 'Starting address was not found.', 'plan-your-day' ),
 				'showStartOptions'         => __( 'Show options', 'plan-your-day' ),
 				'hideStartOptions'         => __( 'Hide options', 'plan-your-day' ),
 				'lightModeLabel'           => __( 'Light mode', 'plan-your-day' ),

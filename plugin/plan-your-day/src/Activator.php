@@ -11,7 +11,17 @@ final class Activator {
 	public static function activate(): void {
 		$settings = new Settings();
 
-		add_option( Settings::OPTION_NAME, Settings::defaults(), '', false );
+		add_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				Settings::defaults(),
+				[
+					'categories' => Settings::default_categories(),
+				]
+			),
+			'',
+			false
+		);
 		$settings->seed_default_categories_if_needed();
 
 		update_option( 'plan_your_day_version', PLAN_YOUR_DAY_VERSION );

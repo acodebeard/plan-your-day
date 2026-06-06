@@ -14,7 +14,7 @@ if ( ! defined( 'PLAN_YOUR_DAY_VERSION' ) ) {
 }
 
 if ( ! defined( 'PLAN_YOUR_DAY_SCHEMA_VERSION' ) ) {
-	define( 'PLAN_YOUR_DAY_SCHEMA_VERSION', 3 );
+	define( 'PLAN_YOUR_DAY_SCHEMA_VERSION', 5 );
 }
 
 if ( ! defined( 'WEEK_IN_SECONDS' ) ) {

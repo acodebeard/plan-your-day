@@ -246,10 +246,17 @@ namespace Acodebeard\PlanYourDay\Tests {
 			self::assertStringContainsString( '<span class="plan-your-day__start-description">Start from Downtown.</span>', $output );
 			self::assertStringContainsString( '<button class="plan-your-day__submit" type="submit">Update results</button>', $output );
 			self::assertStringContainsString( '<label for="plan-your-day-1-custom-start">Custom starting point</label>', $output );
+			self::assertStringContainsString( 'aria-describedby="plan-your-day-1-custom-start-status"', $output );
+			self::assertStringContainsString( 'data-plan-custom-start-indicator', $output );
+			self::assertStringContainsString( 'id="plan-your-day-1-custom-start-status"', $output );
+			self::assertStringContainsString( 'data-plan-custom-start-status', $output );
 			self::assertStringContainsString( '<p id="plan-your-day-1-category-help">Search for any category or use a category shortcut to load Google results.</p>', $output );
 			self::assertStringContainsString( '<label for="plan-your-day-1-category-search" class="screen-reader-text">Search categories</label>', $output );
 			self::assertStringContainsString( '<button class="plan-your-day__category-search-button" type="submit" data-plan-action="search-category-query">', $output );
 			self::assertStringContainsString( '"searchResultsFor":"Results for {search}"', $output );
+			self::assertStringContainsString( '"customStartChecking":"Checking starting address."', $output );
+			self::assertStringContainsString( '"customStartFound":"Starting address found. Results are ready."', $output );
+			self::assertStringContainsString( '"customStartNotFound":"Starting address was not found."', $output );
 			self::assertStringContainsString( '"customSearchResultsDescription":"Custom category search results."', $output );
 			self::assertStringContainsString( '"moreResultsButton":"More results"', $output );
 			self::assertStringContainsString( '"viewInGoogleMaps":"View in Google Maps"', $output );

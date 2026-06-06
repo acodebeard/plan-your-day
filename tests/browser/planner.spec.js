@@ -156,6 +156,46 @@ test('block render boots the planner and category browse works', async ({ page }
   await assertNoBrowserErrors();
 });
 
+test('custom start shows a found status when address results are ready', async ({ page }) => {
+  const assertNoBrowserErrors = trackBrowserErrors(page);
+
+  await page.goto('/shortcode');
+  await expect(page.locator('[data-plan-root]')).toBeVisible();
+
+  await waitForPlannerResponse(page, 'browse', () =>
+    page.locator('[data-plan-category-button][data-category-key="coffee"]').click()
+  );
+
+  await waitForPlannerResponse(page, 'browse', () =>
+    page.locator('.plan-your-day__start-option').filter({ hasText: 'Custom starting point' }).click()
+  );
+
+  const customStart = page.locator('[data-plan-custom-start]');
+  await customStart.fill('Union Station');
+
+  await waitForPlannerResponse(page, 'browse', () => customStart.blur());
+
+  const customStartWrap = page.locator('[data-plan-custom-start-wrap]');
+  await expect(customStartWrap).toHaveAttribute('data-plan-custom-start-state', 'found');
+  await expect(page.locator('[data-plan-custom-start-indicator]')).toBeVisible();
+  await expect(page.locator('[data-plan-custom-start-status]')).toHaveText(
+    'Starting address found. Results are ready.'
+  );
+  await expect(page.locator('[data-plan-results-list]')).toContainText('Harbor Coffee');
+
+  await customStart.fill('Not a real address');
+
+  await waitForPlannerResponse(page, 'browse', () => customStart.blur());
+
+  await expect(customStartWrap).toHaveAttribute('data-plan-custom-start-state', 'not_found');
+  await expect(page.locator('[data-plan-custom-start-indicator]')).toBeVisible();
+  await expect(page.locator('[data-plan-custom-start-status]')).toHaveText(
+    'Starting address was not found.'
+  );
+
+  await assertNoBrowserErrors();
+});
+
 test('visitor color mode toggle persists across reloads', async ({ page }) => {
   const assertNoBrowserErrors = trackBrowserErrors(page);
 

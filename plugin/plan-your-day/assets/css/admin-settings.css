@@ -124,20 +124,123 @@
 	font-weight: 600;
 }
 
-.plan-your-day-categories-editor .widefat th:first-child,
-.plan-your-day-categories-editor .widefat td:first-child {
-	padding-left: 1rem;
+.plan-your-day-admin-page .form-table .plan-your-day-compact-checkbox-field > th {
+	width: 13rem;
+	max-width: 13rem;
+	padding-right: 1rem;
 }
 
+.plan-your-day-categories-editor {
+	max-width: 100%;
+	overflow-x: auto;
+}
+
+.plan-your-day-categories-editor .widefat {
+	min-width: 62rem;
+	table-layout: auto;
+}
+
+.plan-your-day-category-order-col,
+.plan-your-day-category-enabled-col,
+.plan-your-day-category-delete-col {
+	width: 1%;
+}
+
+.plan-your-day-category-label-col {
+	width: 10rem;
+}
+
+.plan-your-day-category-query-col {
+	width: 14rem;
+}
+
+.plan-your-day-category-order-column {
+	width: 1%;
+}
+
+.plan-your-day-category-enabled-column {
+	width: 1%;
+}
+
+.plan-your-day-category-label-column {
+	width: 10rem;
+}
+
+.plan-your-day-category-query-column {
+	width: 14rem;
+}
+
+.plan-your-day-category-delete-column {
+	width: 1%;
+}
+
+.plan-your-day-category-order-column,
+.plan-your-day-category-enabled-column,
+.plan-your-day-category-delete-column,
 .plan-your-day-category-order-cell {
-	width: 5rem;
+	width: 1%;
 	white-space: nowrap;
+	text-align: center;
+}
+
+.plan-your-day-categories-editor .plan-your-day-category-order-column,
+.plan-your-day-categories-editor .plan-your-day-category-enabled-column,
+.plan-your-day-categories-editor .plan-your-day-category-order-cell,
+.plan-your-day-categories-editor .plan-your-day-category-enabled-cell {
+	padding-right: 0.45rem;
+	padding-left: 0.45rem;
+}
+
+.plan-your-day-category-enabled-cell {
+	width: 1%;
+	white-space: nowrap;
+	text-align: center;
+}
+
+.plan-your-day-category-label-cell input,
+.plan-your-day-category-description-cell textarea,
+.plan-your-day-category-query-cell input {
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
 }
 
 .plan-your-day-category-drag-handle {
+	appearance: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2.25rem;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 4px;
+	background: transparent;
+	box-shadow: none;
+	color: #50575e;
 	cursor: grab;
-	min-width: 4.5rem;
-	text-align: center;
+	position: relative;
+	vertical-align: middle;
+}
+
+.plan-your-day-category-drag-handle::before {
+	content: "";
+	display: block;
+	width: 18px;
+	height: 18px;
+	background-image: repeating-radial-gradient(circle, currentColor 0 2px, transparent 2.5px 100%);
+	background-position: center;
+	background-size:6px 6px;
+}
+
+.plan-your-day-category-drag-handle:hover {
+	color: #1d2327;
+}
+
+.plan-your-day-category-drag-handle:focus-visible {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
 }
 
 .plan-your-day-category-row.is-dragging {
@@ -146,6 +249,24 @@
 
 .plan-your-day-category-row.is-dragging .plan-your-day-category-drag-handle {
 	cursor: grabbing;
+}
+.plan-your-day-category-row.is-dragging .plan-your-day-category-drag-handle::before {
+	transform: scale(1.5);
+}
+.plan-your-day-category-delete-cell {
+	width: 1%;
+	white-space: nowrap;
+}
+
+.plan-your-day-add-category-action {
+	margin: 1rem 0 0.65rem;
+}
+
+.plan-your-day-add-category-button {
+	min-height: 2.5rem;
+	padding-right: 1rem;
+	padding-left: 1rem;
+	font-weight: 700;
 }
 
 .plan-your-day-categories-field {

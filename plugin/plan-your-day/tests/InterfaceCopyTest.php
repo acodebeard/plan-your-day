@@ -16,7 +16,7 @@ final class InterfaceCopyTest extends TestCase {
 			]
 		);
 
-		self::assertSame( 'Plan Your Day', $sanitized['hero_title'] );
+		self::assertSame( 'Waypoints', $sanitized['hero_title'] );
 		self::assertSame( '', $sanitized['hero_intro'] );
 		self::assertSame( 'Move {place} up', $sanitized['move_waypoint_up_aria'] );
 	}
@@ -28,7 +28,9 @@ final class InterfaceCopyTest extends TestCase {
 			]
 		);
 
-		self::assertSame( 'Plan Your Day', $resolved['hero_title'] );
+		self::assertSame( 'Waypoints', $resolved['hero_title'] );
+		self::assertSame( 'Waypoints setup needed', $resolved['setup_notice_title'] );
+		self::assertSame( 'Open Waypoints settings', $resolved['setup_notice_link'] );
 		self::assertSame( '', $resolved['hero_intro'] );
 		self::assertSame( 'Trip waypoints', $resolved['trip_card_heading'] );
 	}

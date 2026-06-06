@@ -2,6 +2,10 @@
 
 GitHub issue: https://github.com/acodebeard/plan-your-day/issues/20
 
+Historical note: this was the original scaffold plan from before the public
+plugin name changed to Waypoints. Treat the names in this file as historical
+scaffold context, not current public naming guidance.
+
 ## Summary
 
 Create the initial WordPress plugin scaffold for Plan Your Day. The scaffold should define the plugin directory structure, bootstrap file, plugin headers, namespace, constants, activation and deactivation hooks, version options, and release metadata placeholders.

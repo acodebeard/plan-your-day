@@ -1,4 +1,4 @@
-# Plan Your Day Documentation
+# Waypoints Documentation
 
 This directory documents the WordPress plugin as it exists today. The plugin is
 installable and has admin/settings, Google API, cache, planner helper, planner
@@ -41,3 +41,4 @@ truth for implementation status:
 
 - [Plugin TODO Snapshot](PLAN-YOUR-DAY-PLUGIN-TODO.md)
 - [GitHub Issue Draft Snapshot](PLAN-YOUR-DAY-PLUGIN-ISSUES.md)
+- [Issue 20 Plugin Scaffold Plan](ISSUE-20-PLUGIN-SCAFFOLD-PLAN.md)
