@@ -48,9 +48,10 @@ Current v1.0 hardening work is split into open PRs for:
 - Hardening Google geocode failure handling.
 - Keeping the Plugin Check workflow stable and quiet.
 
-PHPStan is not part of the current v1.0 gate. A one-off scan without WordPress
-stubs only reports missing WordPress symbols, so the project is relying on the
-checks above for this release.
+PHPStan is available through the repo-local Composer tooling and is included in
+the stricter WordPress.org submission-readiness scan. The regular `Plugin
+Quality` workflow remains focused on PHP syntax, PHPCS, PHPUnit, browser smoke,
+and WordPress Plugin Check.
 
 ## Requirements
 
@@ -119,6 +120,18 @@ suitable for **Plugins > Add New > Upload Plugin**.
 
 See [docs/RELEASES.md](docs/RELEASES.md) for the full manual GitHub release
 workflow and the metadata that needs to stay aligned.
+
+## WordPress.org Submission Readiness
+
+The GitHub Actions workflow `WP Submission Readiness` is the go-to release
+candidate scan before submitting to WordPress.org. It is reusable through
+`workflow_call` and can also be run manually from the Actions tab.
+
+The scan builds the release zip, runs the normal PHP checks, PHPStan, browser
+smoke coverage, WordPress Plugin Check against the packaged artifact, and a
+repo-local metadata check. The metadata check intentionally expects **Waypoints**
+to use the permanent WordPress.org slug and text domain `waypoints`, so it will
+fail until the deeper public rename work is complete.
 
 ## Configuration
 

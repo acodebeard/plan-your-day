@@ -1,0 +1,202 @@
+name: WP Submission Readiness
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_name:
+        description: Public plugin display name expected for WordPress.org submission.
+        required: true
+        type: string
+        default: Waypoints
+      expected_slug:
+        description: Permanent WordPress.org plugin slug and text domain expected for submission.
+        required: true
+        type: string
+        default: waypoints
+  workflow_call:
+    inputs:
+      expected_name:
+        description: Public plugin display name expected for WordPress.org submission.
+        required: false
+        type: string
+        default: Waypoints
+      expected_slug:
+        description: Permanent WordPress.org plugin slug and text domain expected for submission.
+        required: false
+        type: string
+        default: waypoints
+
+permissions:
+  contents: read
+
+jobs:
+  readiness:
+    name: Submission readiness
+    runs-on: ubuntu-latest
+    env:
+      EXPECTED_NAME: ${{ inputs.expected_name }}
+      EXPECTED_SLUG: ${{ inputs.expected_slug }}
+      PLUGIN_DIR: plugin/plan-your-day
+      WP_ENV_HOME: ${{ runner.temp }}/wp-env
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          coverage: none
+
+      - uses: ramsey/composer-install@v3
+        with:
+          working-directory: ${{ env.PLUGIN_DIR }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - name: Validate Composer metadata
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: composer validate --strict
+
+      - name: Run PHP quality checks
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: composer test
+
+      - name: Run PHPStan
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: composer phpstan
+
+      - name: Run browser smoke suite
+        run: npm run browser-smoke
+
+      - name: Build release zip
+        id: build
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: |
+          composer build-release
+
+          artifact="$(php -r '$release = json_decode(file_get_contents("release.json"), true); $path = $release["artifact"] ?? ""; echo realpath($path) ?: "";')"
+          if [ -z "$artifact" ]; then
+            echo "Unable to resolve release artifact path from release.json." >&2
+            exit 1
+          fi
+
+          echo "artifact=$artifact" >> "$GITHUB_OUTPUT"
+
+      - name: Unpack release zip
+        id: unpack
+        run: |
+          unpack_dir="$RUNNER_TEMP/wp-submission-package"
+          rm -rf "$unpack_dir"
+          mkdir -p "$unpack_dir"
+          unzip -q "${{ steps.build.outputs.artifact }}" -d "$unpack_dir"
+
+          mapfile -t roots < <(find "$unpack_dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
+          if [ "${#roots[@]}" -ne 1 ]; then
+            printf 'Release zip must contain exactly one top-level plugin directory. Found: %s\n' "${roots[*]}" >&2
+            exit 1
+          fi
+
+          echo "dir=$unpack_dir/${roots[0]}" >> "$GITHUB_OUTPUT"
+          echo "slug=${roots[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: Run WordPress Plugin Check against artifact
+        run: |
+          trap 'status=$?; if [ "$status" -ne 0 ]; then docker ps -a || true; find "$WP_ENV_HOME" -maxdepth 3 -type f -print || true; fi; exit "$status"' EXIT
+
+          plugin_dir="${{ steps.unpack.outputs.dir }}"
+          plugin_slug="${{ steps.unpack.outputs.slug }}"
+
+          cat > .wp-env.json <<EOF
+          {
+            "core": null,
+            "port": 8880,
+            "testsEnvironment": false,
+            "plugins": [ "https://downloads.wordpress.org/plugin/plugin-check.zip" ],
+            "mappings": {
+              "wp-content/plugins/${plugin_slug}": "${plugin_dir}"
+            }
+          }
+          EOF
+
+          wp_env_tools="$RUNNER_TEMP/wp-env-tools"
+          mkdir -p "$wp_env_tools"
+          cat > "$wp_env_tools/package.json" <<'EOF'
+          {
+            "private": true,
+            "dependencies": {
+              "@wordpress/env": "11.5.0"
+            },
+            "overrides": {
+              "rimraf": {
+                "glob": "^13.0.6"
+              }
+            }
+          }
+          EOF
+
+          npm --prefix "$wp_env_tools" --no-audit --no-fund install
+          export PATH="$wp_env_tools/node_modules/.bin:$PATH"
+
+          wp-env start --update
+          plugin_name="$(wp-env run cli wp plugin list --field=name | tr -d '\r' | grep -E "^${plugin_slug}(/|$)" | head -n1)"
+          if [ -z "$plugin_name" ]; then
+            echo "Unable to find packaged plugin in WordPress plugin list." >&2
+            wp-env run cli wp plugin list
+            exit 1
+          fi
+
+          wp-env run cli wp plugin activate "$plugin_name"
+
+          set +e
+          wp-env run cli wp plugin check "$plugin_name" \
+            --format=json \
+            --ignore-warnings \
+            --require=./wp-content/plugins/plugin-check/cli.php \
+            > "$RUNNER_TEMP/plugin-check-results.txt"
+          status=$?
+          set -e
+
+          cat "$RUNNER_TEMP/plugin-check-results.txt"
+          if grep -Eq '"type"[[:space:]]*:[[:space:]]*"ERROR"' "$RUNNER_TEMP/plugin-check-results.txt"; then
+            exit 1
+          fi
+
+          exit "$status"
+
+      - name: Run submission metadata scan
+        working-directory: ${{ env.PLUGIN_DIR }}
+        run: |
+          php tools/check-wp-submission-readiness.php \
+            --plugin-dir=. \
+            --artifact="${{ steps.build.outputs.artifact }}" \
+            --expected-name="$EXPECTED_NAME" \
+            --expected-slug="$EXPECTED_SLUG"
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: wp-submission-package
+          path: ${{ steps.build.outputs.artifact }}
+          if-no-files-found: ignore
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        with:
+          name: plugin-check-results
+          path: ${{ runner.temp }}/plugin-check-results.txt
+          if-no-files-found: ignore
+
+      - name: Stop wp-env
+        if: ${{ always() }}
+        run: |
+          export PATH="$RUNNER_TEMP/wp-env-tools/node_modules/.bin:$PATH"
+          if command -v wp-env >/dev/null 2>&1; then
+            wp-env destroy --force || true
+          fi
