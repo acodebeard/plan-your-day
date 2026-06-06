@@ -767,13 +767,18 @@ final class Settings {
 	}
 
 	private function should_seed_default_categories( array $settings ): bool {
-		if ( array_key_exists( 'categories', $settings ) ) {
-			return false;
-		}
-
 		$legacy_fallback_enabled = ! array_key_exists( 'use_preset_categories', $settings )
 			|| self::sanitize_boolean( $settings['use_preset_categories'] );
 
-		return $legacy_fallback_enabled;
+		if ( ! $legacy_fallback_enabled ) {
+			return false;
+		}
+
+		if ( ! array_key_exists( 'categories', $settings ) ) {
+			return true;
+		}
+
+		return array_key_exists( 'use_preset_categories', $settings )
+			&& [] === self::sanitize_categories( $settings['categories'] ?? [] );
 	}
 }

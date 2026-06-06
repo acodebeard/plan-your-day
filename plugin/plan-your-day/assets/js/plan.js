@@ -1201,12 +1201,19 @@
       const searchContextKey = String(requestOptions.searchContextKey || '');
       const refreshRoute = endpointKey === 'browse' ? requestOptions.refreshRoute !== false : false;
       const routeFocusRequest = endpointKey === 'route' ? requestOptions.routeFocusRequest ?? null : null;
-      const previousCustomStartStatus = state.customStartStatus;
+      const payloadStartMode = String(payload.start_mode || '');
+      const payloadCustomStart = String(payload.custom_start || '');
       const shouldCheckCustomStart =
         endpointKey === 'browse' &&
         !appendBrowseResults &&
-        String(payload.start_mode || '') === 'custom' &&
-        String(payload.custom_start || '').trim() !== '';
+        payloadStartMode === 'custom' &&
+        payloadCustomStart.trim() !== '';
+      const shouldClearRouteCustomStartStatus =
+        endpointKey === 'route' &&
+        (state.customStartStatus === CUSTOM_START_STATUS_CHECKING ||
+          payloadStartMode !== 'custom' ||
+          payloadCustomStart.trim() === '' ||
+          payloadCustomStart !== String(state.customStart || ''));
 
       if (activeRequestController instanceof AbortController) {
         if (activeRequestEndpointKey === 'route') {
@@ -1242,7 +1249,7 @@
       if (shouldCheckCustomStart) {
         state.customStartStatus = CUSTOM_START_STATUS_CHECKING;
         syncStartUi(refs, state, strings);
-      } else if (endpointKey === 'browse' && !appendBrowseResults) {
+      } else if ((endpointKey === 'browse' && !appendBrowseResults) || shouldClearRouteCustomStartStatus) {
         state.customStartStatus = '';
         syncStartUi(refs, state, strings);
       }
@@ -1385,7 +1392,15 @@
           debugLog(config, 'info', 'request:aborted', {
             endpointKey,
           });
+          if (requestId === activeRequestId && shouldCheckCustomStart) {
+            state.customStartStatus = '';
+            syncStartUi(refs, state, strings);
+          }
           return 'aborted';
+        }
+
+        if (requestId !== activeRequestId) {
+          return 'stale';
         }
 
         debugLog(config, 'error', 'request:failed', {
@@ -1407,7 +1422,7 @@
           appendBrowseResults ? errorMessage || strings.requestFailed || '' : ''
         );
         if (shouldCheckCustomStart) {
-          state.customStartStatus = previousCustomStartStatus;
+          state.customStartStatus = '';
           syncStartUi(refs, state, strings);
         }
 

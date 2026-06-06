@@ -54,7 +54,7 @@ final class BrowserSmokeGoogleApiClient implements GoogleApiClientInterface {
 	public function geocode( string $address ): GoogleApiResult {
 		$address = trim( sanitize_text_field( $address ) );
 
-		if ( '' === $address ) {
+		if ( '' === $address || 'not a real address' === strtolower( $address ) ) {
 			return GoogleApiResult::failure(
 				'geocoding_unavailable',
 				__( 'Google geocoding is unavailable right now.', 'plan-your-day' ),

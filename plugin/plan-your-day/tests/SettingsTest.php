@@ -323,6 +323,23 @@ final class SettingsTest extends TestCase {
 		self::assertFalse( $settings->seed_default_categories_if_needed() );
 	}
 
+	public function test_seed_default_categories_if_needed_materializes_legacy_empty_fallback_state(): void {
+		update_option(
+			Settings::OPTION_NAME,
+			array_merge(
+				Settings::defaults(),
+				[
+					'use_preset_categories' => true,
+				]
+			)
+		);
+
+		$settings = new Settings();
+
+		self::assertTrue( $settings->seed_default_categories_if_needed() );
+		self::assertSame( Settings::default_categories(), get_option( Settings::OPTION_NAME )['categories'] ?? [] );
+	}
+
 	public function test_seed_default_categories_if_needed_preserves_intentionally_empty_category_state(): void {
 		update_option( Settings::OPTION_NAME, Settings::defaults() );
 

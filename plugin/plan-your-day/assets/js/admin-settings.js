@@ -38,6 +38,18 @@
     return false;
   };
 
+  const getDeletedCategoryFocusTarget = (row, addButton) => {
+    const focusRow =
+      row.nextElementSibling instanceof HTMLTableRowElement
+        ? row.nextElementSibling
+        : row.previousElementSibling instanceof HTMLTableRowElement
+          ? row.previousElementSibling
+          : null;
+    const dragHandle = focusRow?.querySelector(CATEGORY_DRAG_HANDLE_SELECTOR);
+
+    return dragHandle instanceof HTMLButtonElement ? dragHandle : addButton;
+  };
+
   const initializeJQueryCategorySorting = (rows, syncSortOrders) => {
     const jQuery = window.jQuery;
 
@@ -211,8 +223,11 @@
             return;
           }
 
+          const focusTarget = getDeletedCategoryFocusTarget(row, addButton);
+
           row.remove();
           syncAndRefresh();
+          focusTarget.focus({ preventScroll: true });
         });
       }
 

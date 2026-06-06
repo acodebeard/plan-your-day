@@ -183,6 +183,16 @@ test('custom start shows a found status when address results are ready', async (
   );
   await expect(page.locator('[data-plan-results-list]')).toContainText('Harbor Coffee');
 
+  await customStart.fill('Not a real address');
+
+  await waitForPlannerResponse(page, 'browse', () => customStart.blur());
+
+  await expect(customStartWrap).toHaveAttribute('data-plan-custom-start-state', 'not_found');
+  await expect(page.locator('[data-plan-custom-start-indicator]')).toBeVisible();
+  await expect(page.locator('[data-plan-custom-start-status]')).toHaveText(
+    'Starting address was not found.'
+  );
+
   await assertNoBrowserErrors();
 });
 

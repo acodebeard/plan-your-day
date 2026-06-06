@@ -76,9 +76,10 @@ checks above for this release.
 ## Naming Note
 
 The public plugin name is **Waypoints**. The source still uses `plan-your-day`
-for the plugin directory, text domain, shortcode, option names, namespaces, and
-other internal identifiers because the plugin was renamed after those
-compatibility surfaces already existed.
+for the plugin directory and text domain, `[plan_your_day]` for the shortcode,
+`plan_your_day_*` for settings/options/hooks, `Acodebeard\PlanYourDay` for the
+PHP namespace, and related REST, asset, and CSS identifiers because the plugin
+was renamed after those compatibility surfaces already existed.
 
 ## Documentation
 

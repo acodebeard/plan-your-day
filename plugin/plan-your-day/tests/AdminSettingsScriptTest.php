@@ -16,6 +16,15 @@ final class AdminSettingsScriptTest extends TestCase {
 		self::assertStringContainsString( 'return initializeVanillaCategorySorting', $script );
 	}
 
+	public function test_category_delete_restores_keyboard_focus(): void {
+		$script = $this->fixture( 'assets/js/admin-settings.js' );
+
+		self::assertStringContainsString( 'getDeletedCategoryFocusTarget', $script );
+		self::assertStringContainsString( 'row.nextElementSibling', $script );
+		self::assertStringContainsString( 'row.previousElementSibling', $script );
+		self::assertStringContainsString( 'focusTarget.focus({ preventScroll: true })', $script );
+	}
+
 	private function fixture( string $path ): string {
 		$content = file_get_contents( dirname( __DIR__ ) . '/' . $path );
 
