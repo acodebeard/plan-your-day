@@ -399,6 +399,21 @@
     `;
   };
 
+  const getWaypointStatusLabel = (routeData, strings) => {
+    const waypointCount = toStringArray(routeData?.selectedWaypointIds).length;
+
+    if (waypointCount <= 0) {
+      return String(strings.waypointStatusEmpty || 'Add some waypoints!');
+    }
+
+    return formatTemplate(
+      waypointCount === 1
+        ? String(strings.waypointStatusSingle || '{count} waypoint added')
+        : String(strings.waypointStatusPlural || '{count} waypoints added'),
+      { count: waypointCount }
+    );
+  };
+
   const renderTripMarkup = (routeData, strings, tripHelpId) => {
     const tripWaypoints = Array.isArray(routeData?.tripWaypoints) ? routeData.tripWaypoints : [];
 
@@ -724,6 +739,14 @@
     }
   };
 
+  const syncWaypointStatus = (refs, state, strings) => {
+    if (!(refs.waypointStatus instanceof HTMLButtonElement)) {
+      return;
+    }
+
+    refs.waypointStatus.textContent = getWaypointStatusLabel(state.route, strings);
+  };
+
   const focusElement = (element) => {
     if (!(element instanceof HTMLElement) || typeof element.focus !== 'function') {
       return false;
@@ -778,16 +801,16 @@
       return;
     }
 
+    if (focusRequest.action === 'add-waypoint') {
+      return;
+    }
+
     const placeId = String(focusRequest.placeId || '');
     const tripHeaderActionButton =
       refs.tripHeaderActions?.querySelector('button:not([disabled]):not([hidden])');
     let target = null;
 
-    if (placeId && focusRequest.action === 'add-waypoint') {
-      target = refs.tripRegion?.querySelector(
-        `[data-waypoint-id="${placeId}"] button[name="remove_waypoint"]`
-      );
-    } else if (placeId && focusRequest.action === 'move-waypoint') {
+    if (placeId && focusRequest.action === 'move-waypoint') {
       const direction = String(focusRequest.direction || '');
 
       target =
@@ -994,6 +1017,7 @@
       summaryCount: root.querySelector('[data-plan-summary-count]'),
       openLink: root.querySelector('[data-plan-open-link]'),
       openLinkLabel: root.querySelector('[data-plan-open-link-label]'),
+      waypointStatus: root.querySelector('[data-plan-waypoint-status]'),
     };
 
     const state = {
@@ -1056,6 +1080,7 @@
       });
       renderTrip(refs, state, strings);
       renderPreview(refs, state, strings);
+      syncWaypointStatus(refs, state, strings);
       syncHiddenInputs(refs, state);
       syncStartUi(refs, state, strings);
       syncCategorySearchUi(refs, state);
@@ -1416,6 +1441,7 @@
             });
             renderTrip(refs, state, strings);
             renderPreview(refs, state, strings);
+            syncWaypointStatus(refs, state, strings);
             syncHiddenInputs(refs, state);
             syncStartUi(refs, state, strings);
             syncCategorySearchUi(refs, state);
@@ -1652,6 +1678,26 @@
       if (disabledOpenLink instanceof HTMLElement) {
         event.preventDefault();
         announce(refs.liveRegion, strings.openMapsDisabled || '');
+        return;
+      }
+
+      const waypointStatus = target.closest('[data-plan-waypoint-status]');
+
+      if (waypointStatus instanceof HTMLButtonElement) {
+        const scrollTarget =
+          refs.mapWrap instanceof HTMLElement && !refs.mapWrap.hidden
+            ? refs.mapWrap
+            : refs.previewCard;
+
+        event.preventDefault();
+
+        if (scrollTarget instanceof HTMLElement) {
+          scrollTarget.scrollIntoView({
+            behavior: prefersReducedMotion ? 'auto' : 'smooth',
+            block: 'start',
+          });
+        }
+
         return;
       }
 

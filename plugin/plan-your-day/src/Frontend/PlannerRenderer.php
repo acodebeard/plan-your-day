@@ -119,6 +119,17 @@ final class PlannerRenderer {
 						?>
 					</div>
 				</form>
+				<div class="plan-your-day__waypoint-status-wrap">
+					<button class="plan-your-day__waypoint-status" type="button" data-plan-waypoint-status>
+						<?php
+						echo esc_html(
+							$this->format_waypoint_status_label(
+								count( (array) $planner_state['selected_waypoint_ids'] )
+							)
+						);
+						?>
+					</button>
+				</div>
 			</div>
 
 			<script type="application/json" data-plan-config><?php echo wp_json_encode( $this->build_config( $instance_id, $action_url, $planner_state, $start_points, $category_catalog, $should_hydrate_on_load ) ); ?></script>
@@ -638,6 +649,19 @@ final class PlannerRenderer {
 		<?php
 	}
 
+	private function format_waypoint_status_label( int $waypoint_count ): string {
+		if ( $waypoint_count <= 0 ) {
+			return $this->settings->get_frontend_copy_value( 'waypoint_status_empty' );
+		}
+
+		$copy_key = 1 === $waypoint_count ? 'waypoint_status_single' : 'waypoint_status_plural';
+
+		return $this->settings->format_frontend_copy(
+			$copy_key,
+			[ 'count' => (string) $waypoint_count ]
+		);
+	}
+
 	private function get_start_points(): array {
 		$allowed_modes = $this->settings->get_allowed_start_modes();
 		$default_label = '' !== $this->settings->get_default_location_label()
@@ -743,6 +767,9 @@ final class PlannerRenderer {
 				'moveWaypointDownLabel'    => $this->settings->get_frontend_copy_value( 'move_waypoint_down_aria' ),
 				'removeWaypointLabel'      => $this->settings->get_frontend_copy_value( 'remove_waypoint_label' ),
 				'clearTrip'                => __( 'Clear trip', 'plan-your-day' ),
+				'waypointStatusEmpty'      => $this->settings->get_frontend_copy_value( 'waypoint_status_empty' ),
+				'waypointStatusSingle'     => $this->settings->get_frontend_copy_value( 'waypoint_status_single' ),
+				'waypointStatusPlural'     => $this->settings->get_frontend_copy_value( 'waypoint_status_plural' ),
 				'notSelected'              => $this->settings->get_frontend_copy_value( 'not_selected' ),
 			],
 			'debug'           => defined( 'WP_DEBUG' ) && true === WP_DEBUG,

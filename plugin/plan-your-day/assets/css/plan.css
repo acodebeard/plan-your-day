@@ -258,6 +258,7 @@
 .plan-your-day {
   width: min(100% - 2rem, 1180px);
   margin: clamp(1rem, 4vw, 3rem) auto;
+  padding-bottom: calc(4.75rem + env(safe-area-inset-bottom));
   color: var(--pyd-text);
   container-type: inline-size;
 }
@@ -272,6 +273,7 @@
   border-radius: 1.5rem;
   background: var(--pyd-surface-bg);
   box-shadow: var(--pyd-surface-shadow);
+  position: relative;
 }
 
 .plan-your-day__hero {
@@ -400,6 +402,49 @@
   white-space: nowrap;
 }
 
+.plan-your-day__waypoint-status-wrap {
+  position: sticky;
+  z-index: 50;
+  right:0;
+  left: 0;
+  bottom:5px;
+  padding-top: 10px;
+  pointer-events: none;
+}
+
+.plan-your-day__waypoint-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.8rem 1rem;
+  border: thin solid var(--pyd-accent-border);
+  border-radius: 0.9rem;
+  background: var(--pyd-primary-bg);
+  color: var(--pyd-primary-text);
+  box-shadow: 0 0.85rem 1.8rem rgba(23, 48, 56, 0.2);
+  font: inherit;
+  font-size: 0.98rem;
+  font-weight: 700;
+  text-align: center;
+  pointer-events: auto;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.plan-your-day__waypoint-status:hover,
+.plan-your-day__waypoint-status:active {
+  background: var(--pyd-primary-hover-bg);
+  box-shadow: 0 1rem 2rem rgba(23, 48, 56, 0.24);
+}
+
+.plan-your-day__waypoint-status:active {
+  transform: translateY(1px);
+}
+
 .plan-your-day__category-grid,
 .plan-your-day__start-options,
 .plan-your-day__results-list,
@@ -489,6 +534,7 @@
 .plan-your-day__clear-link:focus-visible,
 .plan-your-day__result-add:focus-visible,
 .plan-your-day__result-link:focus-visible,
+.plan-your-day__waypoint-status:focus-visible,
 .plan-your-day__trip-tools a:focus-visible,
 .plan-your-day__trip-tools button:focus-visible {
   outline: 3px solid var(--focus-ring-color);
