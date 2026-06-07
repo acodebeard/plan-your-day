@@ -88,6 +88,10 @@ Start with [docs/README.md](docs/README.md). Current docs cover installation,
 frontend usage, admin workflows, release steps, architecture, settings,
 security, and troubleshooting.
 
+## License
+
+Waypoints is licensed under GPLv2 or later. See [LICENSE](LICENSE).
+
 ## Local Source Installation
 
 1. Copy or symlink `plugin/plan-your-day/` into a WordPress installation at
