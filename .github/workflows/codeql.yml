@@ -1,4 +1,4 @@
-name: CodeQL
+name: Code Scanning
 
 on:
   pull_request:
@@ -13,21 +13,29 @@ permissions:
   security-events: write
 
 jobs:
-  analyze:
-    name: CodeQL (${{ matrix.language }})
+  codeql:
+    name: CodeQL (JavaScript)
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        language:
-          - javascript-typescript
-          - php
-
     steps:
       - uses: actions/checkout@v4
 
-      - uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/init@v4
         with:
-          languages: ${{ matrix.language }}
+          languages: javascript-typescript
 
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/analyze@v4
+
+  semgrep-php:
+    name: Semgrep (PHP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: python -m pip install --upgrade semgrep
+
+      - run: semgrep scan --config p/php --sarif --output semgrep.sarif plugin/plan-your-day
+
+      - uses: github/codeql-action/upload-sarif@v4
+        if: ${{ always() }}
+        with:
+          sarif_file: semgrep.sarif
