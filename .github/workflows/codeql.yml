@@ -33,7 +33,7 @@ jobs:
 
       - run: python -m pip install --upgrade semgrep
 
-      - run: semgrep scan --config p/php --sarif --output semgrep.sarif plugin/plan-your-day
+      - run: semgrep scan --config p/php --sarif --output semgrep.sarif plugin/waypoints
 
       - uses: github/codeql-action/upload-sarif@v4
         if: ${{ always() }}

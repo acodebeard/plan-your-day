@@ -47,10 +47,10 @@ to place the planner without writing shortcode manually.
 
 ## Shortcode
 
-The shortcode tag is:
+The preferred shortcode tag is:
 
 ```text
-[plan_your_day]
+[waypoints]
 ```
 
 Supported attributes:
@@ -61,12 +61,15 @@ Supported attributes:
 Examples:
 
 ```text
-[plan_your_day]
+[waypoints]
 ```
 
 ```text
-[plan_your_day action_url="https://example.test/plan-your-day/"]
+[waypoints action_url="https://example.test/waypoints/"]
 ```
+
+The legacy `[plan_your_day]` shortcode remains available for content created
+before the public plugin name changed.
 
 Use the shortcode in classic content, a Shortcode block, widget areas that
 allow shortcodes, or any other editor flow where you want explicit markup

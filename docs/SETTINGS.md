@@ -66,7 +66,7 @@ Each saved category row includes:
 Built-in starter rows for fresh installs live in:
 
 ```text
-plugin/plan-your-day/src/Planner/CategoryCatalog.php
+plugin/waypoints/src/Planner/CategoryCatalog.php
 ```
 
 Important behavior:
@@ -97,7 +97,7 @@ plan_your_day_settings[interface_copy]
 Default copy definitions live in:
 
 ```text
-plugin/plan-your-day/src/Frontend/InterfaceCopy.php
+plugin/waypoints/src/Frontend/InterfaceCopy.php
 ```
 
 Important behavior:

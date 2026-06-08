@@ -36,7 +36,7 @@ jobs:
     env:
       EXPECTED_NAME: ${{ inputs.expected_name }}
       EXPECTED_SLUG: ${{ inputs.expected_slug }}
-      PLUGIN_DIR: plugin/plan-your-day
+      PLUGIN_DIR: plugin/waypoints
       WP_ENV_HOME: ${{ runner.temp }}/wp-env
 
     steps:

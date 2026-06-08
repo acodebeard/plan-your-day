@@ -2,10 +2,10 @@
 
 ## Project
 
-This repository contains the standalone **Plan Your Day** WordPress plugin. The
-plugin source lives in `plugin/plan-your-day/`.
+This repository contains the standalone **Waypoints** WordPress plugin. The
+plugin source lives in `plugin/waypoints/`.
 
-Plan Your Day is a reusable plugin. It must not be branded to, named after, or architecturally tied to any specific client/site.
+Waypoints is a reusable plugin. It must not be branded to, named after, or architecturally tied to any specific client/site.
 
 The latest published release is v0.5. The project is preparing for v1.0 with
 focused public-release hardening and cleanup.
@@ -85,9 +85,9 @@ project also adds reproducible WordPress-aware tooling.
 Before finishing a code task, choose checks that match the change. Common
 checks include:
 
-- `cd plugin/plan-your-day && composer test`
+- `cd plugin/waypoints && composer test`
 - `npm ci && npx playwright install chromium && npm run browser-smoke`
-- `find plugin/plan-your-day -name '*.php' -print -exec php -l {} \;`
+- `find plugin/waypoints -name '*.php' -print -exec php -l {} \;`
 - GitHub `Plugin Quality` workflow for PHP syntax, PHPCS, PHPUnit, browser
   smoke, and WordPress Plugin Check.
 

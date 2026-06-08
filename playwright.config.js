@@ -15,10 +15,10 @@ module.exports = defineConfig({
   },
   webServer: {
     command:
-      'mkdir -p tmp && rm -f tmp/plan-your-day-browser-state.json && ' +
+      'mkdir -p tmp && rm -f tmp/waypoints-browser-state.json && ' +
       `PLAN_YOUR_DAY_BROWSER_BASE_URL=${baseURL} ` +
-      'PLAN_YOUR_DAY_BROWSER_STATE_FILE=tmp/plan-your-day-browser-state.json ' +
-      'php -S 127.0.0.1:9080 -t . plugin/plan-your-day/tests/browser-app/router.php',
+      'PLAN_YOUR_DAY_BROWSER_STATE_FILE=tmp/waypoints-browser-state.json ' +
+      'php -S 127.0.0.1:9080 -t . plugin/waypoints/tests/browser-app/router.php',
     url: `${baseURL}/__health`,
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,

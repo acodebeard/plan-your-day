@@ -1,6 +1,8 @@
 # Runtime/session/cache output that should not be committed.
 *.log
 *.cache
+readme.html
+README.html
 dist/
 tmp/
 temp/
@@ -15,6 +17,6 @@ Thumbs.db
 # Dependency folders if tooling is added later.
 node_modules/
 vendor/
-plugin/plan-your-day/.phpunit.cache/
+plugin/waypoints/.phpunit.cache/
 playwright-report/
 test-results/

@@ -7,12 +7,12 @@ private updater or a custom `Update URI` workflow right now.
 
 Keep these values aligned before building a release:
 
-- plugin header `Version` in `plugin/plan-your-day/plan-your-day.php`
+- plugin header `Version` in the root PHP bootstrap file
 - `PLAN_YOUR_DAY_VERSION`
 - `PLAN_YOUR_DAY_SCHEMA_VERSION`
-- `plugin/plan-your-day/release.json`
+- `plugin/waypoints/release.json`
 - the artifact filename in `release.json`
-- the `Unreleased` and versioned entries in `plugin/plan-your-day/readme.txt`
+- the `Unreleased` and versioned entries in `plugin/waypoints/readme.txt`
 
 The release builder validates that:
 
@@ -26,14 +26,14 @@ The release builder validates that:
 2. Run the plugin test suite:
 
    ```sh
-   cd plugin/plan-your-day
+   cd plugin/waypoints
    composer test
    ```
 
 3. Build the installable release zip:
 
    ```sh
-   cd plugin/plan-your-day
+   cd plugin/waypoints
    ./tools/build-release-zip.sh
    ```
 
@@ -46,7 +46,7 @@ The release builder validates that:
 
 The current release artifact is an installable WordPress admin zip with:
 
-- a top-level `plan-your-day/` directory
+- a top-level `waypoints/` directory
 - production Composer autoload files included
 - development-only files excluded through `.distignore`
 

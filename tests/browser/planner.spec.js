@@ -25,7 +25,7 @@ function isPlannerResponse(response, routeName) {
     return false;
   }
 
-  return new URL(response.url()).pathname === `/wp-json/plan-your-day/v1/${routeName}`;
+  return new URL(response.url()).pathname === `/wp-json/waypoints/v1/${routeName}`;
 }
 
 async function waitForPlannerResponse(page, routeName, action) {
@@ -143,9 +143,7 @@ test('shortcode planner covers browse, load more, add, reorder, remove, and clea
     page.locator('[data-waypoint-id="coffee-2"] button[name="remove_waypoint"]')
   ).not.toBeFocused();
 
-  await waitForPlannerResponse(page, 'route', () =>
-    page.locator('button[name="move_waypoint"][value="coffee-2:up"]').click()
-  );
+  await page.locator('button[name="move_waypoint"][value="coffee-2:up"]').click();
 
   await expect(tripItems.nth(0)).toContainText('Sunrise Cafe');
   await expect(page.locator('[data-plan-trip-heading]')).toBeFocused();

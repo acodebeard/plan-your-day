@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: plugin/plan-your-day
+        working-directory: plugin/waypoints
     steps:
       - uses: actions/checkout@v4
 
@@ -22,7 +22,7 @@ jobs:
 
       - uses: ramsey/composer-install@v3
         with:
-          working-directory: plugin/plan-your-day
+          working-directory: plugin/waypoints
 
       - run: composer lint
 
@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: plugin/plan-your-day
+        working-directory: plugin/waypoints
     steps:
       - uses: actions/checkout@v4
 
@@ -41,7 +41,7 @@ jobs:
 
       - uses: ramsey/composer-install@v3
         with:
-          working-directory: plugin/plan-your-day
+          working-directory: plugin/waypoints
 
       - run: composer phpcs
 
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: plugin/plan-your-day
+        working-directory: plugin/waypoints
     steps:
       - uses: actions/checkout@v4
 
@@ -60,7 +60,7 @@ jobs:
 
       - uses: ramsey/composer-install@v3
         with:
-          working-directory: plugin/plan-your-day
+          working-directory: plugin/waypoints
 
       - run: composer phpunit
 
@@ -76,7 +76,7 @@ jobs:
 
       - uses: ramsey/composer-install@v3
         with:
-          working-directory: plugin/plan-your-day
+          working-directory: plugin/waypoints
 
       - uses: actions/setup-node@v4
         with:
@@ -101,7 +101,7 @@ jobs:
 
       - uses: ramsey/composer-install@v3
         with:
-          working-directory: plugin/plan-your-day
+          working-directory: plugin/waypoints
           composer-options: "--no-dev --optimize-autoloader"
 
       - uses: actions/setup-node@v4
@@ -114,7 +114,7 @@ jobs:
         run: |
           trap 'status=$?; if [ "$status" -ne 0 ]; then docker ps -a || true; find "$WP_ENV_HOME" -maxdepth 3 -type f -print || true; fi; exit "$status"' EXIT
 
-          plugin_dir="$(realpath ./plugin/plan-your-day)"
+          plugin_dir="$(realpath ./plugin/waypoints)"
 
           cat > .wp-env.json <<EOF
           {
@@ -123,7 +123,7 @@ jobs:
             "testsEnvironment": false,
             "plugins": [ "https://downloads.wordpress.org/plugin/plugin-check.zip" ],
             "mappings": {
-              "wp-content/plugins/plan-your-day": "$plugin_dir"
+              "wp-content/plugins/waypoints": "$plugin_dir"
             }
           }
           EOF
@@ -154,10 +154,10 @@ jobs:
           wp-env run cli wp plugin list-checks
           wp-env run cli wp plugin list-check-categories
 
-          wp-env run cli wp plugin activate plan-your-day
+          wp-env run cli wp plugin activate waypoints
 
           set +e
-          wp-env run cli wp plugin check plan-your-day \
+          wp-env run cli wp plugin check waypoints \
             --format=json \
             --ignore-warnings \
             --exclude-files=.distignore,DECISIONS.md,phpcs.xml.dist,phpunit.xml.dist,.wp-env.json \

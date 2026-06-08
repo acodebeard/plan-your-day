@@ -2,7 +2,7 @@
 
 Waypoints is a configurable WordPress plugin for building day-trip planners with
 Google Maps and Places data. The plugin source lives in
-`plugin/plan-your-day/`.
+`plugin/waypoints/`.
 
 ## Status
 
@@ -63,24 +63,34 @@ and WordPress Plugin Check.
 
 ## Repository Layout
 
-- `plugin/plan-your-day/` contains the WordPress plugin source.
-- `plugin/plan-your-day/plan-your-day.php` is the main plugin file.
-- `plugin/plan-your-day/src/` contains namespaced plugin classes.
-- `plugin/plan-your-day/src/Settings/` contains option defaults and
+- `plugin/waypoints/` contains the WordPress plugin source.
+- The root PHP bootstrap file contains the WordPress plugin headers.
+- `plugin/waypoints/src/` contains namespaced plugin classes.
+- `plugin/waypoints/src/Settings/` contains option defaults and
   sanitization.
-- `plugin/plan-your-day/src/Admin/` contains the settings UI.
-- `plugin/plan-your-day/src/Google/` contains Google API client and cache
+- `plugin/waypoints/src/Admin/` contains the settings UI.
+- `plugin/waypoints/src/Google/` contains Google API client and cache
   classes.
 - `docs/` contains installation, usage, admin, release, architecture, settings,
   security, troubleshooting, and historical planning notes for the plugin.
 
 ## Naming Note
 
-The public plugin name is **Waypoints**. The source still uses `plan-your-day`
-for the plugin directory and text domain, `[plan_your_day]` for the shortcode,
-`plan_your_day_*` for settings/options/hooks, `Acodebeard\PlanYourDay` for the
-PHP namespace, and related REST, asset, and CSS identifiers because the plugin
-was renamed after those compatibility surfaces already existed.
+The public plugin name is **Waypoints**. The source directory, text domain,
+REST namespace, block name, and preferred shortcode now use `waypoints`. Some
+legacy compatibility surfaces still use identifiers from the original name:
+`[plan_your_day]` remains as a shortcode alias, `plan_your_day_*` remains for
+settings/options/hooks, `Acodebeard\PlanYourDay` remains the PHP namespace, and
+some asset/CSS identifiers remain unchanged to avoid unnecessary migration
+risk.
+
+## Credits
+
+Special thanks to [Hagan Franks](https://github.com/hagan) and
+[Christopher Reaume](https://github.com/datapoke) for development help.
+
+Thanks also to [Destination Kona Coast](https://destinationkonacoast.com) for
+the idea that started the project.
 
 ## Documentation
 
@@ -94,8 +104,8 @@ Waypoints is licensed under GPLv2 or later. See [LICENSE](LICENSE).
 
 ## Local Source Installation
 
-1. Copy or symlink `plugin/plan-your-day/` into a WordPress installation at
-   `wp-content/plugins/plan-your-day/`.
+1. Copy or symlink `plugin/waypoints/` into a WordPress installation at
+   `wp-content/plugins/waypoints/`.
 2. From the plugin directory, install the Composer autoloader:
 
    ```sh
@@ -111,15 +121,15 @@ sites do not need to run Composer.
 
 ## Build Release Zip
 
-From `plugin/plan-your-day/`, build an installable WordPress admin zip with:
+From `plugin/waypoints/`, build an installable WordPress admin zip with:
 
 ```sh
 ./tools/build-release-zip.sh
 ```
 
-The script creates `dist/plan-your-day-0.5.zip` at the repository root,
+The script creates `dist/waypoints-0.5.zip` at the repository root,
 installs production-only Composer autoload files into a temporary staging copy,
-and packages the final artifact with a top-level `plan-your-day/` directory
+and packages the final artifact with a top-level `waypoints/` directory
 suitable for **Plugins > Add New > Upload Plugin**.
 
 See [docs/RELEASES.md](docs/RELEASES.md) for the full manual GitHub release
@@ -134,13 +144,12 @@ candidate scan before submitting to WordPress.org. It is reusable through
 The scan builds the release zip, runs the normal PHP checks, PHPStan, browser
 smoke coverage, WordPress Plugin Check against the packaged artifact, and a
 repo-local metadata check. The metadata check intentionally expects **Waypoints**
-to use the permanent WordPress.org slug and text domain `waypoints`, so it will
-fail until the deeper public rename work is complete.
+to use the permanent WordPress.org slug and text domain `waypoints`.
 
 ## Configuration
 
-Plugin settings are stored in the `plan_your_day_settings` option and are
-managed through the WordPress Settings API. Current settings include:
+Plugin settings are stored in a single WordPress option and are managed through
+the WordPress Settings API. Current settings include:
 
 - Default location label, address/search phrase, latitude, longitude, and Place
   ID.
@@ -164,8 +173,8 @@ Server-side Google API keys must not be exposed to frontend runtime config.
 - Do not rely on PHP sessions in plugin code.
 - Use WordPress-native APIs for escaping, sanitization, options, REST,
   transients/object cache, HTTP requests, and asset registration.
-- Treat `docs/PLAN-YOUR-DAY-PLUGIN-TODO.md` and
-  `docs/PLAN-YOUR-DAY-PLUGIN-ISSUES.md` as historical planning notes unless
+- Treat `docs/WAYPOINTS-PLUGIN-TODO.md` and
+  `docs/WAYPOINTS-PLUGIN-ISSUES.md` as historical planning notes unless
   they are explicitly refreshed.
 
 ## Useful Checks
@@ -173,7 +182,7 @@ Server-side Google API keys must not be exposed to frontend runtime config.
 Run the PHP checks from the plugin directory:
 
 ```sh
-cd plugin/plan-your-day
+cd plugin/waypoints
 composer test
 ```
 
@@ -188,13 +197,13 @@ npm run browser-smoke
 Run a quick PHP syntax-only sweep from the repository root:
 
 ```sh
-find plugin/plan-your-day -name '*.php' -print -exec php -l {} \;
+find plugin/waypoints -name '*.php' -print -exec php -l {} \;
 ```
 
 Search for legacy integration-specific strings in plugin code:
 
 ```sh
-rg "localhost|example\\.test|Kona|pier" plugin/plan-your-day
+rg "localhost|example\\.test|Kona|pier" plugin/waypoints
 ```
 
 The plugin PHPUnit suite covers current service, settings, and activation
