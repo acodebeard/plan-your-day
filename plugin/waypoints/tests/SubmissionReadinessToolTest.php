@@ -77,13 +77,13 @@ final class SubmissionReadinessToolTest extends TestCase {
 		self::assertStringContainsString( 'readme.txt must not describe the plugin as not production ready.', $result['output'] );
 	}
 
-	public function test_rejects_composer_metadata_in_submission_artifact(): void {
+	public function test_rejects_missing_composer_json_when_vendor_ships_in_submission_artifact(): void {
 		$workspace  = $this->make_workspace();
 		$plugin_dir = $workspace . '/waypoints';
 		$artifact   = $workspace . '/waypoints-1.0.zip';
 
 		$this->write_plugin_fixture( $plugin_dir, 'waypoints', '1.0' );
-		file_put_contents( $plugin_dir . '/composer.json', "{}\n" );
+		unlink( $plugin_dir . '/composer.json' );
 		$this->zip_fixture( $workspace, 'waypoints', $artifact );
 
 		$result = $this->run_tool(
@@ -96,7 +96,7 @@ final class SubmissionReadinessToolTest extends TestCase {
 		);
 
 		self::assertSame( 1, $result['status'], $result['output'] );
-		self::assertStringContainsString( 'Artifact must not contain waypoints/composer.json.', $result['output'] );
+		self::assertStringContainsString( 'Artifact must contain waypoints/composer.json.', $result['output'] );
 	}
 
 	/**
@@ -207,6 +207,7 @@ final class SubmissionReadinessToolTest extends TestCase {
 			)
 		);
 
+		file_put_contents( $plugin_dir . '/composer.json', "{}\n" );
 		file_put_contents( $plugin_dir . '/vendor/autoload.php', "<?php\n" );
 	}
 

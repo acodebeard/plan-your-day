@@ -35,6 +35,7 @@ final class PlannerShortcode {
 
 		$this->assets->enqueue();
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Public shortcode reads URL planner state; values are sanitized by RequestStateParser before use.
 		return $this->renderer->render( $_GET, $action_url );
 	}
 }

@@ -108,7 +108,7 @@ if [[ ! -f "${STAGE_PLUGIN_DIR}/vendor/autoload.php" ]]; then
 	exit 1
 fi
 
-rm -f "${STAGE_PLUGIN_DIR}/composer.json" "${STAGE_PLUGIN_DIR}/composer.lock"
+rm -f "${STAGE_PLUGIN_DIR}/composer.lock"
 find "${STAGE_PLUGIN_DIR}" -type d -exec chmod 755 {} +
 find "${STAGE_PLUGIN_DIR}" -type f -exec chmod 644 {} +
 rm -f "${ARTIFACT_PATH}"

@@ -349,6 +349,7 @@ function check_artifact( string $artifact, string $expected_slug, array &$errors
 
 	$required_paths = [
 		$expected_slug . '/readme.txt',
+		$expected_slug . '/composer.json',
 		$expected_slug . '/vendor/autoload.php',
 	];
 
@@ -363,7 +364,7 @@ function check_artifact( string $artifact, string $expected_slug, array &$errors
 			$errors[] = sprintf( 'Artifact must not contain %s.', $path );
 		}
 
-		if ( preg_match( '#^' . preg_quote( $expected_slug, '#' ) . '/(?:composer\.(?:json|lock)|phpstan\.neon|phpcs\.xml\.dist|phpunit\.xml(?:\.dist)?|DECISIONS\.md|\.distignore)$#', $path ) ) {
+		if ( preg_match( '#^' . preg_quote( $expected_slug, '#' ) . '/(?:composer\.lock|phpstan\.neon|phpcs\.xml\.dist|phpunit\.xml(?:\.dist)?|DECISIONS\.md|\.distignore)$#', $path ) ) {
 			$errors[] = sprintf( 'Artifact must not contain %s.', $path );
 		}
 	}

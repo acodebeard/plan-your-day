@@ -239,16 +239,18 @@ final class PlannerRoutes {
 					'status' => 403,
 				]
 			);
+			$server_snapshot = $this->debug_server_snapshot();
+
 			DebugLogger::log(
 				'rest.guard.invalid_origin',
 				[
 					'scope'          => $scope,
-					'host'           => $_SERVER['HTTP_HOST'] ?? '',
-					'origin'         => $_SERVER['HTTP_ORIGIN'] ?? '',
-					'referer'        => $_SERVER['HTTP_REFERER'] ?? '',
-					'sec_fetch_site' => $_SERVER['HTTP_SEC_FETCH_SITE'] ?? '',
-					'sec_fetch_mode' => $_SERVER['HTTP_SEC_FETCH_MODE'] ?? '',
-					'sec_fetch_dest' => $_SERVER['HTTP_SEC_FETCH_DEST'] ?? '',
+					'host'           => $server_snapshot['host'],
+					'origin'         => $server_snapshot['origin'],
+					'referer'        => $server_snapshot['referer'],
+					'sec_fetch_site' => $server_snapshot['sec_fetch_site'],
+					'sec_fetch_mode' => $server_snapshot['sec_fetch_mode'],
+					'sec_fetch_dest' => $server_snapshot['sec_fetch_dest'],
 				]
 			);
 
@@ -271,8 +273,8 @@ final class PlannerRoutes {
 					'scope'          => $scope,
 					'token_present'  => '' !== $endpoint_token,
 					'cookie_present' => isset( $_COOKIE['plan_your_day_visitor'] ),
-					'origin'         => $_SERVER['HTTP_ORIGIN'] ?? '',
-					'referer'        => $_SERVER['HTTP_REFERER'] ?? '',
+					'origin'         => $this->server_value( 'HTTP_ORIGIN' ),
+					'referer'        => $this->server_value( 'HTTP_REFERER' ),
 				]
 			);
 
@@ -688,7 +690,32 @@ final class PlannerRoutes {
 				'move_waypoint'      => $request->get_param( 'move_waypoint' ),
 			],
 			'has_token'    => '' !== (string) $request->get_param( 'endpoint_token' ),
-			'content_type' => $_SERVER['CONTENT_TYPE'] ?? '',
+			'content_type' => $this->server_value( 'CONTENT_TYPE' ),
 		];
+	}
+
+	/**
+	 * @return array{host:string, origin:string, referer:string, sec_fetch_site:string, sec_fetch_mode:string, sec_fetch_dest:string}
+	 */
+	private function debug_server_snapshot(): array {
+		return [
+			'host'           => $this->server_value( 'HTTP_HOST' ),
+			'origin'         => $this->server_value( 'HTTP_ORIGIN' ),
+			'referer'        => $this->server_value( 'HTTP_REFERER' ),
+			'sec_fetch_site' => $this->server_value( 'HTTP_SEC_FETCH_SITE' ),
+			'sec_fetch_mode' => $this->server_value( 'HTTP_SEC_FETCH_MODE' ),
+			'sec_fetch_dest' => $this->server_value( 'HTTP_SEC_FETCH_DEST' ),
+		];
+	}
+
+	private function server_value( string $key ): string {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Dynamic server header key is scalar-checked, unslashed, and sanitized before return.
+		$value = $_SERVER[ $key ] ?? '';
+
+		if ( ! is_scalar( $value ) ) {
+			return '';
+		}
+
+		return sanitize_text_field( wp_unslash( (string) $value ) );
 	}
 }

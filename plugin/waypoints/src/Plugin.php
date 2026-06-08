@@ -105,7 +105,6 @@ final class Plugin {
 	}
 
 	public function init(): void {
-		add_action( 'init', [ $this, 'load_textdomain' ], 0 );
 		add_action( 'init', [ $this->settings, 'maybe_upgrade' ], 1 );
 		add_action( 'init', [ $this->frontend_assets, 'register' ], 2 );
 		add_action( 'init', [ $this->planner_shortcode, 'register' ] );
@@ -119,14 +118,6 @@ final class Plugin {
 		add_action( 'admin_post_plan_your_day_clear_google_cache_scope', [ $this->settings_page, 'handle_clear_google_cache_scope' ] );
 		add_action( 'admin_post_plan_your_day_clear_google_cache_place', [ $this->settings_page, 'handle_clear_google_cache_place' ] );
 		add_action( 'admin_post_plan_your_day_test_google_api', [ $this->settings_page, 'handle_test_google_api' ] );
-	}
-
-	public function load_textdomain(): void {
-		load_plugin_textdomain(
-			PLAN_YOUR_DAY_TEXT_DOMAIN,
-			false,
-			dirname( plugin_basename( PLAN_YOUR_DAY_PLUGIN_FILE ) ) . '/languages'
-		);
 	}
 
 	public function settings(): Settings {

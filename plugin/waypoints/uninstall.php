@@ -15,6 +15,7 @@ delete_option( 'plan_your_day_settings' );
 global $wpdb;
 
 if ( isset( $wpdb ) && isset( $wpdb->options ) && method_exists( $wpdb, 'esc_like' ) && method_exists( $wpdb, 'prepare' ) ) {
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Uninstall cleanup removes plugin-scoped legacy rate-limit rows and does not need caching.
 	$wpdb->query(
 		$wpdb->prepare(
 			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s",
