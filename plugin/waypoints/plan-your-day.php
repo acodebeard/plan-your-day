@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Waypoints
  * Description: A configurable day planning plugin for WordPress.
- * Version: 0.5
+ * Version: 1.0
  * Requires at least: 6.8
  * Requires PHP: 8.2
  * Author: acodebeard
@@ -16,7 +16,7 @@ declare( strict_types=1 );
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PLAN_YOUR_DAY_VERSION', '0.5' );
+define( 'PLAN_YOUR_DAY_VERSION', '1.0' );
 define( 'PLAN_YOUR_DAY_SCHEMA_VERSION', 5 );
 define( 'PLAN_YOUR_DAY_PLUGIN_FILE', __FILE__ );
 define( 'PLAN_YOUR_DAY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );

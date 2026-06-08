@@ -4,7 +4,7 @@ Tags: planning, maps, wayfinding
 Requires at least: 6.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 0.5
+Stable tag: 1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -110,6 +110,13 @@ See the repository `docs/` directory for installation, usage, admin, release,
 architecture, settings, security, and troubleshooting notes.
 
 == Changelog ==
+
+= 1.0 =
+* Renamed the public plugin surface to Waypoints, including the text domain, REST namespace, block name, preferred shortcode, release metadata, and package artifact.
+* Added WordPress.org submission-readiness checks covering PHP quality, PHPStan, browser smoke tests, WordPress Plugin Check, release packaging, and metadata validation.
+* Hardened the release artifact so it ships as a single `waypoints/` plugin directory with production Composer autoload files and normalized file permissions.
+* Added admin-only API request counting for troubleshooting Google API usage.
+* Added contributor credits and clearer production installation, configuration, and external-service documentation.
 
 = 0.5 =
 * Added block-editor and shortcode entry points that share the same planner renderer.

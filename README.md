@@ -6,9 +6,8 @@ Google Maps and Places data. The plugin source lives in
 
 ## Status
 
-The latest published release is **v0.5**. The project is in v1.0 release
-preparation, with UI polish and final hardening work happening in focused pull
-requests.
+The latest published release is **v1.0**. The v1.0 milestone completes the MVP
+release-readiness pass for a reusable WordPress.org submission candidate.
 
 Completed foundation work includes:
 
@@ -40,7 +39,7 @@ Completed foundation work includes:
 - GitHub Actions quality checks for PHP syntax, PHPCS, PHPUnit, browser smoke,
   and WordPress Plugin Check.
 
-Current v1.0 hardening work is split into open PRs for:
+The v1.0 hardening pass included:
 
 - Removing bundled icon assets in favor of CSS-only UI details.
 - Making REST token bootstrap cache behavior safer.
@@ -127,7 +126,7 @@ From `plugin/waypoints/`, build an installable WordPress admin zip with:
 ./tools/build-release-zip.sh
 ```
 
-The script creates `dist/waypoints-0.5.zip` at the repository root,
+The script creates `dist/waypoints-1.0.zip` at the repository root,
 installs production-only Composer autoload files into a temporary staging copy,
 and packages the final artifact with a top-level `waypoints/` directory
 suitable for **Plugins > Add New > Upload Plugin**.

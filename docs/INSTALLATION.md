@@ -94,5 +94,5 @@ cd plugin/waypoints
 ./tools/build-release-zip.sh
 ```
 
-The script writes `dist/waypoints-0.5.zip` at the repository root, which
+The script writes `dist/waypoints-1.0.zip` at the repository root, which
 can be uploaded through the WordPress Plugins screen.

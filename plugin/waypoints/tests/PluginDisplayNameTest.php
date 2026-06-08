@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
 			self::assertIsArray( $release );
 			self::assertSame( 'Waypoints', $release['name'] ?? null );
 			self::assertSame( 'waypoints', $release['slug'] ?? null );
-			self::assertSame( '../../dist/waypoints-0.5.zip', $release['artifact'] ?? null );
+			self::assertSame( '../../dist/waypoints-1.0.zip', $release['artifact'] ?? null );
 
 			$block = json_decode( $this->fixture( 'blocks/planner/block.json' ), true );
 			self::assertIsArray( $block );
