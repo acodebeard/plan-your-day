@@ -5,7 +5,7 @@
 Source checkouts require Composer:
 
 ```sh
-cd plugin/plan-your-day
+cd plugin/waypoints
 composer install
 ```
 
@@ -27,7 +27,7 @@ explicitly:
 php /path/to/wp \
   --path=/path/to/wordpress \
   --url=https://example.test \
-  plugin status plan-your-day \
+  plugin status waypoints \
 ```
 
 ## WordPress Says The Site Is Not Installed

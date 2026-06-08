@@ -1,14 +1,14 @@
 # Issue 20: Generic WordPress Plugin Scaffold Plan
 
-GitHub issue: https://github.com/acodebeard/plan-your-day/issues/20
+GitHub issue: https://github.com/acodebeard/waypoints/issues/20
 
-Historical note: this was the original scaffold plan from before the public
-plugin name changed to Waypoints. Treat the names in this file as historical
+Historical note: this was the original scaffold plan from before the final
+public naming cleanup. Treat the legacy internal identifiers in this file as
 scaffold context, not current public naming guidance.
 
 ## Summary
 
-Create the initial WordPress plugin scaffold for Plan Your Day. The scaffold should define the plugin directory structure, bootstrap file, plugin headers, namespace, constants, activation and deactivation hooks, version options, and release metadata placeholders.
+Create the initial WordPress plugin scaffold for Waypoints. The scaffold should define the plugin directory structure, bootstrap file, plugin headers, namespace, constants, activation and deactivation hooks, version options, and release metadata placeholders.
 
 This issue is limited to scaffold work. The broader plugin implementation can continue in later issues once the scaffold is in place.
 
@@ -25,7 +25,7 @@ This issue is limited to scaffold work. The broader plugin implementation can co
 Create the plugin under:
 
 ```text
-plugin/plan-your-day/
+plugin/waypoints/
 ```
 
 This keeps the new plugin scaffold isolated from the rest of the implementation while the initial structure lands.
@@ -34,10 +34,10 @@ This keeps the new plugin scaffold isolated from the rest of the implementation 
 
 Use these identifiers consistently:
 
-- Plugin name: `Plan Your Day`
-- Plugin slug: `plan-your-day`
-- Text domain: `plan-your-day`
-- Main plugin file: `plan-your-day.php`
+- Plugin name: `Waypoints`
+- Plugin slug: `waypoints`
+- Text domain: `waypoints`
+- Main plugin file: root PHP bootstrap file
 - PHP namespace: `PlanYourDay`
 - Option prefix: `plan_your_day_`
 - Constant prefix: `PLAN_YOUR_DAY_`
@@ -49,9 +49,9 @@ Do not introduce destination-specific naming or references, including Kona, Dest
 ## Files To Add
 
 ```text
-plugin/plan-your-day/
+plugin/waypoints/
 ├── .distignore
-├── plan-your-day.php
+├── root PHP bootstrap file
 ├── readme.txt
 ├── release.json
 └── src/
@@ -63,7 +63,7 @@ plugin/plan-your-day/
 ## Implementation Checklist
 
 1. Create the plugin directory structure.
-2. Add `plan-your-day.php` with valid WordPress plugin headers.
+2. Add the root PHP bootstrap file with valid WordPress plugin headers.
 3. Add `defined( 'ABSPATH' ) || exit;` to prevent direct access.
 4. Define initial plugin constants:
    - `PLAN_YOUR_DAY_VERSION`
@@ -92,13 +92,13 @@ The main plugin file should include WordPress plugin headers similar to:
 
 ```php
 /**
- * Plugin Name: Plan Your Day
+ * Plugin Name: Waypoints
  * Description: A configurable day planning plugin for WordPress.
  * Version: 0.1.0
  * Requires at least: 6.4
  * Requires PHP: 8.1
  * Author: acodebeard
- * Text Domain: plan-your-day
+ * Text Domain: waypoints
  * Domain Path: /languages
  * License: GPL-2.0-or-later
  */
@@ -127,28 +127,28 @@ Set `distribution` to a placeholder value such as `undecided`.
 Run PHP syntax checks:
 
 ```bash
-php -l plugin/plan-your-day/plan-your-day.php
-php -l plugin/plan-your-day/src/Plugin.php
-php -l plugin/plan-your-day/src/Activator.php
-php -l plugin/plan-your-day/src/Deactivator.php
+php -l plugin/waypoints/<main-plugin-file>.php
+php -l plugin/waypoints/src/Plugin.php
+php -l plugin/waypoints/src/Activator.php
+php -l plugin/waypoints/src/Deactivator.php
 ```
 
 Confirm no destination-specific references were introduced:
 
 ```bash
-rg "Kona|Destination Kona Coast|Kailua Pier|DKC|dkc" plugin/plan-your-day
+rg "Kona|Destination Kona Coast|Kailua Pier|DKC|dkc" plugin/waypoints
 ```
 
 Confirm the expected files exist:
 
 ```bash
-find plugin/plan-your-day -maxdepth 3 -type f | sort
+find plugin/waypoints -maxdepth 3 -type f | sort
 ```
 
 ## Definition Of Done
 
-- [x] The plugin scaffold exists under `plugin/plan-your-day/`.
-- [x] The main plugin file has valid headers and generic Plan Your Day metadata.
+- [x] The plugin scaffold exists under `plugin/waypoints/`.
+- [x] The main plugin file has valid headers and generic Waypoints metadata.
 - [x] Constants are defined with the `PLAN_YOUR_DAY_` prefix.
 - [x] Plugin PHP classes use the `PlanYourDay` namespace.
 - [x] Activation stores version and schema version options.

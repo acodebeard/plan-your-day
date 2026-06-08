@@ -25,7 +25,7 @@ function isPlannerResponse(response, routeName) {
     return false;
   }
 
-  return new URL(response.url()).pathname === `/wp-json/plan-your-day/v1/${routeName}`;
+  return new URL(response.url()).pathname === `/wp-json/waypoints/v1/${routeName}`;
 }
 
 async function waitForPlannerResponse(page, routeName, action) {
@@ -67,8 +67,14 @@ test('planner assets stay scoped to planner renders', async ({ page }) => {
 
 test('shortcode planner covers browse, load more, add, reorder, remove, and clear-trip flow', async ({
   page,
+  request,
 }) => {
   const assertNoBrowserErrors = trackBrowserErrors(page);
+  const initialHtmlResponse = await request.get('/shortcode');
+  const initialHtml = await initialHtmlResponse.text();
+
+  expect(initialHtml).toContain('data-plan-waypoint-status');
+  expect(initialHtml).toContain('Add some waypoints!');
 
   await page.goto('/shortcode');
   await expect(page.locator('[data-plan-root]')).toBeVisible();
@@ -93,16 +99,38 @@ test('shortcode planner covers browse, load more, add, reorder, remove, and clea
   await expect(results.nth(3)).toContainText('Boardwalk Espresso');
   await expect(page.locator('[data-plan-load-more-button]')).toHaveCount(0);
 
+  const waypointStatus = page.locator('[data-plan-waypoint-status]');
+  await expect(waypointStatus).toBeVisible();
+  await expect(waypointStatus).toHaveText('Add some waypoints!');
+
+  const firstAddButton = page.locator('[data-plan-results-list] button[data-place-id="coffee-1"]');
+  await firstAddButton.scrollIntoViewIfNeeded();
+  const scrollBeforeAdd = await page.evaluate(() => window.scrollY);
+
   await waitForPlannerResponse(page, 'route', () =>
-    page.locator('[data-plan-results-list] button[data-place-id="coffee-1"]').click()
+    firstAddButton.click()
   );
 
   const tripItems = page.locator('[data-plan-trip-list] > li');
   await expect(tripItems).toHaveCount(1);
   await expect(tripItems.nth(0)).toContainText('Harbor Coffee');
+  await expect(waypointStatus).toHaveText('1 waypoint added');
+  const scrollAfterAdd = await page.evaluate(() => window.scrollY);
+  expect(Math.abs(scrollAfterAdd - scrollBeforeAdd)).toBeLessThanOrEqual(1);
   await expect(
     page.locator('[data-waypoint-id="coffee-1"] button[name="remove_waypoint"]')
-  ).toBeFocused();
+  ).not.toBeFocused();
+
+  await waypointStatus.click();
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const previewCard = document.querySelector('[data-plan-preview-card]');
+
+        return previewCard instanceof HTMLElement ? Math.round(previewCard.getBoundingClientRect().top) : -1;
+      })
+    )
+    .toBeLessThan(80);
 
   await waitForPlannerResponse(page, 'route', () =>
     page.locator('[data-plan-results-list] button[data-place-id="coffee-2"]').click()
@@ -110,13 +138,12 @@ test('shortcode planner covers browse, load more, add, reorder, remove, and clea
 
   await expect(tripItems).toHaveCount(2);
   await expect(tripItems.nth(1)).toContainText('Sunrise Cafe');
+  await expect(waypointStatus).toHaveText('2 waypoints added');
   await expect(
     page.locator('[data-waypoint-id="coffee-2"] button[name="remove_waypoint"]')
-  ).toBeFocused();
+  ).not.toBeFocused();
 
-  await waitForPlannerResponse(page, 'route', () =>
-    page.locator('button[name="move_waypoint"][value="coffee-2:up"]').click()
-  );
+  await page.locator('button[name="move_waypoint"][value="coffee-2:up"]').click();
 
   await expect(tripItems.nth(0)).toContainText('Sunrise Cafe');
   await expect(page.locator('[data-plan-trip-heading]')).toBeFocused();
@@ -134,6 +161,7 @@ test('shortcode planner covers browse, load more, add, reorder, remove, and clea
   await waitForPlannerResponse(page, 'route', () => page.locator('[data-plan-clear-trip]').click());
 
   await expect(page.locator('[data-plan-trip-empty]')).toBeVisible();
+  await expect(waypointStatus).toHaveText('Add some waypoints!');
   await expect(page.locator('[data-plan-trip-heading]')).toBeFocused();
 
   await assertNoBrowserErrors();

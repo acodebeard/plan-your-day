@@ -8,7 +8,7 @@ planners with Google Maps and Places data.
 The main plugin file is:
 
 ```text
-plugin/plan-your-day/plan-your-day.php
+plugin/waypoints/root PHP bootstrap file
 ```
 
 It defines plugin constants, requires `vendor/autoload.php`, registers
@@ -19,7 +19,7 @@ activation/deactivation hooks, and boots `Acodebeard\PlanYourDay\Plugin`.
 Current plugin source lives under:
 
 ```text
-plugin/plan-your-day/src/
+plugin/waypoints/src/
 ```
 
 Implemented layers:
@@ -57,7 +57,7 @@ controls, and a Google API cache clear tool.
 Editable frontend copy defaults and field metadata live in:
 
 ```text
-plugin/plan-your-day/src/Frontend/InterfaceCopy.php
+plugin/waypoints/src/Frontend/InterfaceCopy.php
 ```
 
 `Settings` stores those values inside the main option under `interface_copy`,
@@ -132,7 +132,7 @@ Each row contains:
 Built-in starter rows for fresh installs live in:
 
 ```text
-plugin/plan-your-day/src/Planner/CategoryCatalog.php
+plugin/waypoints/src/Planner/CategoryCatalog.php
 ```
 
 Use `CategoryCatalog::default_rows()` when changing the starter list for fresh

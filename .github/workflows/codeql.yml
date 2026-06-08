@@ -1,0 +1,41 @@
+name: Code Scanning
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "37 8 * * 1"
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  codeql:
+    name: CodeQL (JavaScript)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+
+      - uses: github/codeql-action/analyze@v4
+
+  semgrep-php:
+    name: Semgrep (PHP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: python -m pip install --upgrade semgrep
+
+      - run: semgrep scan --config p/php --sarif --output semgrep.sarif plugin/waypoints
+
+      - uses: github/codeql-action/upload-sarif@v4
+        if: ${{ always() }}
+        with:
+          sarif_file: semgrep.sarif

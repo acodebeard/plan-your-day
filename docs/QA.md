@@ -28,7 +28,7 @@ meant to catch frontend regressions in the plugin's own public flow.
 From the repo root:
 
 ```bash
-cd plugin/plan-your-day
+cd plugin/waypoints
 composer install
 cd ../..
 npm ci

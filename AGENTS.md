@@ -2,13 +2,13 @@
 
 ## Project
 
-This repository contains the standalone **Plan Your Day** WordPress plugin. The
-plugin source lives in `plugin/plan-your-day/`.
+This repository contains the standalone **Waypoints** WordPress plugin. The
+plugin source lives in `plugin/waypoints/`.
 
-Plan Your Day is a reusable plugin. It must not be branded to, named after, or architecturally tied to any specific client/site.
+Waypoints is a reusable plugin. It must not be branded to, named after, or architecturally tied to any specific client/site.
 
-The latest published release is v0.5. The project is preparing for v1.0 with
-focused public-release hardening and cleanup.
+The latest published release is v1.0. The project is in public-release
+hardening and cleanup.
 
 ## Hard rules
 
@@ -42,7 +42,7 @@ The plugin currently supports:
 - admin-editable interface copy where the setting is still useful,
 - admin-editable/custom categories with draggable ordering.
 
-## Current v1.0 direction
+## Current Release-Hardening Direction
 
 Prioritize release readiness over new feature breadth. Current hardening lanes
 include:
@@ -53,9 +53,10 @@ include:
 - Google geocode failure handling.
 - Stable, quiet WordPress Plugin Check workflow coverage.
 
-PHPStan is not part of the current v1.0 gate. A one-off scan without WordPress
-stubs reports missing WordPress symbols, so do not add PHPStan to CI unless the
-project also adds reproducible WordPress-aware tooling.
+PHPStan is available through repo-local Composer tooling and is included in the
+stricter WordPress.org submission-readiness workflow. Keep the regular `Plugin
+Quality` workflow focused on PHP syntax, PHPCS, PHPUnit, browser smoke, and
+WordPress Plugin Check unless there is a clear reason to broaden it.
 
 ## UI/accessibility expectations
 
@@ -85,9 +86,9 @@ project also adds reproducible WordPress-aware tooling.
 Before finishing a code task, choose checks that match the change. Common
 checks include:
 
-- `cd plugin/plan-your-day && composer test`
+- `cd plugin/waypoints && composer test`
 - `npm ci && npx playwright install chromium && npm run browser-smoke`
-- `find plugin/plan-your-day -name '*.php' -print -exec php -l {} \;`
+- `find plugin/waypoints -name '*.php' -print -exec php -l {} \;`
 - GitHub `Plugin Quality` workflow for PHP syntax, PHPCS, PHPUnit, browser
   smoke, and WordPress Plugin Check.
 

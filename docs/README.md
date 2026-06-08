@@ -39,6 +39,6 @@ land:
 These files are preserved as planning snapshots, not as the current source of
 truth for implementation status:
 
-- [Plugin TODO Snapshot](PLAN-YOUR-DAY-PLUGIN-TODO.md)
-- [GitHub Issue Draft Snapshot](PLAN-YOUR-DAY-PLUGIN-ISSUES.md)
+- [Plugin TODO Snapshot](WAYPOINTS-PLUGIN-TODO.md)
+- [GitHub Issue Draft Snapshot](WAYPOINTS-PLUGIN-ISSUES.md)
 - [Issue 20 Plugin Scaffold Plan](ISSUE-20-PLUGIN-SCAFFOLD-PLAN.md)
