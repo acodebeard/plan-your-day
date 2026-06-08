@@ -37,7 +37,6 @@ jobs:
       EXPECTED_NAME: ${{ inputs.expected_name }}
       EXPECTED_SLUG: ${{ inputs.expected_slug }}
       PLUGIN_DIR: plugin/waypoints
-      WP_ENV_HOME: ${{ runner.temp }}/wp-env
 
     steps:
       - uses: actions/checkout@v4
@@ -108,6 +107,7 @@ jobs:
 
       - name: Run WordPress Plugin Check against artifact
         run: |
+          export WP_ENV_HOME="$RUNNER_TEMP/wp-env"
           trap 'status=$?; if [ "$status" -ne 0 ]; then docker ps -a || true; find "$WP_ENV_HOME" -maxdepth 3 -type f -print || true; fi; exit "$status"' EXIT
 
           plugin_dir="${{ steps.unpack.outputs.dir }}"
