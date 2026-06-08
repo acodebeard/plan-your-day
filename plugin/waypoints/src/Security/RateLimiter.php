@@ -223,6 +223,7 @@ final class RateLimiter {
 	private function get_database_advisory_lock_result( string $key ): mixed {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- MySQL advisory locks are connection-level primitives and cannot be represented through WordPress object caching.
 		return $wpdb->get_var(
 			$wpdb->prepare(
 				'SELECT GET_LOCK(%s, %d)',
@@ -235,6 +236,7 @@ final class RateLimiter {
 	private function release_database_advisory_lock( string $key ): void {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Releases the matching MySQL advisory lock; there is no cacheable WordPress API equivalent.
 		$wpdb->get_var(
 			$wpdb->prepare(
 				'SELECT RELEASE_LOCK(%s)',

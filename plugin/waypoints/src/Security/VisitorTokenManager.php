@@ -84,12 +84,14 @@ final class VisitorTokenManager {
 	}
 
 	private function get_cookie_token(): string {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Raw cookie is scalar-checked, unslashed, sanitized, and regex-validated before use.
 		$cookie_value = $_COOKIE[ self::COOKIE_NAME ] ?? '';
 
 		if ( ! is_scalar( $cookie_value ) ) {
 			return '';
 		}
 
+		$cookie_value = wp_unslash( $cookie_value );
 		$cookie_value = strtolower( trim( sanitize_text_field( (string) $cookie_value ) ) );
 
 		return 1 === preg_match( '/\A[a-f0-9]{48}\z/', $cookie_value ) ? $cookie_value : '';

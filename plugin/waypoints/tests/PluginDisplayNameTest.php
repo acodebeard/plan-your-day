@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 		public function test_front_facing_metadata_uses_waypoints_display_name(): void {
 			self::assertStringContainsString( 'Plugin Name: Waypoints', $this->fixture( 'plan-your-day.php' ) );
 			self::assertStringContainsString( 'Text Domain: waypoints', $this->fixture( 'plan-your-day.php' ) );
+			self::assertStringNotContainsString( 'Domain Path:', $this->fixture( 'plan-your-day.php' ) );
 			self::assertStringContainsString( "define( 'PLAN_YOUR_DAY_TEXT_DOMAIN', 'waypoints' );", $this->fixture( 'plan-your-day.php' ) );
 
 			$release = json_decode( $this->fixture( 'release.json' ), true );
@@ -49,6 +50,13 @@ use PHPUnit\Framework\TestCase;
 			self::assertStringContainsString( "private const LEGACY_TAG = 'plan_your_day';", $source );
 			self::assertStringContainsString( 'add_shortcode( self::TAG', $source );
 			self::assertStringContainsString( 'add_shortcode( self::LEGACY_TAG', $source );
+		}
+
+		public function test_wordpress_org_translation_loading_is_left_to_core(): void {
+			$source = $this->fixture( 'src/Plugin.php' );
+
+			self::assertStringNotContainsString( 'load_plugin_textdomain', $source );
+			self::assertStringNotContainsString( 'load_textdomain', $source );
 		}
 
 	private function fixture( string $path ): string {

@@ -31,6 +31,7 @@ final class DebugLogger {
 			$encoded_context = '{"encoding":"failed"}';
 		}
 
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug logging is opt-in through WP_DEBUG or an explicit filter.
 		error_log( sprintf( '[plan-your-day] %s %s', $event, $encoded_context ) );
 	}
 

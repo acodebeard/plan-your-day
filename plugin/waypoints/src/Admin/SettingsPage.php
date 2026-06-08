@@ -823,6 +823,7 @@ final class SettingsPage {
 	}
 
 	private function render_google_test_notice(): void {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only admin notice flag from a nonce-protected Google API test redirect.
 		if ( ! isset( $_GET['plan_your_day_google_tested'] ) || is_array( $_GET['plan_your_day_google_tested'] ) ) {
 			return;
 		}
@@ -847,6 +848,7 @@ final class SettingsPage {
 				)
 			)
 		);
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 	}
 
 	private function render_google_test_results_panel(): void {
@@ -1083,9 +1085,11 @@ final class SettingsPage {
 			return true;
 		}
 
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only admin page routing check; no state is changed.
 		$page = isset( $_GET['page'] ) && ! is_array( $_GET['page'] )
 			? sanitize_key( wp_unslash( $_GET['page'] ) )
 			: '';
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		return Settings::PAGE_SLUG === $page;
 	}
@@ -1249,6 +1253,7 @@ final class SettingsPage {
 	}
 
 	private function render_cache_notice(): void {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only admin notice flag from nonce-protected cache-clear redirects.
 		if ( ! isset( $_GET['plan_your_day_cache_cleared'] ) ) {
 			$this->render_scope_cache_notice();
 			$this->render_place_cache_notice();
@@ -1274,9 +1279,11 @@ final class SettingsPage {
 
 		$this->render_scope_cache_notice();
 		$this->render_place_cache_notice();
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 	}
 
 	private function render_scope_cache_notice(): void {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only admin notice flag from a nonce-protected cache-clear redirect.
 		if ( ! isset( $_GET['plan_your_day_cache_scope_cleared'] ) || is_array( $_GET['plan_your_day_cache_scope_cleared'] ) ) {
 			return;
 		}
@@ -1307,9 +1314,11 @@ final class SettingsPage {
 				)
 			)
 		);
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 	}
 
 	private function render_place_cache_notice(): void {
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only admin notice flag from a nonce-protected cache-clear redirect.
 		if ( ! isset( $_GET['plan_your_day_cache_place_cleared'] ) || is_array( $_GET['plan_your_day_cache_place_cleared'] ) ) {
 			return;
 		}
@@ -1340,6 +1349,7 @@ final class SettingsPage {
 				)
 			)
 		);
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 	}
 
 	private function google_cache_scope_choices(): array {
