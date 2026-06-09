@@ -1,6 +1,7 @@
 (() => {
   const CATEGORY_ROW_SELECTOR = '[data-plan-category-row]';
   const CATEGORY_DRAG_HANDLE_SELECTOR = '[data-plan-category-drag-handle]';
+  const API_KEY_REVEAL_DURATION_MS = 10000;
 
   const getCategoryRows = (rows) => Array.from(rows.querySelectorAll(CATEGORY_ROW_SELECTOR));
 
@@ -276,6 +277,76 @@
     });
   };
 
+  const initializeApiKeyRevealButtons = () => {
+    document.querySelectorAll('[data-plan-api-key-reveal]').forEach((button) => {
+      if (!(button instanceof HTMLButtonElement) || 'true' === button.dataset.planApiKeyRevealReady) {
+        return;
+      }
+
+      const field = button.closest('.plan-your-day-api-key-field');
+      const input = field?.querySelector('[data-plan-api-key-input]');
+      const label = button.querySelector('[data-plan-api-key-reveal-label]');
+
+      if (!(field instanceof HTMLElement) || !(input instanceof HTMLInputElement)) {
+        return;
+      }
+
+      let hideTimer = 0;
+      const showLabel = button.getAttribute('data-plan-show-label') || 'Show API key';
+      const hideLabel = button.getAttribute('data-plan-hide-label') || 'Hide API key';
+      const setButtonLabel = (text) => {
+        if (label instanceof HTMLElement) {
+          label.textContent = text;
+        }
+
+        button.setAttribute('aria-label', text);
+      };
+      const clearHideTimer = () => {
+        if (0 !== hideTimer) {
+          window.clearTimeout(hideTimer);
+          hideTimer = 0;
+        }
+      };
+      const hideKey = () => {
+        clearHideTimer();
+        input.type = 'password';
+        button.setAttribute('aria-pressed', 'false');
+        field.classList.remove('is-revealed');
+        setButtonLabel(showLabel);
+      };
+      const showKey = () => {
+        clearHideTimer();
+        input.type = 'text';
+        button.setAttribute('aria-pressed', 'true');
+        field.classList.add('is-revealed');
+        setButtonLabel(hideLabel);
+        hideTimer = window.setTimeout(hideKey, API_KEY_REVEAL_DURATION_MS);
+      };
+
+      button.dataset.planApiKeyRevealReady = 'true';
+      setButtonLabel(showLabel);
+
+      button.addEventListener('pointerdown', (event) => {
+        event.preventDefault();
+      });
+
+      button.addEventListener('click', () => {
+        if ('text' === input.type) {
+          hideKey();
+        } else {
+          showKey();
+        }
+
+        input.focus({
+          preventScroll: true,
+        });
+      });
+
+      input.addEventListener('blur', hideKey);
+      button.form?.addEventListener('submit', hideKey);
+    });
+  };
+
   const initializeBackToTop = () => {
     const topButton = document.querySelector('[data-plan-back-to-top]');
     const topTarget = document.getElementById('plan-your-day-settings-top');
@@ -322,6 +393,7 @@
 
   const initialize = () => {
     initializeCategoryEditors();
+    initializeApiKeyRevealButtons();
     initializeBackToTop();
   };
 

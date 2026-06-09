@@ -1,9 +1,9 @@
 {
     "name": "Waypoints",
     "slug": "waypoints",
-    "version": "1.0",
+    "version": "1.0.1",
     "schemaVersion": 5,
-    "artifact": "../../dist/waypoints-1.0.zip",
+    "artifact": "../../dist/waypoints-1.0.1.zip",
     "distribution": "github-release-zip",
     "notes": "Installable WordPress admin zip built from this source repository with Composer production autoload files included."
 }

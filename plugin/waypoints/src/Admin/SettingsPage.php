@@ -13,6 +13,7 @@ defined( 'ABSPATH' ) || exit;
 
 final class SettingsPage {
 	private const GOOGLE_TEST_TRANSIENT_PREFIX = 'plan_your_day_google_test_';
+	private const GOOGLE_API_KEY_PATTERN       = 'AIza[0-9A-Za-z_-]{35}';
 
 	private Settings $settings;
 	private GoogleApiCache $google_api_cache;
@@ -220,21 +221,21 @@ final class SettingsPage {
 			'google_maps_embed_api_key',
 			__( 'Maps Embed API key', 'waypoints' ),
 			__( 'Browser-facing key for Google Maps Embed previews. This key can appear in frontend iframe URLs.', 'waypoints' ),
-			'password'
+			'api_key'
 		);
 
 		$this->add_field(
 			'google_places_api_key',
 			__( 'Places API key', 'waypoints' ),
 			__( 'Server-side key for Places API (New) text search and place details. This key is never sent to browser config.', 'waypoints' ),
-			'password'
+			'api_key'
 		);
 
 		$this->add_field(
 			'google_geocoding_api_key',
 			__( 'Geocoding API key', 'waypoints' ),
 			__( 'Optional server-side key for Geocoding API. Leave empty to use the Places API key for geocoding.', 'waypoints' ),
-			'password'
+			'api_key'
 		);
 
 		$this->add_field(
@@ -988,6 +989,8 @@ final class SettingsPage {
 			$this->render_categories_editor( $name );
 		} elseif ( 'interface_copy_group' === $type ) {
 			$this->render_interface_copy_group( (string) ( $attributes['group'] ?? '' ) );
+		} elseif ( 'api_key' === $type ) {
+			$this->render_api_key_field( $name, $id, (string) $value );
 		} else {
 			printf(
 				'<input id="%1$s" name="%2$s" type="%3$s" value="%4$s" class="regular-text" autocomplete="off" spellcheck="false" />',
@@ -1001,6 +1004,18 @@ final class SettingsPage {
 		if ( '' !== $description ) {
 			printf( '<p class="description">%s</p>', esc_html( $description ) );
 		}
+	}
+
+	private function render_api_key_field( string $name, string $id, string $value ): void {
+		printf(
+			'<span class="plan-your-day-api-key-field"><input id="%1$s" name="%2$s" type="password" value="%3$s" class="regular-text code" autocomplete="new-password" autocapitalize="none" inputmode="text" spellcheck="false" pattern="%4$s" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" data-plan-api-key-input /><button type="button" class="button plan-your-day-api-key-reveal" aria-controls="%1$s" aria-pressed="false" data-plan-api-key-reveal data-plan-show-label="%5$s" data-plan-hide-label="%6$s"><span class="screen-reader-text" data-plan-api-key-reveal-label>%5$s</span><span class="plan-your-day-api-key-reveal-icon" aria-hidden="true"></span></button></span>',
+			esc_attr( $id ),
+			esc_attr( $name ),
+			esc_attr( $value ),
+			esc_attr( self::GOOGLE_API_KEY_PATTERN ),
+			esc_attr( __( 'Show API key', 'waypoints' ) ),
+			esc_attr( __( 'Hide API key', 'waypoints' ) )
+		);
 	}
 
 	private function render_interface_copy_group( string $group ): void {
