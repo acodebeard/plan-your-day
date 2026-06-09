@@ -53,6 +53,11 @@ The current release artifact is an installable WordPress admin zip with:
 Production sites should install the built zip and should not need to run
 Composer on the server.
 
+Current v1.0 artifact:
+
+- filename: `waypoints-1.0.zip`
+- SHA-256: `acc93ed02e41585f4f9e2799d739d38fc374bf4e416852bdf0f16394d7af6e6c`
+
 ## Update Expectations
 
 Current update flow:
