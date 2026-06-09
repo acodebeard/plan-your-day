@@ -4,7 +4,7 @@ Tags: planning, maps, wayfinding
 Requires at least: 6.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 1.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,9 +23,6 @@ in Google Maps.
 
 Special thanks to Hagan Franks (https://github.com/hagan) and Christopher
 Reaume (https://github.com/datapoke) for development help.
-
-Thanks also to Destination Kona Coast (https://destinationkonacoast.com) for
-the idea that started the project.
 
 == Installation ==
 
@@ -110,6 +107,10 @@ See the repository `docs/` directory for installation, usage, admin, release,
 architecture, settings, security, and troubleshooting notes.
 
 == Changelog ==
+
+= 1.0.1 =
+* Added an admin control for briefly revealing saved Google API keys while checking copied values.
+* Hardened Google API key settings against browser autofill and non-key values.
 
 = 1.0 =
 * Renamed the public plugin surface to Waypoints, including the text domain, REST namespace, block name, preferred shortcode, release metadata, and package artifact.

@@ -25,6 +25,21 @@ final class AdminSettingsScriptTest extends TestCase {
 		self::assertStringContainsString( 'focusTarget.focus({ preventScroll: true })', $script );
 	}
 
+	public function test_api_key_reveal_buttons_briefly_switch_inputs_to_plain_text(): void {
+		$script = $this->fixture( 'assets/js/admin-settings.js' );
+
+		self::assertStringContainsString( 'API_KEY_REVEAL_DURATION_MS', $script );
+		self::assertStringContainsString( 'initializeApiKeyRevealButtons', $script );
+		self::assertStringContainsString( '[data-plan-api-key-reveal]', $script );
+		self::assertStringContainsString( '[data-plan-api-key-input]', $script );
+		self::assertStringContainsString( "input.type = 'text'", $script );
+		self::assertStringContainsString( "input.type = 'password'", $script );
+		self::assertStringContainsString( "button.setAttribute('aria-pressed', 'true')", $script );
+		self::assertStringContainsString( 'window.setTimeout(hideKey, API_KEY_REVEAL_DURATION_MS)', $script );
+		self::assertStringContainsString( "button.addEventListener('pointerdown'", $script );
+		self::assertStringContainsString( "input.addEventListener('blur', hideKey)", $script );
+	}
+
 	private function fixture( string $path ): string {
 		$content = file_get_contents( dirname( __DIR__ ) . '/' . $path );
 
