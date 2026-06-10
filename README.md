@@ -85,10 +85,10 @@ risk.
 
 ## Credits
 
-Special thanks to [Hagan Franks](https://github.com/hagan) and
-[Christopher Reaume](https://github.com/datapoke) for development help.
+Special thanks to [Hagan](https://github.com/hagan) and
+[Datapoke](https://github.com/datapoke) for development help.
 
-Thanks also to [Destination Kona Coast](https://destinationkonacoast.com) for
+Thanks also to [Destination Kona Coast](https://destinationkonacoast.org) for
 the idea that started the project.
 
 ## Documentation
