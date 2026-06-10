@@ -461,7 +461,7 @@ namespace Acodebeard\PlanYourDay\Tests {
 			self::assertStringContainsString( 'autocomplete="new-password"', $output );
 			self::assertStringContainsString( 'autocapitalize="none"', $output );
 			self::assertStringContainsString( 'spellcheck="false"', $output );
-			self::assertStringContainsString( 'pattern="AIza[0-9A-Za-z_-]{35}"', $output );
+			self::assertStringContainsString( 'pattern="AIza[0-9A-Za-z_\\-]{35}"', $output );
 			self::assertStringContainsString( 'data-lpignore="true"', $output );
 			self::assertStringContainsString( 'data-1p-ignore="true"', $output );
 			self::assertStringContainsString( 'data-bwignore="true"', $output );

@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 
 final class SettingsPage {
 	private const GOOGLE_TEST_TRANSIENT_PREFIX = 'plan_your_day_google_test_';
-	private const GOOGLE_API_KEY_PATTERN       = 'AIza[0-9A-Za-z_-]{35}';
+	private const GOOGLE_API_KEY_PATTERN       = 'AIza[0-9A-Za-z_\\-]{35}';
 
 	private Settings $settings;
 	private GoogleApiCache $google_api_cache;
