@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="Waypoints">
-	<description>WordPress Coding Standards checks for Waypoints plugin code.</description>
+<ruleset name="Waypoints: Trip Planner">
+	<description>WordPress Coding Standards checks for Waypoints: Trip Planner plugin code.</description>
 
 	<arg name="basepath" value="."/>
 	<arg name="colors"/>

@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'PLAN_YOUR_DAY_TEXT_DOMAIN' ) ) {
-	define( 'PLAN_YOUR_DAY_TEXT_DOMAIN', 'waypoints' );
+	define( 'PLAN_YOUR_DAY_TEXT_DOMAIN', 'waypoints-trip-planner' );
 }
 
 if ( ! defined( 'PLAN_YOUR_DAY_VERSION' ) ) {

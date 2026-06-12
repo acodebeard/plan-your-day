@@ -1,15 +1,15 @@
 # Frontend Usage
 
-Waypoints can be rendered through either the block editor or the shortcode. Both
-entry points use the same server-rendered planner and the same frontend CSS and
-JavaScript assets.
+Waypoints: Trip Planner can be rendered through either the block editor or the
+shortcode. Both entry points use the same server-rendered planner and the same
+frontend CSS and JavaScript assets.
 
 ## Before You Place The Planner
 
 Make sure the plugin has been configured under:
 
 ```text
-Settings > Waypoints
+Settings > Waypoints: Trip Planner
 ```
 
 At minimum, set:
@@ -26,7 +26,7 @@ instead of the full planner.
 The plugin registers a dynamic block named:
 
 ```text
-Waypoints
+Waypoints: Trip Planner
 ```
 
 Editor behavior:

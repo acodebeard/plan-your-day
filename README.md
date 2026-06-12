@@ -1,7 +1,7 @@
-# Waypoints
+# Waypoints: Trip Planner
 
-Waypoints is a configurable WordPress plugin for building day-trip planners with
-Google Maps and Places data. The plugin source lives in
+Waypoints: Trip Planner is a configurable WordPress plugin for building
+day-trip planners with Google Maps and Places data. The plugin source lives in
 `plugin/waypoints/`.
 
 ## Status
@@ -75,21 +75,17 @@ and WordPress Plugin Check.
 
 ## Naming Note
 
-The public plugin name is **Waypoints**. The source directory, text domain,
-REST namespace, block name, and preferred shortcode now use `waypoints`. Some
-legacy compatibility surfaces still use identifiers from the original name:
-`[plan_your_day]` remains as a shortcode alias, `plan_your_day_*` remains for
-settings/options/hooks, `Acodebeard\PlanYourDay` remains the PHP namespace, and
-some asset/CSS identifiers remain unchanged to avoid unnecessary migration
-risk.
+The public plugin name is **Waypoints: Trip Planner**. The WordPress.org slug,
+release artifact folder, and text domain use `waypoints-trip-planner`. The
+source directory remains `plugin/waypoints/`, and compatibility identifiers
+such as `[waypoints]`, `[plan_your_day]`, `plan_your_day_*`,
+`Acodebeard\PlanYourDay`, REST namespace, block name, and asset/CSS handles
+remain unchanged to avoid unnecessary migration risk.
 
 ## Credits
 
 Special thanks to [Hagan](https://github.com/hagan) and
 [Datapoke](https://github.com/datapoke) for development help.
-
-Thanks also to [Destination Kona Coast](https://destinationkonacoast.org) for
-the idea that started the project.
 
 ## Documentation
 
@@ -99,20 +95,21 @@ security, and troubleshooting.
 
 ## License
 
-Waypoints is licensed under GPLv2 or later. See [LICENSE](LICENSE).
+Waypoints: Trip Planner is licensed under GPLv2 or later. See
+[LICENSE](LICENSE).
 
 ## Local Source Installation
 
 1. Copy or symlink `plugin/waypoints/` into a WordPress installation at
-   `wp-content/plugins/waypoints/`.
+   `wp-content/plugins/waypoints-trip-planner/`.
 2. From the plugin directory, install the Composer autoloader:
 
    ```sh
    composer install
    ```
 
-3. Activate **Waypoints** from the WordPress Plugins screen.
-4. Open **Settings > Waypoints**.
+3. Activate **Waypoints: Trip Planner** from the WordPress Plugins screen.
+4. Open **Settings > Waypoints: Trip Planner**.
 5. Configure the required default location and Google API keys.
 
 Release zips should include generated Composer autoload files so production
@@ -126,9 +123,9 @@ From `plugin/waypoints/`, build an installable WordPress admin zip with:
 ./tools/build-release-zip.sh
 ```
 
-The script creates `dist/waypoints-1.0.zip` at the repository root,
+The script creates `dist/waypoints-trip-planner-1.0.2.zip` at the repository root,
 installs production-only Composer autoload files into a temporary staging copy,
-and packages the final artifact with a top-level `waypoints/` directory
+and packages the final artifact with a top-level `waypoints-trip-planner/` directory
 suitable for **Plugins > Add New > Upload Plugin**.
 
 See [docs/RELEASES.md](docs/RELEASES.md) for the full manual GitHub release
@@ -142,8 +139,9 @@ candidate scan before submitting to WordPress.org. It is reusable through
 
 The scan builds the release zip, runs the normal PHP checks, PHPStan, browser
 smoke coverage, WordPress Plugin Check against the packaged artifact, and a
-repo-local metadata check. The metadata check intentionally expects **Waypoints**
-to use the permanent WordPress.org slug and text domain `waypoints`.
+repo-local metadata check. The metadata check intentionally expects
+**Waypoints: Trip Planner** to use the permanent WordPress.org slug and text
+domain `waypoints-trip-planner`.
 
 ## Configuration
 

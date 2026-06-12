@@ -64,7 +64,7 @@ namespace Acodebeard\PlanYourDay\Tests {
 			}
 
 			if ( ! defined( 'PLAN_YOUR_DAY_PLUGIN_URL' ) ) {
-				define( 'PLAN_YOUR_DAY_PLUGIN_URL', 'https://example.test/wp-content/plugins/waypoints/' );
+				define( 'PLAN_YOUR_DAY_PLUGIN_URL', 'https://example.test/wp-content/plugins/waypoints-trip-planner/' );
 			}
 		}
 
@@ -74,15 +74,15 @@ namespace Acodebeard\PlanYourDay\Tests {
 			$assets->register();
 
 			self::assertSame(
-				'https://example.test/wp-content/plugins/waypoints/assets/css/plan.min.css',
+				'https://example.test/wp-content/plugins/waypoints-trip-planner/assets/css/plan.min.css',
 				$GLOBALS['plan_your_day_test_registered_styles'][ FrontendAssets::STYLE_HANDLE ]['src'] ?? null
 			);
 			self::assertSame(
-				'https://example.test/wp-content/plugins/waypoints/assets/js/plan.min.js',
+				'https://example.test/wp-content/plugins/waypoints-trip-planner/assets/js/plan.min.js',
 				$GLOBALS['plan_your_day_test_registered_scripts'][ FrontendAssets::SCRIPT_HANDLE ]['src'] ?? null
 			);
 			self::assertSame(
-				'https://example.test/wp-content/plugins/waypoints/assets/js/plan-block.js',
+				'https://example.test/wp-content/plugins/waypoints-trip-planner/assets/js/plan-block.js',
 				$GLOBALS['plan_your_day_test_registered_scripts'][ FrontendAssets::BLOCK_EDITOR_SCRIPT_HANDLE ]['src'] ?? null
 			);
 			self::assertSame(

@@ -309,7 +309,7 @@ final class PlannerRoutes {
 	private function request_verification_failed_message(): string {
 		return $this->settings instanceof Settings
 			? $this->settings->get_frontend_copy_value( 'request_verification_failed' )
-			: __( 'The planner request could not be verified. Refresh the page and try again.', 'waypoints' );
+			: __( 'The planner request could not be verified. Refresh the page and try again.', 'waypoints-trip-planner' );
 	}
 
 	private function get_rate_limit_cost( string $scope, array $request_state, ?WP_REST_Request $request = null ): int {

@@ -1,6 +1,6 @@
 # Architecture
 
-Waypoints is a generic WordPress plugin for building configurable day-trip
+Waypoints: Trip Planner is a generic WordPress plugin for building configurable day-trip
 planners with Google Maps and Places data.
 
 ## Plugin Entry Point
@@ -46,7 +46,7 @@ plan_your_day_settings
 The admin page is registered under:
 
 ```text
-Settings > Waypoints
+Settings > Waypoints: Trip Planner
 ```
 
 The admin screen currently exposes required default location fields, planner

@@ -1,6 +1,6 @@
 # Settings Reference
 
-Waypoints stores plugin configuration in:
+Waypoints: Trip Planner stores plugin configuration in:
 
 ```text
 plan_your_day_settings

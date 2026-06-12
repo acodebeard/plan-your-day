@@ -133,7 +133,7 @@ namespace Acodebeard\PlanYourDay\Tests {
 			}
 
 			if ( ! defined( 'PLAN_YOUR_DAY_PLUGIN_URL' ) ) {
-				define( 'PLAN_YOUR_DAY_PLUGIN_URL', 'https://example.test/wp-content/plugins/waypoints/' );
+				define( 'PLAN_YOUR_DAY_PLUGIN_URL', 'https://example.test/wp-content/plugins/waypoints-trip-planner/' );
 			}
 		}
 
@@ -158,8 +158,8 @@ namespace Acodebeard\PlanYourDay\Tests {
 
 			$page = $GLOBALS['plan_your_day_test_options_pages'][0] ?? [];
 
-			self::assertSame( 'Waypoints Settings', $page['page_title'] ?? null );
-			self::assertSame( 'Waypoints', $page['menu_title'] ?? null );
+			self::assertSame( 'Waypoints: Trip Planner Settings', $page['page_title'] ?? null );
+			self::assertSame( 'Waypoints: Trip Planner', $page['menu_title'] ?? null );
 		}
 
 		public function test_register_categories_editor_field_has_no_duplicate_label(): void {
@@ -390,11 +390,11 @@ namespace Acodebeard\PlanYourDay\Tests {
 			self::assertArrayHasKey( 'waypoints-admin-settings', $GLOBALS['plan_your_day_test_enqueued_styles'] );
 			self::assertArrayHasKey( 'waypoints-admin-settings', $GLOBALS['plan_your_day_test_enqueued_scripts'] );
 			self::assertSame(
-				'https://example.test/wp-content/plugins/waypoints/assets/css/admin-settings.css',
+				'https://example.test/wp-content/plugins/waypoints-trip-planner/assets/css/admin-settings.css',
 				$GLOBALS['plan_your_day_test_enqueued_styles']['waypoints-admin-settings']['src']
 			);
 			self::assertSame(
-				'https://example.test/wp-content/plugins/waypoints/assets/js/admin-settings.js',
+				'https://example.test/wp-content/plugins/waypoints-trip-planner/assets/js/admin-settings.js',
 				$GLOBALS['plan_your_day_test_enqueued_scripts']['waypoints-admin-settings']['src']
 			);
 			self::assertSame(

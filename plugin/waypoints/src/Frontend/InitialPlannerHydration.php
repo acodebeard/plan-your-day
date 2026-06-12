@@ -51,36 +51,36 @@ final class InitialPlannerHydration {
 		$planner_state['messages'] = $messages;
 
 		if ( $has_search ) {
-			$loading_results_body                  = __( 'The planner is loading your saved search through the secure request path.', 'waypoints' );
-			$planner_state['search_results_label'] = __( 'Loading Google results...', 'waypoints' );
+			$loading_results_body                  = __( 'The planner is loading your saved search through the secure request path.', 'waypoints-trip-planner' );
+			$planner_state['search_results_label'] = __( 'Loading Google results...', 'waypoints-trip-planner' );
 			$planner_state['results_empty_state']  = [
-				'heading' => __( 'Loading Google results', 'waypoints' ),
+				'heading' => __( 'Loading Google results', 'waypoints-trip-planner' ),
 				'body'    => $loading_results_body,
 			];
 			$planner_state['overview']             = $loading_results_body;
 		}
 
 		if ( $has_selected_waypoints ) {
-			$loading_trip_body                 = __( 'The planner is loading your saved trip through the secure request path.', 'waypoints' );
-			$planner_state['trip_count_label'] = __( 'Loading trip waypoints...', 'waypoints' );
+			$loading_trip_body                 = __( 'The planner is loading your saved trip through the secure request path.', 'waypoints-trip-planner' );
+			$planner_state['trip_count_label'] = __( 'Loading trip waypoints...', 'waypoints-trip-planner' );
 			$planner_state['trip_empty_state'] = [
-				'heading' => __( 'Loading trip waypoints', 'waypoints' ),
+				'heading' => __( 'Loading trip waypoints', 'waypoints-trip-planner' ),
 				'body'    => $loading_trip_body,
 			];
 			$planner_state['overview']         = $loading_trip_body;
 		}
 
 		if ( $has_selected_waypoints ) {
-			$planner_state['preview_mode_label']  = __( 'Loading trip preview', 'waypoints' );
+			$planner_state['preview_mode_label']  = __( 'Loading trip preview', 'waypoints-trip-planner' );
 			$planner_state['preview_empty_state'] = [
-				'heading' => __( 'Loading trip preview', 'waypoints' ),
-				'body'    => __( 'The planner is loading your saved trip through the secure request path.', 'waypoints' ),
+				'heading' => __( 'Loading trip preview', 'waypoints-trip-planner' ),
+				'body'    => __( 'The planner is loading your saved trip through the secure request path.', 'waypoints-trip-planner' ),
 			];
 		} elseif ( $has_search ) {
-			$planner_state['preview_mode_label']  = __( 'Loading search preview', 'waypoints' );
+			$planner_state['preview_mode_label']  = __( 'Loading search preview', 'waypoints-trip-planner' );
 			$planner_state['preview_empty_state'] = [
-				'heading' => __( 'Loading search preview', 'waypoints' ),
-				'body'    => __( 'The planner is loading your saved search through the secure request path.', 'waypoints' ),
+				'heading' => __( 'Loading search preview', 'waypoints-trip-planner' ),
+				'body'    => __( 'The planner is loading your saved search through the secure request path.', 'waypoints-trip-planner' ),
 			];
 		}
 

@@ -70,24 +70,24 @@ final class Settings {
 
 	public static function start_mode_choices(): array {
 		return [
-			self::START_MODE_CURRENT => __( 'Current location handoff', 'waypoints' ),
-			self::START_MODE_DEFAULT => __( 'Default location', 'waypoints' ),
-			self::START_MODE_CUSTOM  => __( 'Custom starting point', 'waypoints' ),
+			self::START_MODE_CURRENT => __( 'Current location handoff', 'waypoints-trip-planner' ),
+			self::START_MODE_DEFAULT => __( 'Default location', 'waypoints-trip-planner' ),
+			self::START_MODE_CUSTOM  => __( 'Custom starting point', 'waypoints-trip-planner' ),
 		];
 	}
 
 	public static function distance_unit_choices(): array {
 		return [
-			self::DISTANCE_UNIT_MILES      => __( 'Miles', 'waypoints' ),
-			self::DISTANCE_UNIT_KILOMETERS => __( 'Kilometers', 'waypoints' ),
+			self::DISTANCE_UNIT_MILES      => __( 'Miles', 'waypoints-trip-planner' ),
+			self::DISTANCE_UNIT_KILOMETERS => __( 'Kilometers', 'waypoints-trip-planner' ),
 		];
 	}
 
 	public static function color_mode_choices(): array {
 		return [
-			self::COLOR_MODE_LIGHT  => __( 'Light', 'waypoints' ),
-			self::COLOR_MODE_DARK   => __( 'Dark', 'waypoints' ),
-			self::COLOR_MODE_SYSTEM => __( 'System', 'waypoints' ),
+			self::COLOR_MODE_LIGHT  => __( 'Light', 'waypoints-trip-planner' ),
+			self::COLOR_MODE_DARK   => __( 'Dark', 'waypoints-trip-planner' ),
+			self::COLOR_MODE_SYSTEM => __( 'System', 'waypoints-trip-planner' ),
 		];
 	}
 
@@ -522,57 +522,57 @@ final class Settings {
 			[
 				[
 					'slug'        => 'coffee',
-					'label'       => __( 'Coffee', 'waypoints' ),
-					'description' => __( 'Search for coffee shops, cafes, tastings, and easy morning stops.', 'waypoints' ),
-					'text_query'  => __( 'coffee shops and cafes', 'waypoints' ),
+					'label'       => __( 'Coffee', 'waypoints-trip-planner' ),
+					'description' => __( 'Search for coffee shops, cafes, tastings, and easy morning stops.', 'waypoints-trip-planner' ),
+					'text_query'  => __( 'coffee shops and cafes', 'waypoints-trip-planner' ),
 					'enabled'     => true,
 					'sort_order'  => 10,
 				],
 				[
 					'slug'        => 'food',
-					'label'       => __( 'Food', 'waypoints' ),
-					'description' => __( 'Search for restaurants, quick bites, and broader local food options.', 'waypoints' ),
-					'text_query'  => __( 'restaurants and local food', 'waypoints' ),
+					'label'       => __( 'Food', 'waypoints-trip-planner' ),
+					'description' => __( 'Search for restaurants, quick bites, and broader local food options.', 'waypoints-trip-planner' ),
+					'text_query'  => __( 'restaurants and local food', 'waypoints-trip-planner' ),
 					'enabled'     => true,
 					'sort_order'  => 20,
 				],
 				[
 					'slug'        => 'shopping',
-					'label'       => __( 'Shopping', 'waypoints' ),
-					'description' => __( 'Search for boutiques, markets, and places to browse local goods.', 'waypoints' ),
-					'text_query'  => __( 'shopping and local boutiques', 'waypoints' ),
+					'label'       => __( 'Shopping', 'waypoints-trip-planner' ),
+					'description' => __( 'Search for boutiques, markets, and places to browse local goods.', 'waypoints-trip-planner' ),
+					'text_query'  => __( 'shopping and local boutiques', 'waypoints-trip-planner' ),
 					'enabled'     => true,
 					'sort_order'  => 30,
 				],
 				[
 					'slug'        => 'outdoors',
-					'label'       => __( 'Outdoors', 'waypoints' ),
-					'description' => __( 'Search for parks, waterfront access, trails, and outdoor stops.', 'waypoints' ),
-					'text_query'  => __( 'parks and outdoor activities', 'waypoints' ),
+					'label'       => __( 'Outdoors', 'waypoints-trip-planner' ),
+					'description' => __( 'Search for parks, waterfront access, trails, and outdoor stops.', 'waypoints-trip-planner' ),
+					'text_query'  => __( 'parks and outdoor activities', 'waypoints-trip-planner' ),
 					'enabled'     => true,
 					'sort_order'  => 40,
 				],
 				[
 					'slug'        => 'history-culture',
-					'label'       => __( 'History / culture', 'waypoints' ),
-					'description' => __( 'Search for museums, landmarks, heritage sites, and cultural experiences.', 'waypoints' ),
-					'text_query'  => __( 'history and culture', 'waypoints' ),
+					'label'       => __( 'History / culture', 'waypoints-trip-planner' ),
+					'description' => __( 'Search for museums, landmarks, heritage sites, and cultural experiences.', 'waypoints-trip-planner' ),
+					'text_query'  => __( 'history and culture', 'waypoints-trip-planner' ),
 					'enabled'     => true,
 					'sort_order'  => 50,
 				],
 				[
 					'slug'        => 'scenic',
-					'label'       => __( 'Scenic spots', 'waypoints' ),
-					'description' => __( 'Search for viewpoints, waterfront stretches, and scenic lookouts.', 'waypoints' ),
-					'text_query'  => __( 'scenic spots and viewpoints', 'waypoints' ),
+					'label'       => __( 'Scenic spots', 'waypoints-trip-planner' ),
+					'description' => __( 'Search for viewpoints, waterfront stretches, and scenic lookouts.', 'waypoints-trip-planner' ),
+					'text_query'  => __( 'scenic spots and viewpoints', 'waypoints-trip-planner' ),
 					'enabled'     => true,
 					'sort_order'  => 60,
 				],
 				[
 					'slug'        => 'activities',
-					'label'       => __( 'Other activities', 'waypoints' ),
-					'description' => __( 'Search for tours, family-friendly attractions, and broader things to do.', 'waypoints' ),
-					'text_query'  => __( 'tours and activities', 'waypoints' ),
+					'label'       => __( 'Other activities', 'waypoints-trip-planner' ),
+					'description' => __( 'Search for tours, family-friendly attractions, and broader things to do.', 'waypoints-trip-planner' ),
+					'text_query'  => __( 'tours and activities', 'waypoints-trip-planner' ),
 					'enabled'     => true,
 					'sort_order'  => 70,
 				],
@@ -599,11 +599,11 @@ final class Settings {
 		$missing  = [];
 
 		if ( '' === $settings['default_location_label'] ) {
-			$missing['default_location_label'] = __( 'Default location label', 'waypoints' );
+			$missing['default_location_label'] = __( 'Default location label', 'waypoints-trip-planner' );
 		}
 
 		if ( '' === $settings['default_location_address'] ) {
-			$missing['default_location_address'] = __( 'Default location address or search phrase', 'waypoints' );
+			$missing['default_location_address'] = __( 'Default location address or search phrase', 'waypoints-trip-planner' );
 		}
 
 		return $missing;

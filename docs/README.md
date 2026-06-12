@@ -1,4 +1,4 @@
-# Waypoints Documentation
+# Waypoints: Trip Planner Documentation
 
 This directory documents the WordPress plugin as it exists today. The plugin is
 installable and has admin/settings, Google API, cache, planner helper, planner

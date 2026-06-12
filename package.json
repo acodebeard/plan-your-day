@@ -1,7 +1,7 @@
 {
   "name": "waypoints-qa",
   "private": true,
-  "description": "Browser smoke tests for the Waypoints plugin repository.",
+  "description": "Browser smoke tests for the Waypoints: Trip Planner plugin repository.",
   "scripts": {
     "browser-smoke": "playwright test"
   },

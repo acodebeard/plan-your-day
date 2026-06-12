@@ -16,7 +16,7 @@ final class InterfaceCopyTest extends TestCase {
 			]
 		);
 
-		self::assertSame( 'Waypoints', $sanitized['hero_title'] );
+		self::assertSame( 'Waypoints: Trip Planner', $sanitized['hero_title'] );
 		self::assertSame( '', $sanitized['hero_intro'] );
 		self::assertSame( 'Move {place} up', $sanitized['move_waypoint_up_aria'] );
 	}
@@ -28,9 +28,9 @@ final class InterfaceCopyTest extends TestCase {
 			]
 		);
 
-		self::assertSame( 'Waypoints', $resolved['hero_title'] );
-		self::assertSame( 'Waypoints setup needed', $resolved['setup_notice_title'] );
-		self::assertSame( 'Open Waypoints settings', $resolved['setup_notice_link'] );
+		self::assertSame( 'Waypoints: Trip Planner', $resolved['hero_title'] );
+		self::assertSame( 'Waypoints: Trip Planner setup needed', $resolved['setup_notice_title'] );
+		self::assertSame( 'Open Waypoints: Trip Planner settings', $resolved['setup_notice_link'] );
 		self::assertSame( '', $resolved['hero_intro'] );
 		self::assertSame( 'Trip waypoints', $resolved['trip_card_heading'] );
 	}

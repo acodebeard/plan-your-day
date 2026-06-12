@@ -7,24 +7,24 @@ on:
         description: Public plugin display name expected for WordPress.org submission.
         required: true
         type: string
-        default: Waypoints
+        default: "Waypoints: Trip Planner"
       expected_slug:
         description: Permanent WordPress.org plugin slug and text domain expected for submission.
         required: true
         type: string
-        default: waypoints
+        default: waypoints-trip-planner
   workflow_call:
     inputs:
       expected_name:
         description: Public plugin display name expected for WordPress.org submission.
         required: false
         type: string
-        default: Waypoints
+        default: "Waypoints: Trip Planner"
       expected_slug:
         description: Permanent WordPress.org plugin slug and text domain expected for submission.
         required: false
         type: string
-        default: waypoints
+        default: waypoints-trip-planner
 
 permissions:
   contents: read

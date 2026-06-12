@@ -13,5 +13,5 @@ defined( 'PLAN_YOUR_DAY_VERSION' ) || define( 'PLAN_YOUR_DAY_VERSION', '1.0' );
 defined( 'PLAN_YOUR_DAY_SCHEMA_VERSION' ) || define( 'PLAN_YOUR_DAY_SCHEMA_VERSION', 5 );
 defined( 'PLAN_YOUR_DAY_PLUGIN_FILE' ) || define( 'PLAN_YOUR_DAY_PLUGIN_FILE', dirname( __DIR__, 2 ) . '/plan-your-day.php' );
 defined( 'PLAN_YOUR_DAY_PLUGIN_DIR' ) || define( 'PLAN_YOUR_DAY_PLUGIN_DIR', dirname( __DIR__, 2 ) . '/' );
-defined( 'PLAN_YOUR_DAY_PLUGIN_URL' ) || define( 'PLAN_YOUR_DAY_PLUGIN_URL', 'https://example.test/wp-content/plugins/waypoints/' );
-defined( 'PLAN_YOUR_DAY_TEXT_DOMAIN' ) || define( 'PLAN_YOUR_DAY_TEXT_DOMAIN', 'waypoints' );
+defined( 'PLAN_YOUR_DAY_PLUGIN_URL' ) || define( 'PLAN_YOUR_DAY_PLUGIN_URL', 'https://example.test/wp-content/plugins/waypoints-trip-planner/' );
+defined( 'PLAN_YOUR_DAY_TEXT_DOMAIN' ) || define( 'PLAN_YOUR_DAY_TEXT_DOMAIN', 'waypoints-trip-planner' );

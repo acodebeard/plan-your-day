@@ -1,5 +1,5 @@
 {
-    "name": "acodebeard/waypoints",
+    "name": "acodebeard/waypoints-trip-planner",
     "description": "A configurable day planning plugin for WordPress.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",

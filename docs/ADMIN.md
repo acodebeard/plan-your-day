@@ -1,9 +1,9 @@
 # Admin Workflows
 
-Waypoints settings live under:
+Waypoints: Trip Planner settings live under:
 
 ```text
-Settings > Waypoints
+Settings > Waypoints: Trip Planner
 ```
 
 Only administrators with `manage_options` can change plugin settings or run the
