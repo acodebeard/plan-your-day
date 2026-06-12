@@ -1,12 +1,12 @@
 <?php
 /**
- * Plugin Name: Waypoints
+ * Plugin Name: Waypoints: Trip Planner
  * Description: A configurable day planning plugin for WordPress.
- * Version: 1.0
+ * Version: 1.0.2
  * Requires at least: 6.8
  * Requires PHP: 8.2
  * Author: acodebeard
- * Text Domain: waypoints
+ * Text Domain: waypoints-trip-planner
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
@@ -15,12 +15,12 @@ declare( strict_types=1 );
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PLAN_YOUR_DAY_VERSION', '1.0' );
+define( 'PLAN_YOUR_DAY_VERSION', '1.0.2' );
 define( 'PLAN_YOUR_DAY_SCHEMA_VERSION', 5 );
 define( 'PLAN_YOUR_DAY_PLUGIN_FILE', __FILE__ );
 define( 'PLAN_YOUR_DAY_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'PLAN_YOUR_DAY_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'PLAN_YOUR_DAY_TEXT_DOMAIN', 'waypoints' );
+define( 'PLAN_YOUR_DAY_TEXT_DOMAIN', 'waypoints-trip-planner' );
 
 $plan_your_day_autoload = PLAN_YOUR_DAY_PLUGIN_DIR . 'vendor/autoload.php';
 if ( ! is_readable( $plan_your_day_autoload ) ) {
@@ -36,7 +36,7 @@ register_deactivation_hook( __FILE__, [ \Acodebeard\PlanYourDay\Deactivator::cla
 \Acodebeard\PlanYourDay\Plugin::instance()->init();
 
 function plan_your_day_missing_autoloader_message(): string {
-	return 'Waypoints is missing Composer dependencies. Install a built release zip that includes vendor/autoload.php, '
+	return 'Waypoints: Trip Planner is missing Composer dependencies. Install a built release zip that includes vendor/autoload.php, '
 		. 'or run composer install inside the plugin directory for a source checkout.';
 }
 
@@ -47,7 +47,7 @@ function plan_your_day_missing_autoloader_activation(): void {
 
 	wp_die(
 		esc_html( plan_your_day_missing_autoloader_message() ),
-		esc_html( 'Waypoints activation failed' ),
+		esc_html( 'Waypoints: Trip Planner activation failed' ),
 		[ 'back_link' => true ]
 	);
 }

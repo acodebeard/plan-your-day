@@ -133,7 +133,7 @@ namespace Acodebeard\PlanYourDay\Tests {
 			}
 
 			if ( ! defined( 'PLAN_YOUR_DAY_PLUGIN_URL' ) ) {
-				define( 'PLAN_YOUR_DAY_PLUGIN_URL', 'https://example.test/wp-content/plugins/waypoints/' );
+				define( 'PLAN_YOUR_DAY_PLUGIN_URL', 'https://example.test/wp-content/plugins/waypoints-trip-planner/' );
 			}
 		}
 
@@ -158,8 +158,8 @@ namespace Acodebeard\PlanYourDay\Tests {
 
 			$page = $GLOBALS['plan_your_day_test_options_pages'][0] ?? [];
 
-			self::assertSame( 'Waypoints Settings', $page['page_title'] ?? null );
-			self::assertSame( 'Waypoints', $page['menu_title'] ?? null );
+			self::assertSame( 'Waypoints: Trip Planner Settings', $page['page_title'] ?? null );
+			self::assertSame( 'Waypoints: Trip Planner', $page['menu_title'] ?? null );
 		}
 
 		public function test_register_categories_editor_field_has_no_duplicate_label(): void {
@@ -199,6 +199,18 @@ namespace Acodebeard\PlanYourDay\Tests {
 			self::assertSame( 'plan_your_day_rate_limiting', $field['section'] ?? null );
 			self::assertStringContainsString( 'troubleshooting', $field['args']['description'] ?? '' );
 			self::assertStringNotContainsString( 'local testing', $field['args']['description'] ?? '' );
+		}
+
+		public function test_register_uses_api_key_input_type_for_google_keys(): void {
+			$settings_page = $this->settings_page();
+
+			$settings_page->register();
+
+			foreach ( [ 'google_maps_embed_api_key', 'google_places_api_key', 'google_geocoding_api_key' ] as $key ) {
+				$field = $GLOBALS['plan_your_day_test_settings_fields'][ 'plan_your_day_' . $key ] ?? [];
+
+				self::assertSame( 'api_key', $field['args']['type'] ?? null, $key );
+			}
 		}
 
 		public function test_register_does_not_register_legacy_default_categories_toggle(): void {
@@ -378,11 +390,11 @@ namespace Acodebeard\PlanYourDay\Tests {
 			self::assertArrayHasKey( 'waypoints-admin-settings', $GLOBALS['plan_your_day_test_enqueued_styles'] );
 			self::assertArrayHasKey( 'waypoints-admin-settings', $GLOBALS['plan_your_day_test_enqueued_scripts'] );
 			self::assertSame(
-				'https://example.test/wp-content/plugins/waypoints/assets/css/admin-settings.css',
+				'https://example.test/wp-content/plugins/waypoints-trip-planner/assets/css/admin-settings.css',
 				$GLOBALS['plan_your_day_test_enqueued_styles']['waypoints-admin-settings']['src']
 			);
 			self::assertSame(
-				'https://example.test/wp-content/plugins/waypoints/assets/js/admin-settings.js',
+				'https://example.test/wp-content/plugins/waypoints-trip-planner/assets/js/admin-settings.js',
 				$GLOBALS['plan_your_day_test_enqueued_scripts']['waypoints-admin-settings']['src']
 			);
 			self::assertSame(
@@ -407,6 +419,53 @@ namespace Acodebeard\PlanYourDay\Tests {
 
 			self::assertStringNotContainsString( 'Coffee near me', $output );
 			self::assertSame( 0, preg_match_all( '/plan_your_day_settings\[categories\]\[\d+\]\[label\]/', $output ) );
+		}
+
+		public function test_google_api_key_field_uses_autofill_resistant_key_constraints(): void {
+			$api_key = 'AIza' . str_repeat( 'A', 35 );
+
+			update_option(
+				Settings::OPTION_NAME,
+				array_merge(
+					Settings::defaults(),
+					[
+						'google_maps_embed_api_key' => $api_key,
+					]
+				)
+			);
+
+			$settings_page = $this->settings_page();
+
+			ob_start();
+			$settings_page->render_field(
+				[
+					'key'         => 'google_maps_embed_api_key',
+					'type'        => 'api_key',
+					'description' => '',
+					'attributes'  => [],
+				]
+			);
+			$output = (string) ob_get_clean();
+
+			self::assertStringContainsString( 'type="password"', $output );
+			self::assertStringContainsString( 'value="' . $api_key . '"', $output );
+			self::assertStringContainsString( 'class="plan-your-day-api-key-field"', $output );
+			self::assertStringContainsString( 'data-plan-api-key-input', $output );
+			self::assertStringContainsString( 'button type="button"', $output );
+			self::assertStringContainsString( 'class="button plan-your-day-api-key-reveal"', $output );
+			self::assertStringContainsString( 'data-plan-api-key-reveal', $output );
+			self::assertStringContainsString( 'aria-controls="plan_your_day_google_maps_embed_api_key"', $output );
+			self::assertStringContainsString( 'aria-pressed="false"', $output );
+			self::assertStringContainsString( 'Show API key', $output );
+			self::assertStringContainsString( 'plan-your-day-api-key-reveal-icon', $output );
+			self::assertStringContainsString( 'autocomplete="new-password"', $output );
+			self::assertStringContainsString( 'autocapitalize="none"', $output );
+			self::assertStringContainsString( 'spellcheck="false"', $output );
+			self::assertStringContainsString( 'pattern="AIza[0-9A-Za-z_\\-]{35}"', $output );
+			self::assertStringContainsString( 'data-lpignore="true"', $output );
+			self::assertStringContainsString( 'data-1p-ignore="true"', $output );
+			self::assertStringContainsString( 'data-bwignore="true"', $output );
+			self::assertStringNotContainsString( 'autocomplete="off"', $output );
 		}
 
 		public function test_categories_field_renders_saved_default_rows(): void {

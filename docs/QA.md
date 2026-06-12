@@ -1,6 +1,6 @@
 # Frontend QA
 
-Waypoints keeps a lightweight browser smoke suite for the public planner
+Waypoints: Trip Planner keeps a lightweight browser smoke suite for the public planner
 frontend. The suite focuses on the shipped shortcode and block entry points, the
 same-site REST flow, and a small set of accessibility-sensitive interactions.
 

@@ -44,7 +44,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		if ( '' === $api_key ) {
 			return GoogleApiResult::failure(
 				'missing_places_api_key',
-				__( 'Add a valid Google Places API key to load Google place results.', 'waypoints' ),
+				__( 'Add a valid Google Places API key to load Google place results.', 'waypoints-trip-planner' ),
 				0,
 				false
 			);
@@ -104,7 +104,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		$decoded  = $this->decode_response(
 			$response,
 			'places_unavailable',
-			__( 'Google place results are unavailable right now.', 'waypoints' )
+			__( 'Google place results are unavailable right now.', 'waypoints-trip-planner' )
 		);
 
 		if ( $decoded instanceof GoogleApiResult ) {
@@ -139,7 +139,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		if ( '' === $place_id ) {
 			return GoogleApiResult::failure(
 				'invalid_place_id',
-				__( 'Google place details are unavailable right now.', 'waypoints' ),
+				__( 'Google place details are unavailable right now.', 'waypoints-trip-planner' ),
 				0,
 				false
 			);
@@ -150,7 +150,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		if ( '' === $api_key ) {
 			return GoogleApiResult::failure(
 				'missing_places_api_key',
-				__( 'Add a valid Google Places API key to load exact Google place details.', 'waypoints' ),
+				__( 'Add a valid Google Places API key to load exact Google place details.', 'waypoints-trip-planner' ),
 				0,
 				false
 			);
@@ -176,7 +176,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		$decoded  = $this->decode_response(
 			$response,
 			'place_details_unavailable',
-			__( 'Google place details are unavailable right now.', 'waypoints' )
+			__( 'Google place details are unavailable right now.', 'waypoints-trip-planner' )
 		);
 
 		if ( $decoded instanceof GoogleApiResult ) {
@@ -188,7 +188,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		if ( ! $place['is_valid'] ) {
 			return GoogleApiResult::failure(
 				'place_details_unavailable',
-				__( 'Google place details are unavailable right now.', 'waypoints' ),
+				__( 'Google place details are unavailable right now.', 'waypoints-trip-planner' ),
 				$decoded['status_code'],
 				false
 			);
@@ -220,7 +220,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		if ( '' === $address ) {
 			return GoogleApiResult::failure(
 				'empty_geocode_address',
-				__( 'Google geocoding is unavailable for this address.', 'waypoints' ),
+				__( 'Google geocoding is unavailable for this address.', 'waypoints-trip-planner' ),
 				0,
 				false
 			);
@@ -231,7 +231,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		if ( '' === $api_key ) {
 			return GoogleApiResult::failure(
 				'missing_geocoding_api_key',
-				__( 'Add a valid Google Geocoding API key or Places API key to geocode starting locations.', 'waypoints' ),
+				__( 'Add a valid Google Geocoding API key or Places API key to geocode starting locations.', 'waypoints-trip-planner' ),
 				0,
 				false
 			);
@@ -259,7 +259,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		$decoded  = $this->decode_response(
 			$response,
 			'geocoding_unavailable',
-			__( 'Google geocoding is unavailable right now.', 'waypoints' )
+			__( 'Google geocoding is unavailable right now.', 'waypoints-trip-planner' )
 		);
 
 		if ( $decoded instanceof GoogleApiResult ) {
@@ -284,7 +284,7 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		) {
 			return GoogleApiResult::failure(
 				'geocoding_unavailable',
-				__( 'Google geocoding is unavailable right now.', 'waypoints' ),
+				__( 'Google geocoding is unavailable right now.', 'waypoints-trip-planner' ),
 				$decoded['status_code'],
 				$this->is_retryable_status( $decoded['status_code'] )
 			);
@@ -303,37 +303,37 @@ final class GoogleApiClient implements GoogleApiClientInterface {
 		$result = match ( $status ) {
 			'OVER_QUERY_LIMIT' => GoogleApiResult::failure(
 				'geocoding_rate_limited',
-				__( 'Google geocoding is rate limited right now.', 'waypoints' ),
+				__( 'Google geocoding is rate limited right now.', 'waypoints-trip-planner' ),
 				$status_code,
 				true
 			),
 			'OVER_DAILY_LIMIT' => GoogleApiResult::failure(
 				'geocoding_quota_exceeded',
-				__( 'Google geocoding quota is unavailable right now.', 'waypoints' ),
+				__( 'Google geocoding quota is unavailable right now.', 'waypoints-trip-planner' ),
 				$status_code,
 				false
 			),
 			'REQUEST_DENIED' => GoogleApiResult::failure(
 				'geocoding_request_denied',
-				__( 'Google geocoding is not allowed for this API key.', 'waypoints' ),
+				__( 'Google geocoding is not allowed for this API key.', 'waypoints-trip-planner' ),
 				$status_code,
 				false
 			),
 			'UNKNOWN_ERROR' => GoogleApiResult::failure(
 				'geocoding_unavailable',
-				__( 'Google geocoding is unavailable right now.', 'waypoints' ),
+				__( 'Google geocoding is unavailable right now.', 'waypoints-trip-planner' ),
 				$status_code,
 				true
 			),
 			'ZERO_RESULTS' => GoogleApiResult::failure(
 				'geocoding_zero_results',
-				__( 'Google geocoding could not find this address.', 'waypoints' ),
+				__( 'Google geocoding could not find this address.', 'waypoints-trip-planner' ),
 				$status_code,
 				false
 			),
 			default => GoogleApiResult::failure(
 				'geocoding_unavailable',
-				__( 'Google geocoding is unavailable right now.', 'waypoints' ),
+				__( 'Google geocoding is unavailable right now.', 'waypoints-trip-planner' ),
 				$status_code,
 				$this->is_retryable_status( $status_code )
 			),

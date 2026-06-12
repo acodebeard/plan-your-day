@@ -61,23 +61,23 @@ final class PlannerPayloadBuilder {
 	public function get_empty_results_state( array $planner_state ): array {
 		if ( ! empty( $planner_state['search_results_error'] ) ) {
 			return [
-				'heading' => __( 'Google results unavailable', 'waypoints' ),
-				'body'    => __( 'Google place results are unavailable right now. Try again later or open the Google Maps handoff link.', 'waypoints' ),
+				'heading' => __( 'Google results unavailable', 'waypoints-trip-planner' ),
+				'body'    => __( 'Google place results are unavailable right now. Try again later or open the Google Maps handoff link.', 'waypoints-trip-planner' ),
 			];
 		}
 
 		if ( ! $planner_state['has_search'] ) {
 			return [
-				'heading' => __( 'Search for any category', 'waypoints' ),
+				'heading' => __( 'Search for any category', 'waypoints-trip-planner' ),
 				'body'    => $planner_state['has_categories']
-					? __( 'Use the search box or choose a category to load real place results.', 'waypoints' )
-					: __( 'Use the search box to load real place results.', 'waypoints' ),
+					? __( 'Use the search box or choose a category to load real place results.', 'waypoints-trip-planner' )
+					: __( 'Use the search box to load real place results.', 'waypoints-trip-planner' ),
 			];
 		}
 
 		return [
-			'heading' => __( 'No matching Google results', 'waypoints' ),
-			'body'    => __( 'Try a different search or change the starting area.', 'waypoints' ),
+			'heading' => __( 'No matching Google results', 'waypoints-trip-planner' ),
+			'body'    => __( 'Try a different search or change the starting area.', 'waypoints-trip-planner' ),
 		];
 	}
 

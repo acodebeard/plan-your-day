@@ -16,18 +16,18 @@ final class SubmissionReadinessToolTest extends TestCase {
 
 	public function test_accepts_submission_ready_source_and_artifact(): void {
 		$workspace  = $this->make_workspace();
-		$plugin_dir = $workspace . '/waypoints';
-		$artifact   = $workspace . '/waypoints-1.0.zip';
+		$plugin_dir = $workspace . '/waypoints-trip-planner';
+		$artifact   = $workspace . '/waypoints-trip-planner-1.0.zip';
 
-		$this->write_plugin_fixture( $plugin_dir, 'waypoints', '1.0' );
-		$this->zip_fixture( $workspace, 'waypoints', $artifact );
+		$this->write_plugin_fixture( $plugin_dir, 'waypoints-trip-planner', '1.0' );
+		$this->zip_fixture( $workspace, 'waypoints-trip-planner', $artifact );
 
 		$result = $this->run_tool(
 			[
 				'--plugin-dir=' . $plugin_dir,
 				'--artifact=' . $artifact,
-				'--expected-name=Waypoints',
-				'--expected-slug=waypoints',
+				'--expected-name=Waypoints: Trip Planner',
+				'--expected-slug=waypoints-trip-planner',
 			]
 		);
 
@@ -47,29 +47,29 @@ final class SubmissionReadinessToolTest extends TestCase {
 			[
 				'--plugin-dir=' . $plugin_dir,
 				'--artifact=' . $artifact,
-				'--expected-name=Waypoints',
-				'--expected-slug=waypoints',
+				'--expected-name=Waypoints: Trip Planner',
+				'--expected-slug=waypoints-trip-planner',
 			]
 		);
 
 		self::assertSame( 1, $result['status'], $result['output'] );
-		self::assertStringContainsString( 'release.json slug must be "waypoints".', $result['output'] );
-		self::assertStringContainsString( 'Plugin header Text Domain must be "waypoints".', $result['output'] );
-		self::assertStringContainsString( 'PLAN_YOUR_DAY_TEXT_DOMAIN must be "waypoints".', $result['output'] );
-		self::assertStringContainsString( 'Artifact top-level directory must be "waypoints".', $result['output'] );
+		self::assertStringContainsString( 'release.json slug must be "waypoints-trip-planner".', $result['output'] );
+		self::assertStringContainsString( 'Plugin header Text Domain must be "waypoints-trip-planner".', $result['output'] );
+		self::assertStringContainsString( 'PLAN_YOUR_DAY_TEXT_DOMAIN must be "waypoints-trip-planner".', $result['output'] );
+		self::assertStringContainsString( 'Artifact top-level directory must be "waypoints-trip-planner".', $result['output'] );
 	}
 
 	public function test_rejects_not_production_ready_readme_copy(): void {
 		$workspace  = $this->make_workspace();
-		$plugin_dir = $workspace . '/waypoints';
+		$plugin_dir = $workspace . '/waypoints-trip-planner';
 
-		$this->write_plugin_fixture( $plugin_dir, 'waypoints', '1.0', "Not yet. Production QA and release hardening are still in progress.\n" );
+		$this->write_plugin_fixture( $plugin_dir, 'waypoints-trip-planner', '1.0', "Not yet. Production QA and release hardening are still in progress.\n" );
 
 		$result = $this->run_tool(
 			[
 				'--plugin-dir=' . $plugin_dir,
-				'--expected-name=Waypoints',
-				'--expected-slug=waypoints',
+				'--expected-name=Waypoints: Trip Planner',
+				'--expected-slug=waypoints-trip-planner',
 			]
 		);
 
@@ -79,24 +79,24 @@ final class SubmissionReadinessToolTest extends TestCase {
 
 	public function test_rejects_missing_composer_json_when_vendor_ships_in_submission_artifact(): void {
 		$workspace  = $this->make_workspace();
-		$plugin_dir = $workspace . '/waypoints';
-		$artifact   = $workspace . '/waypoints-1.0.zip';
+		$plugin_dir = $workspace . '/waypoints-trip-planner';
+		$artifact   = $workspace . '/waypoints-trip-planner-1.0.zip';
 
-		$this->write_plugin_fixture( $plugin_dir, 'waypoints', '1.0' );
+		$this->write_plugin_fixture( $plugin_dir, 'waypoints-trip-planner', '1.0' );
 		unlink( $plugin_dir . '/composer.json' );
-		$this->zip_fixture( $workspace, 'waypoints', $artifact );
+		$this->zip_fixture( $workspace, 'waypoints-trip-planner', $artifact );
 
 		$result = $this->run_tool(
 			[
 				'--plugin-dir=' . $plugin_dir,
 				'--artifact=' . $artifact,
-				'--expected-name=Waypoints',
-				'--expected-slug=waypoints',
+				'--expected-name=Waypoints: Trip Planner',
+				'--expected-slug=waypoints-trip-planner',
 			]
 		);
 
 		self::assertSame( 1, $result['status'], $result['output'] );
-		self::assertStringContainsString( 'Artifact must contain waypoints/composer.json.', $result['output'] );
+		self::assertStringContainsString( 'Artifact must contain waypoints-trip-planner/composer.json.', $result['output'] );
 	}
 
 	/**
@@ -134,7 +134,7 @@ final class SubmissionReadinessToolTest extends TestCase {
 	private function write_plugin_fixture( string $plugin_dir, string $slug, string $version, string $production_note = '' ): void {
 		self::assertTrue( mkdir( $plugin_dir . '/vendor', 0777, true ) );
 
-		$display_name = 'Waypoints';
+		$display_name = 'Waypoints: Trip Planner';
 
 		file_put_contents(
 			$plugin_dir . '/' . $slug . '.php',
@@ -172,16 +172,16 @@ final class SubmissionReadinessToolTest extends TestCase {
 			License: GPLv2 or later
 			License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-			Waypoints is a configurable day planning plugin for WordPress.
+			Waypoints: Trip Planner is a configurable day planning plugin for WordPress.
 
 			== Description ==
 
-			Waypoints helps visitors search for places, collect stops, and open a route in Google Maps.
+			Waypoints: Trip Planner helps visitors search for places, collect stops, and open a route in Google Maps.
 
 			{$production_note}
 			== External services ==
 
-			Waypoints uses Google services for place results, geocoding, embedded map previews, and Google Maps handoff links.
+			Waypoints: Trip Planner uses Google services for place results, geocoding, embedded map previews, and Google Maps handoff links.
 
 			* https://policies.google.com/privacy
 			* https://cloud.google.com/maps-platform/terms

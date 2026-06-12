@@ -138,18 +138,18 @@ function plan_your_day_browser_app(): array {
 function plan_your_day_browser_render_page( string $page ): void {
 	$app      = plan_your_day_browser_app();
 	$base_url = plan_your_day_browser_base_url();
-	$title    = 'Waypoints Browser Smoke';
-	$content  = '<main class="browser-app"><h1>Waypoints Browser Smoke</h1><p>No planner is rendered on this page.</p></main>';
+	$title    = 'Waypoints: Trip Planner Browser Smoke';
+	$content  = '<main class="browser-app"><h1>Waypoints: Trip Planner Browser Smoke</h1><p>No planner is rendered on this page.</p></main>';
 
 	if ( 'shortcode' === $page ) {
-		$title   = 'Waypoints Shortcode Smoke';
+		$title   = 'Waypoints: Trip Planner Shortcode Smoke';
 		$content = $app['shortcode']->render(
 			[
 				'action_url' => $base_url . '/shortcode',
 			]
 		);
 	} elseif ( 'narrow-shortcode' === $page ) {
-		$title   = 'Waypoints Narrow Shortcode Smoke';
+		$title   = 'Waypoints: Trip Planner Narrow Shortcode Smoke';
 		$content = sprintf(
 			'<main class="browser-app browser-app--narrow" style="width: 645px; max-width: 645px; margin: 0 auto;">%s</main>',
 			$app['shortcode']->render(
@@ -159,7 +159,7 @@ function plan_your_day_browser_render_page( string $page ): void {
 			)
 		);
 	} elseif ( 'block' === $page ) {
-		$title   = 'Waypoints Block Smoke';
+		$title   = 'Waypoints: Trip Planner Block Smoke';
 		$content = $app['block']->render(
 			[
 				'actionUrl' => $base_url . '/block',

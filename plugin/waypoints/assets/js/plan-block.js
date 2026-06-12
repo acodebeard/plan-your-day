@@ -24,12 +24,12 @@
 					el(
 						PanelBody,
 						{
-							title: __( 'Planner settings', 'waypoints' ),
+							title: __( 'Planner settings', 'waypoints-trip-planner' ),
 							initialOpen: true,
 						},
 						el( TextControl, {
-							label: __( 'Action URL', 'waypoints' ),
-							help: __( 'Optional. Submit planner updates to a specific page URL instead of the current page.', 'waypoints' ),
+							label: __( 'Action URL', 'waypoints-trip-planner' ),
+							help: __( 'Optional. Submit planner updates to a specific page URL instead of the current page.', 'waypoints-trip-planner' ),
 							value: attributes.actionUrl || '',
 							onChange: function( value ) {
 								props.setAttributes( { actionUrl: value } );
@@ -43,13 +43,13 @@
 					el(
 						Placeholder,
 						{
-							label: __( 'Waypoints', 'waypoints' ),
-							instructions: __( 'The frontend uses the same planner renderer as the shortcode. Configure an optional action URL in the block settings.', 'waypoints' ),
+							label: __( 'Waypoints: Trip Planner', 'waypoints-trip-planner' ),
+							instructions: __( 'The frontend uses the same planner renderer as the shortcode. Configure an optional action URL in the block settings.', 'waypoints-trip-planner' ),
 						},
 						el(
 							'p',
 							null,
-							__( 'Planner styles and interactions load only when this block is rendered on the page.', 'waypoints' )
+							__( 'Planner styles and interactions load only when this block is rendered on the page.', 'waypoints-trip-planner' )
 						)
 					)
 				)

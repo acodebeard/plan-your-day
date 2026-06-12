@@ -284,6 +284,81 @@
 	padding-left: 0;
 }
 
+.plan-your-day-api-key-field {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	max-width: 100%;
+}
+
+.plan-your-day-api-key-field input.regular-text {
+	max-width: min(32rem, calc(100vw - 12rem));
+}
+
+.plan-your-day-api-key-reveal {
+	position: relative;
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	width: 2.25rem;
+	min-width: 2.25rem;
+	height: 2rem;
+	padding: 0 !important;
+	line-height: 1;
+}
+
+.plan-your-day-api-key-reveal-icon {
+	position: relative;
+	display: block;
+	width: 1rem;
+	height: 1rem;
+	color: currentColor;
+}
+
+.plan-your-day-api-key-reveal-icon::before {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 0.9rem;
+	height: 0.9rem;
+	border: 2px solid currentColor;
+	border-radius: 75% 0;
+	transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.plan-your-day-api-key-reveal-icon::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 0.35rem;
+	height: 0.35rem;
+	border-radius: 50%;
+	background: currentColor;
+	transform: translate(-50%, -50%);
+}
+
+.plan-your-day-api-key-reveal::after {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 1.35rem;
+	height: 2px;
+	background: currentColor;
+	transform: translate(-50%, -50%) rotate(-35deg);
+	transform-origin: center;
+}
+
+.plan-your-day-api-key-field.is-revealed .plan-your-day-api-key-reveal::after {
+	display: none;
+}
+
+.plan-your-day-api-key-field.is-revealed input.regular-text {
+	background: #fff8e5;
+}
+
 .plan-your-day-admin-back-to-top {
 	position: fixed;
 	right: 1.5rem;

@@ -1,14 +1,16 @@
 # Release Process
 
-Waypoints v1 ships as a manual GitHub release zip. The plugin does not include a
-private updater or a custom `Update URI` workflow right now.
+Waypoints: Trip Planner v1 ships as a manual GitHub release zip. The plugin
+does not include a private updater or a custom `Update URI` workflow right now.
 
 ## Release Metadata
 
 Keep these values aligned before building a release:
 
 - plugin header `Version` in the root PHP bootstrap file
+- plugin header `Plugin Name` and `Text Domain`
 - `PLAN_YOUR_DAY_VERSION`
+- `PLAN_YOUR_DAY_TEXT_DOMAIN`
 - `PLAN_YOUR_DAY_SCHEMA_VERSION`
 - `plugin/waypoints/release.json`
 - the artifact filename in `release.json`
@@ -18,7 +20,7 @@ The release builder validates that:
 
 - `release.json.version` matches `PLAN_YOUR_DAY_VERSION`
 - `release.json.schemaVersion` matches `PLAN_YOUR_DAY_SCHEMA_VERSION`
-- the artifact filename matches the plugin slug and version
+- the artifact filename and top-level zip folder match the plugin slug and version
 
 ## Standard Release Steps
 
@@ -46,17 +48,16 @@ The release builder validates that:
 
 The current release artifact is an installable WordPress admin zip with:
 
-- a top-level `waypoints/` directory
+- a top-level `waypoints-trip-planner/` directory
 - production Composer autoload files included
 - development-only files excluded through `.distignore`
 
 Production sites should install the built zip and should not need to run
 Composer on the server.
 
-Current v1.0 artifact:
+Current v1.0.2 artifact:
 
-- filename: `waypoints-1.0.zip`
-- SHA-256: `acc93ed02e41585f4f9e2799d739d38fc374bf4e416852bdf0f16394d7af6e6c`
+- filename: `waypoints-trip-planner-1.0.2.zip`
 
 ## Update Expectations
 

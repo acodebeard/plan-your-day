@@ -37,7 +37,7 @@ final class StartContextResolver {
 		}
 
 		if ( '' === $default_location_label ) {
-			$default_location_label = __( 'Default location', 'waypoints' );
+			$default_location_label = __( 'Default location', 'waypoints-trip-planner' );
 		}
 
 		$preview_start_label = $default_location_label;
@@ -49,8 +49,8 @@ final class StartContextResolver {
 		$use_current_handoff = false;
 
 		if ( Settings::START_MODE_CURRENT === $start_mode ) {
-			$handoff_start_label = __( 'Current location', 'waypoints' );
-			$handoff_summary     = __( 'your current location', 'waypoints' );
+			$handoff_start_label = __( 'Current location', 'waypoints-trip-planner' );
+			$handoff_summary     = __( 'your current location', 'waypoints-trip-planner' );
 			$directions_origin   = null;
 			$use_current_handoff = true;
 		} elseif ( Settings::START_MODE_CUSTOM === $start_mode && '' !== $custom_start ) {
@@ -60,11 +60,11 @@ final class StartContextResolver {
 			$handoff_summary     = $custom_start;
 			$directions_origin   = $custom_start;
 		} elseif ( Settings::START_MODE_CUSTOM === $start_mode ) {
-			$handoff_start_label = __( 'Default location fallback', 'waypoints' );
-			$handoff_summary     = __( 'the default location until a custom starting point is provided', 'waypoints' );
+			$handoff_start_label = __( 'Default location fallback', 'waypoints-trip-planner' );
+			$handoff_summary     = __( 'the default location until a custom starting point is provided', 'waypoints-trip-planner' );
 			$messages[]          = [
 				'type' => 'warning',
-				'text' => __( 'Add a custom address to replace the default fallback before finalizing the trip start.', 'waypoints' ),
+				'text' => __( 'Add a custom address to replace the default fallback before finalizing the trip start.', 'waypoints-trip-planner' ),
 			];
 		}
 

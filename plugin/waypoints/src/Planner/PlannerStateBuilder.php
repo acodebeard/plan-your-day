@@ -91,9 +91,9 @@ final class PlannerStateBuilder {
 		$resolved_waypoints   = [];
 		$iframe_src           = '';
 		$maps_url             = '';
-		$maps_link_label      = __( 'Explore in Google Maps', 'waypoints' );
-		$preview_mode_label   = __( 'Google place search', 'waypoints' );
-		$overview             = __( 'Search for any category or pick one below to load Google results, then add exact places to your trip.', 'waypoints' );
+		$maps_link_label      = __( 'Explore in Google Maps', 'waypoints-trip-planner' );
+		$preview_mode_label   = __( 'Google place search', 'waypoints-trip-planner' );
+		$overview             = __( 'Search for any category or pick one below to load Google results, then add exact places to your trip.', 'waypoints-trip-planner' );
 		$trip_count_label     = $this->settings->get_frontend_copy_value( 'trip_not_started_label' );
 		$search_results_count = 0;
 
@@ -165,10 +165,10 @@ final class PlannerStateBuilder {
 		$search_results_label = $has_search
 			? sprintf(
 				/* translators: %d: number of Google results. */
-				_n( '%d Google result', '%d Google results', $search_results_count, 'waypoints' ),
+				_n( '%d Google result', '%d Google results', $search_results_count, 'waypoints-trip-planner' ),
 				$search_results_count
 			)
-			: __( 'No Google results loaded', 'waypoints' );
+			: __( 'No Google results loaded', 'waypoints-trip-planner' );
 
 		if ( $has_trip ) {
 			$route_state = $this->build_trip_route_state( $trip_waypoints, $resolved_waypoints, $search_context );
@@ -183,7 +183,7 @@ final class PlannerStateBuilder {
 		} elseif ( $has_search ) {
 			$overview = sprintf(
 				/* translators: 1: active search label, 2: starting point summary. */
-				__( 'Browsing Google results for %1$s near %2$s. Add any result to start building a walking trip.', 'waypoints' ),
+				__( 'Browsing Google results for %1$s near %2$s. Add any result to start building a walking trip.', 'waypoints-trip-planner' ),
 				$active_search_label,
 				$search_context['handoff_summary']
 			);
@@ -197,7 +197,7 @@ final class PlannerStateBuilder {
 				if ( '' === $iframe_src ) {
 					$messages[] = [
 						'type' => 'warning',
-						'text' => __( 'Add a valid Google Maps Embed API key before relying on the on-site search preview.', 'waypoints' ),
+						'text' => __( 'Add a valid Google Maps Embed API key before relying on the on-site search preview.', 'waypoints-trip-planner' ),
 					];
 				}
 			}
@@ -206,7 +206,7 @@ final class PlannerStateBuilder {
 				$maps_url = $this->map_url_builder->build_search_handoff_url( $handoff_search_query );
 			}
 		} elseif ( ! $has_categories ) {
-			$overview = __( 'Search for any category to load Google results, then add exact places to your trip.', 'waypoints' );
+			$overview = __( 'Search for any category to load Google results, then add exact places to your trip.', 'waypoints-trip-planner' );
 		}
 
 		return [

@@ -1,10 +1,10 @@
-=== Waypoints ===
+=== Waypoints: Trip Planner ===
 Contributors: acodebeard
 Tags: planning, maps, wayfinding
 Requires at least: 6.8
 Tested up to: 7.0
 Requires PHP: 8.2
-Stable tag: 1.0
+Stable tag: 1.0.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,9 +12,9 @@ A configurable day planning plugin for WordPress.
 
 == Description ==
 
-Waypoints is a configurable day planning plugin for WordPress.
+Waypoints: Trip Planner is a configurable day planning plugin for WordPress.
 
-Use Waypoints to add a searchable trip-planning interface to a page or post.
+Use Waypoints: Trip Planner to add a searchable trip-planning interface to a page or post.
 Visitors can search Google place results, add stops to a waypoint list, reorder
 their trip, preview the route when map embeds are configured, and open the route
 in Google Maps.
@@ -24,29 +24,26 @@ in Google Maps.
 Special thanks to Hagan Franks (https://github.com/hagan) and Christopher
 Reaume (https://github.com/datapoke) for development help.
 
-Thanks also to Destination Kona Coast (https://destinationkonacoast.com) for
-the idea that started the project.
-
 == Installation ==
 
 Release zip:
 
-1. Build or download the packaged `waypoints` release zip.
+1. Build or download the packaged `waypoints-trip-planner` release zip.
 2. Upload it through the Plugins screen in WordPress.
 3. Activate the plugin. Release zips include generated Composer autoload files.
 
 Source checkout:
 
-1. Copy or symlink this plugin directory as `/wp-content/plugins/waypoints/`.
+1. Copy or symlink this plugin directory as `/wp-content/plugins/waypoints-trip-planner/`.
 2. Run `composer install` inside the plugin directory to generate
    `vendor/autoload.php`.
 3. Activate the plugin through the Plugins screen in WordPress.
-4. Open Settings > Waypoints and configure the required default location
+4. Open Settings > Waypoints: Trip Planner and configure the required default location
    and Google API keys.
 
 == Configuration ==
 
-Settings are managed through Settings > Waypoints.
+Settings are managed through Settings > Waypoints: Trip Planner.
 
 Current settings include:
 
@@ -62,7 +59,7 @@ Current settings include:
 
 == External services ==
 
-Waypoints uses Google services to load place results, place details,
+Waypoints: Trip Planner uses Google services to load place results, place details,
 geocoding data, embedded map previews, and Google Maps handoff links.
 
 The plugin can send data to Google from the server when:
@@ -95,12 +92,12 @@ Google provides these services. Review their terms and privacy information:
 = What do I need before using it on a live site? =
 
 Configure the required default location and Google API keys in Settings >
-Waypoints. For best results, restrict Google API keys in Google Cloud Console
+Waypoints: Trip Planner. For best results, restrict Google API keys in Google Cloud Console
 and test the planner flow on a staging site before adding it to a public page.
 
 = How do I display the planner? =
 
-Use the Waypoints block in the block editor or add `[waypoints]` to a page,
+Use the Waypoints: Trip Planner block in the block editor or add `[waypoints]` to a page,
 post, or Shortcode block. The optional `action_url` shortcode attribute and
 `Action URL` block setting can submit planner updates to a specific page URL.
 
@@ -111,8 +108,15 @@ architecture, settings, security, and troubleshooting notes.
 
 == Changelog ==
 
+= 1.0.2 =
+* Updated the WordPress.org submission name and slug to Waypoints: Trip Planner.
+
+= 1.0.1 =
+* Added an admin control for briefly revealing saved Google API keys while checking copied values.
+* Hardened Google API key settings against browser autofill and non-key values.
+
 = 1.0 =
-* Renamed the public plugin surface to Waypoints, including the text domain, REST namespace, block name, preferred shortcode, release metadata, and package artifact.
+* Renamed the original public plugin surface to Waypoints, including the REST namespace, block name, preferred shortcode, release metadata, and package artifact.
 * Added WordPress.org submission-readiness checks covering PHP quality, PHPStan, browser smoke tests, WordPress Plugin Check, release packaging, and metadata validation.
 * Hardened the release artifact so it ships as a single `waypoints/` plugin directory with production Composer autoload files and normalized file permissions.
 * Added admin-only API request counting for troubleshooting Google API usage.

@@ -18,12 +18,12 @@ if ( PHP_SAPI !== 'cli' ) {
 $options = parse_options( $argv );
 
 if ( isset( $options['help'] ) ) {
-	echo "Usage: php tools/check-wp-submission-readiness.php --plugin-dir=. [--artifact=/path/to.zip] [--expected-name=Waypoints] [--expected-slug=waypoints]\n";
+	echo "Usage: php tools/check-wp-submission-readiness.php --plugin-dir=. [--artifact=/path/to.zip] [--expected-name='Waypoints: Trip Planner'] [--expected-slug=waypoints-trip-planner]\n";
 	exit( 0 );
 }
 
-$expected_name = trim( (string) ( $options['expected-name'] ?? 'Waypoints' ) );
-$expected_slug = trim( (string) ( $options['expected-slug'] ?? 'waypoints' ) );
+$expected_name = trim( (string) ( $options['expected-name'] ?? 'Waypoints: Trip Planner' ) );
+$expected_slug = trim( (string) ( $options['expected-slug'] ?? 'waypoints-trip-planner' ) );
 $plugin_dir    = realpath( (string) ( $options['plugin-dir'] ?? dirname( __DIR__ ) ) );
 $artifact      = isset( $options['artifact'] ) ? (string) $options['artifact'] : '';
 $errors        = [];

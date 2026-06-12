@@ -123,7 +123,7 @@ jobs:
             "testsEnvironment": false,
             "plugins": [ "https://downloads.wordpress.org/plugin/plugin-check.zip" ],
             "mappings": {
-              "wp-content/plugins/waypoints": "$plugin_dir"
+              "wp-content/plugins/waypoints-trip-planner": "$plugin_dir"
             }
           }
           EOF
@@ -154,10 +154,10 @@ jobs:
           wp-env run cli wp plugin list-checks
           wp-env run cli wp plugin list-check-categories
 
-          wp-env run cli wp plugin activate waypoints
+          wp-env run cli wp plugin activate waypoints-trip-planner
 
           set +e
-          wp-env run cli wp plugin check waypoints \
+          wp-env run cli wp plugin check waypoints-trip-planner \
             --format=json \
             --ignore-warnings \
             --exclude-files=.distignore,DECISIONS.md,phpcs.xml.dist,phpunit.xml.dist,.wp-env.json \

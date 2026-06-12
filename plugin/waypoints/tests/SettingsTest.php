@@ -246,7 +246,7 @@ final class SettingsTest extends TestCase {
 		self::assertArrayNotHasKey( 'loading_search_preview_mode', $sanitized['interface_copy'] );
 		self::assertArrayNotHasKey( 'loading_search_preview_heading', $sanitized['interface_copy'] );
 		self::assertArrayNotHasKey( 'loading_search_preview_body', $sanitized['interface_copy'] );
-		self::assertSame( 'Waypoints', $sanitized['interface_copy']['hero_title'] );
+		self::assertSame( 'Waypoints: Trip Planner', $sanitized['interface_copy']['hero_title'] );
 	}
 
 	public function test_sanitize_categories_discards_invalid_rows_and_makes_unique_slugs(): void {

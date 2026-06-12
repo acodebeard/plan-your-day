@@ -19,7 +19,7 @@ plugin/waypoints/
 For local development, copy or symlink that directory into a WordPress install:
 
 ```sh
-ln -s /path/to/waypoints/plugin/waypoints /path/to/wordpress/wp-content/plugins/waypoints
+ln -s /path/to/waypoints/plugin/waypoints /path/to/wordpress/wp-content/plugins/waypoints-trip-planner
 ```
 
 Generate the Composer autoloader from the plugin directory:
@@ -32,11 +32,11 @@ composer install
 Then activate the plugin from the WordPress admin Plugins screen or with WP-CLI:
 
 ```sh
-wp --path=/path/to/wordpress plugin activate waypoints
+wp --path=/path/to/wordpress plugin activate waypoints-trip-planner
 ```
 
-In the WordPress admin, the plugin appears as **Waypoints**. Open
-**Settings > Waypoints** after activation.
+In the WordPress admin, the plugin appears as **Waypoints: Trip Planner**. Open
+**Settings > Waypoints: Trip Planner** after activation.
 
 ## Local Test Install
 
@@ -44,7 +44,7 @@ One local development setup can look like this:
 
 ```text
 /path/to/wordpress
-/path/to/wordpress/wp-content/plugins/waypoints
+/path/to/wordpress/wp-content/plugins/waypoints-trip-planner
   -> /path/to/waypoints/plugin/waypoints
 ```
 
@@ -54,7 +54,7 @@ Useful local commands:
 wp \
   --path=/path/to/wordpress \
   --url=https://example.test \
-  plugin status waypoints \
+  plugin status waypoints-trip-planner \
 ```
 
 The admin settings screen is:
@@ -94,5 +94,5 @@ cd plugin/waypoints
 ./tools/build-release-zip.sh
 ```
 
-The script writes `dist/waypoints-1.0.zip` at the repository root, which
+The script writes `dist/waypoints-trip-planner-1.0.2.zip` at the repository root, which
 can be uploaded through the WordPress Plugins screen.

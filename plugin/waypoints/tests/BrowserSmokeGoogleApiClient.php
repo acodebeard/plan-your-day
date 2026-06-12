@@ -38,7 +38,7 @@ final class BrowserSmokeGoogleApiClient implements GoogleApiClientInterface {
 		if ( '' === $place_id || ! isset( $places[ $place_id ] ) ) {
 			return GoogleApiResult::failure(
 				'place_details_unavailable',
-				__( 'Google place details are unavailable right now.', 'waypoints' ),
+				__( 'Google place details are unavailable right now.', 'waypoints-trip-planner' ),
 				404,
 				false
 			);
@@ -57,7 +57,7 @@ final class BrowserSmokeGoogleApiClient implements GoogleApiClientInterface {
 		if ( '' === $address || 'not a real address' === strtolower( $address ) ) {
 			return GoogleApiResult::failure(
 				'geocoding_unavailable',
-				__( 'Google geocoding is unavailable right now.', 'waypoints' ),
+				__( 'Google geocoding is unavailable right now.', 'waypoints-trip-planner' ),
 				0,
 				false
 			);

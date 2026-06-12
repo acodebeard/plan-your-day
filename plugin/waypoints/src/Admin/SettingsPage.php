@@ -13,6 +13,7 @@ defined( 'ABSPATH' ) || exit;
 
 final class SettingsPage {
 	private const GOOGLE_TEST_TRANSIENT_PREFIX = 'plan_your_day_google_test_';
+	private const GOOGLE_API_KEY_PATTERN       = 'AIza[0-9A-Za-z_\\-]{35}';
 
 	private Settings $settings;
 	private GoogleApiCache $google_api_cache;
@@ -33,8 +34,8 @@ final class SettingsPage {
 
 	public function register(): void {
 		add_options_page(
-			__( 'Waypoints Settings', 'waypoints' ),
-			__( 'Waypoints', 'waypoints' ),
+			__( 'Waypoints: Trip Planner Settings', 'waypoints-trip-planner' ),
+			__( 'Waypoints: Trip Planner', 'waypoints-trip-planner' ),
 			'manage_options',
 			Settings::PAGE_SLUG,
 			[ $this, 'render' ]
@@ -42,15 +43,15 @@ final class SettingsPage {
 
 		add_settings_section(
 			'plan_your_day_default_location',
-			__( 'Default Location', 'waypoints' ),
+			__( 'Default Location', 'waypoints-trip-planner' ),
 			[ $this, 'render_default_location_section' ],
 			Settings::PAGE_SLUG
 		);
 
 		$this->add_field(
 			'default_location_label',
-			__( 'Default location label', 'waypoints' ),
-			__( 'Required. Human-readable label used for the default trip start.', 'waypoints' ),
+			__( 'Default location label', 'waypoints-trip-planner' ),
+			__( 'Required. Human-readable label used for the default trip start.', 'waypoints-trip-planner' ),
 			'text',
 			[],
 			'plan_your_day_default_location'
@@ -58,8 +59,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'default_location_address',
-			__( 'Default location address or search phrase', 'waypoints' ),
-			__( 'Required. Address, landmark, or search phrase used when the planner needs a stable starting area.', 'waypoints' ),
+			__( 'Default location address or search phrase', 'waypoints-trip-planner' ),
+			__( 'Required. Address, landmark, or search phrase used when the planner needs a stable starting area.', 'waypoints-trip-planner' ),
 			'textarea',
 			[
 				'rows' => 3,
@@ -69,8 +70,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'default_location_latitude',
-			__( 'Default latitude', 'waypoints' ),
-			__( 'Optional. Decimal latitude from -90 to 90 for distance hints and search biasing.', 'waypoints' ),
+			__( 'Default latitude', 'waypoints-trip-planner' ),
+			__( 'Optional. Decimal latitude from -90 to 90 for distance hints and search biasing.', 'waypoints-trip-planner' ),
 			'number',
 			[
 				'min'  => -90,
@@ -82,8 +83,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'default_location_longitude',
-			__( 'Default longitude', 'waypoints' ),
-			__( 'Optional. Decimal longitude from -180 to 180 for distance hints and search biasing.', 'waypoints' ),
+			__( 'Default longitude', 'waypoints-trip-planner' ),
+			__( 'Optional. Decimal longitude from -180 to 180 for distance hints and search biasing.', 'waypoints-trip-planner' ),
 			'number',
 			[
 				'min'  => -180,
@@ -95,8 +96,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'default_location_place_id',
-			__( 'Default Google Place ID', 'waypoints' ),
-			__( 'Optional. Save the exact Google Place ID for the default location when you want a stable place reference alongside the address.', 'waypoints' ),
+			__( 'Default Google Place ID', 'waypoints-trip-planner' ),
+			__( 'Optional. Save the exact Google Place ID for the default location when you want a stable place reference alongside the address.', 'waypoints-trip-planner' ),
 			'text',
 			[],
 			'plan_your_day_default_location'
@@ -104,15 +105,15 @@ final class SettingsPage {
 
 		add_settings_section(
 			'plan_your_day_appearance',
-			__( 'Appearance', 'waypoints' ),
+			__( 'Appearance', 'waypoints-trip-planner' ),
 			[ $this, 'render_appearance_section' ],
 			Settings::PAGE_SLUG
 		);
 
 		$this->add_field(
 			'color_mode_default',
-			__( 'Default color mode', 'waypoints' ),
-			__( 'Choose the public planner color mode before a visitor makes their own choice. System follows the visitor browser or OS preference.', 'waypoints' ),
+			__( 'Default color mode', 'waypoints-trip-planner' ),
+			__( 'Choose the public planner color mode before a visitor makes their own choice. System follows the visitor browser or OS preference.', 'waypoints-trip-planner' ),
 			'select',
 			[
 				'choices' => Settings::color_mode_choices(),
@@ -122,15 +123,15 @@ final class SettingsPage {
 
 		add_settings_section(
 			'plan_your_day_planner_behavior',
-			__( 'Planner Behavior', 'waypoints' ),
+			__( 'Planner Behavior', 'waypoints-trip-planner' ),
 			[ $this, 'render_planner_behavior_section' ],
 			Settings::PAGE_SLUG
 		);
 
 		$this->add_field(
 			'allowed_start_modes',
-			__( 'Allowed start modes', 'waypoints' ),
-			__( 'Choose which starting-point controls the planner may offer.', 'waypoints' ),
+			__( 'Allowed start modes', 'waypoints-trip-planner' ),
+			__( 'Choose which starting-point controls the planner may offer.', 'waypoints-trip-planner' ),
 			'checkbox_group',
 			[
 				'choices' => Settings::start_mode_choices(),
@@ -140,8 +141,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'max_waypoints',
-			__( 'Max waypoints', 'waypoints' ),
-			__( 'Maximum selected Google places a public request may resolve.', 'waypoints' ),
+			__( 'Max waypoints', 'waypoints-trip-planner' ),
+			__( 'Maximum selected Google places a public request may resolve.', 'waypoints-trip-planner' ),
 			'number',
 			[
 				'min' => 1,
@@ -152,8 +153,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'result_count',
-			__( 'Result count', 'waypoints' ),
-			__( 'Maximum Google text-search results requested per browse action.', 'waypoints' ),
+			__( 'Result count', 'waypoints-trip-planner' ),
+			__( 'Maximum Google text-search results requested per browse action.', 'waypoints-trip-planner' ),
 			'number',
 			[
 				'min' => 1,
@@ -164,8 +165,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'distance_unit',
-			__( 'Distance unit', 'waypoints' ),
-			__( 'Unit for approximate distance hints.', 'waypoints' ),
+			__( 'Distance unit', 'waypoints-trip-planner' ),
+			__( 'Unit for approximate distance hints.', 'waypoints-trip-planner' ),
 			'select',
 			[
 				'choices' => Settings::distance_unit_choices(),
@@ -175,8 +176,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'map_preview_enabled',
-			__( 'Map preview', 'waypoints' ),
-			__( 'Allow on-page Google Maps preview rendering in the public planner.', 'waypoints' ),
+			__( 'Map preview', 'waypoints-trip-planner' ),
+			__( 'Allow on-page Google Maps preview rendering in the public planner.', 'waypoints-trip-planner' ),
 			'checkbox',
 			[],
 			'plan_your_day_planner_behavior'
@@ -184,8 +185,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'maps_handoff_enabled',
-			__( 'Google Maps handoff', 'waypoints' ),
-			__( 'Allow outbound Google Maps links from the public planner.', 'waypoints' ),
+			__( 'Google Maps handoff', 'waypoints-trip-planner' ),
+			__( 'Allow outbound Google Maps links from the public planner.', 'waypoints-trip-planner' ),
 			'checkbox',
 			[],
 			'plan_your_day_planner_behavior'
@@ -193,7 +194,7 @@ final class SettingsPage {
 
 		add_settings_section(
 			'plan_your_day_categories',
-			__( 'Categories', 'waypoints' ),
+			__( 'Categories', 'waypoints-trip-planner' ),
 			[ $this, 'render_categories_section' ],
 			Settings::PAGE_SLUG
 		);
@@ -211,36 +212,36 @@ final class SettingsPage {
 
 		add_settings_section(
 			'plan_your_day_google_api',
-			__( 'Google API', 'waypoints' ),
+			__( 'Google API', 'waypoints-trip-planner' ),
 			[ $this, 'render_google_api_section' ],
 			Settings::PAGE_SLUG
 		);
 
 		$this->add_field(
 			'google_maps_embed_api_key',
-			__( 'Maps Embed API key', 'waypoints' ),
-			__( 'Browser-facing key for Google Maps Embed previews. This key can appear in frontend iframe URLs.', 'waypoints' ),
-			'password'
+			__( 'Maps Embed API key', 'waypoints-trip-planner' ),
+			__( 'Browser-facing key for Google Maps Embed previews. This key can appear in frontend iframe URLs.', 'waypoints-trip-planner' ),
+			'api_key'
 		);
 
 		$this->add_field(
 			'google_places_api_key',
-			__( 'Places API key', 'waypoints' ),
-			__( 'Server-side key for Places API (New) text search and place details. This key is never sent to browser config.', 'waypoints' ),
-			'password'
+			__( 'Places API key', 'waypoints-trip-planner' ),
+			__( 'Server-side key for Places API (New) text search and place details. This key is never sent to browser config.', 'waypoints-trip-planner' ),
+			'api_key'
 		);
 
 		$this->add_field(
 			'google_geocoding_api_key',
-			__( 'Geocoding API key', 'waypoints' ),
-			__( 'Optional server-side key for Geocoding API. Leave empty to use the Places API key for geocoding.', 'waypoints' ),
-			'password'
+			__( 'Geocoding API key', 'waypoints-trip-planner' ),
+			__( 'Optional server-side key for Geocoding API. Leave empty to use the Places API key for geocoding.', 'waypoints-trip-planner' ),
+			'api_key'
 		);
 
 		$this->add_field(
 			'google_api_timeout',
-			__( 'API timeout', 'waypoints' ),
-			__( 'Request timeout in seconds. Saved values are clamped between 1 and 30 seconds.', 'waypoints' ),
+			__( 'API timeout', 'waypoints-trip-planner' ),
+			__( 'Request timeout in seconds. Saved values are clamped between 1 and 30 seconds.', 'waypoints-trip-planner' ),
 			'number',
 			[
 				'min' => 1,
@@ -250,15 +251,15 @@ final class SettingsPage {
 
 		add_settings_section(
 			'plan_your_day_google_cache',
-			__( 'Google API Cache', 'waypoints' ),
+			__( 'Google API Cache', 'waypoints-trip-planner' ),
 			[ $this, 'render_google_cache_section' ],
 			Settings::PAGE_SLUG
 		);
 
 		$this->add_field(
 			'google_text_search_cache_ttl',
-			__( 'Text search cache TTL', 'waypoints' ),
-			__( 'Seconds to cache successful Google text search responses. Use 0 to disable this cache.', 'waypoints' ),
+			__( 'Text search cache TTL', 'waypoints-trip-planner' ),
+			__( 'Seconds to cache successful Google text search responses. Use 0 to disable this cache.', 'waypoints-trip-planner' ),
 			'number',
 			[
 				'min' => 0,
@@ -269,8 +270,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'google_place_details_cache_ttl',
-			__( 'Place details cache TTL', 'waypoints' ),
-			__( 'Seconds to cache successful Google place details responses. Use 0 to disable this cache.', 'waypoints' ),
+			__( 'Place details cache TTL', 'waypoints-trip-planner' ),
+			__( 'Seconds to cache successful Google place details responses. Use 0 to disable this cache.', 'waypoints-trip-planner' ),
 			'number',
 			[
 				'min' => 0,
@@ -281,8 +282,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'google_geocoding_cache_ttl',
-			__( 'Geocoding cache TTL', 'waypoints' ),
-			__( 'Seconds to cache successful Google geocoding responses. Use 0 to disable this cache.', 'waypoints' ),
+			__( 'Geocoding cache TTL', 'waypoints-trip-planner' ),
+			__( 'Seconds to cache successful Google geocoding responses. Use 0 to disable this cache.', 'waypoints-trip-planner' ),
 			'number',
 			[
 				'min' => 0,
@@ -293,22 +294,22 @@ final class SettingsPage {
 
 		add_settings_section(
 			'plan_your_day_interface_copy',
-			__( 'Interface Copy', 'waypoints' ),
+			__( 'Interface Copy', 'waypoints-trip-planner' ),
 			[ $this, 'render_interface_copy_section' ],
 			Settings::PAGE_SLUG
 		);
 
 		add_settings_section(
 			'plan_your_day_rate_limiting',
-			__( 'Rate Limiting', 'waypoints' ),
+			__( 'Rate Limiting', 'waypoints-trip-planner' ),
 			[ $this, 'render_rate_limiting_section' ],
 			Settings::PAGE_SLUG
 		);
 
 		$this->add_field(
 			'rate_limit_per_minute',
-			__( 'Requests per minute', 'waypoints' ),
-			__( 'Per-minute budget for the active public planner REST rate limiter. Requests are enforced by client IP and planner scope.', 'waypoints' ),
+			__( 'Requests per minute', 'waypoints-trip-planner' ),
+			__( 'Per-minute budget for the active public planner REST rate limiter. Requests are enforced by client IP and planner scope.', 'waypoints-trip-planner' ),
 			'number',
 			[
 				'min' => 1,
@@ -319,8 +320,8 @@ final class SettingsPage {
 
 		$this->add_field(
 			'debug_api_counter_enabled',
-			__( 'API call counter', 'waypoints' ),
-			__( 'Show a fixed frontend API call counter only to admins for troubleshooting request behavior.', 'waypoints' ),
+			__( 'API call counter', 'waypoints-trip-planner' ),
+			__( 'Show a fixed frontend API call counter only to admins for troubleshooting request behavior.', 'waypoints-trip-planner' ),
 			'checkbox',
 			[],
 			'plan_your_day_rate_limiting'
@@ -328,15 +329,15 @@ final class SettingsPage {
 
 		add_settings_section(
 			'plan_your_day_advanced',
-			__( 'Advanced', 'waypoints' ),
+			__( 'Advanced', 'waypoints-trip-planner' ),
 			[ $this, 'render_advanced_section' ],
 			Settings::PAGE_SLUG
 		);
 
 		$this->add_field(
 			'trusted_proxy_cidrs',
-			__( 'Trusted proxy CIDRs', 'waypoints' ),
-			__( 'Optional. One IP or CIDR per line. Invalid entries are discarded on save.', 'waypoints' ),
+			__( 'Trusted proxy CIDRs', 'waypoints-trip-planner' ),
+			__( 'Optional. One IP or CIDR per line. Invalid entries are discarded on save.', 'waypoints-trip-planner' ),
 			'textarea',
 			[
 				'rows' => 5,
@@ -347,7 +348,7 @@ final class SettingsPage {
 
 	public function render(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage Waypoints settings.', 'waypoints' ) );
+			wp_die( esc_html__( 'You do not have permission to manage Waypoints: Trip Planner settings.', 'waypoints-trip-planner' ) );
 		}
 
 		?>
@@ -364,50 +365,50 @@ final class SettingsPage {
 				?>
 			</form>
 			<hr />
-			<h2><?php esc_html_e( 'Cache Tools', 'waypoints' ); ?></h2>
-			<p><?php esc_html_e( 'Clear cached Google API responses after changing cache settings or troubleshooting provider data.', 'waypoints' ); ?></p>
+			<h2><?php esc_html_e( 'Cache Tools', 'waypoints-trip-planner' ); ?></h2>
+			<p><?php esc_html_e( 'Clear cached Google API responses after changing cache settings or troubleshooting provider data.', 'waypoints-trip-planner' ); ?></p>
 			<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post">
 				<input type="hidden" name="action" value="plan_your_day_clear_google_cache" />
 				<?php wp_nonce_field( 'plan_your_day_clear_google_cache' ); ?>
-				<?php submit_button( __( 'Clear Google API cache', 'waypoints' ), 'secondary', 'submit', false ); ?>
+				<?php submit_button( __( 'Clear Google API cache', 'waypoints-trip-planner' ), 'secondary', 'submit', false ); ?>
 			</form>
-			<h3><?php esc_html_e( 'Targeted Cache Tools', 'waypoints' ); ?></h3>
-			<p><?php esc_html_e( 'Clear cached entries for one Google API scope or one place ID without dropping the full cache.', 'waypoints' ); ?></p>
+			<h3><?php esc_html_e( 'Targeted Cache Tools', 'waypoints-trip-planner' ); ?></h3>
+			<p><?php esc_html_e( 'Clear cached entries for one Google API scope or one place ID without dropping the full cache.', 'waypoints-trip-planner' ); ?></p>
 			<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post" style="margin-bottom:1rem;">
 				<input type="hidden" name="action" value="plan_your_day_clear_google_cache_scope" />
 				<?php wp_nonce_field( 'plan_your_day_clear_google_cache_scope' ); ?>
-				<label for="plan-your-day-cache-scope"><strong><?php esc_html_e( 'Cache scope', 'waypoints' ); ?></strong></label>
+				<label for="plan-your-day-cache-scope"><strong><?php esc_html_e( 'Cache scope', 'waypoints-trip-planner' ); ?></strong></label>
 				<select id="plan-your-day-cache-scope" name="plan_your_day_cache_scope">
 					<?php foreach ( $this->google_cache_scope_choices() as $scope_value => $scope_label ) : ?>
 						<option value="<?php echo esc_attr( $scope_value ); ?>"><?php echo esc_html( $scope_label ); ?></option>
 					<?php endforeach; ?>
 				</select>
-				<?php submit_button( __( 'Clear selected scope', 'waypoints' ), 'secondary', 'submit', false ); ?>
+				<?php submit_button( __( 'Clear selected scope', 'waypoints-trip-planner' ), 'secondary', 'submit', false ); ?>
 			</form>
 			<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post">
 				<input type="hidden" name="action" value="plan_your_day_clear_google_cache_place" />
 				<?php wp_nonce_field( 'plan_your_day_clear_google_cache_place' ); ?>
-				<label for="plan-your-day-cache-place-id"><strong><?php esc_html_e( 'Google Place ID', 'waypoints' ); ?></strong></label>
+				<label for="plan-your-day-cache-place-id"><strong><?php esc_html_e( 'Google Place ID', 'waypoints-trip-planner' ); ?></strong></label>
 				<input
 					type="text"
 					id="plan-your-day-cache-place-id"
 					name="plan_your_day_cache_place_id"
 					class="regular-text"
-					placeholder="<?php echo esc_attr__( 'Enter a Google Place ID', 'waypoints' ); ?>"
+					placeholder="<?php echo esc_attr__( 'Enter a Google Place ID', 'waypoints-trip-planner' ); ?>"
 				/>
-				<?php submit_button( __( 'Clear this place', 'waypoints' ), 'secondary', 'submit', false ); ?>
+				<?php submit_button( __( 'Clear this place', 'waypoints-trip-planner' ), 'secondary', 'submit', false ); ?>
 			</form>
 			<hr />
-			<h2><?php esc_html_e( 'Google API Test', 'waypoints' ); ?></h2>
-			<p><?php esc_html_e( 'Run a lightweight admin-only probe using the configured default location, categories, and server-side Google keys.', 'waypoints' ); ?></p>
+			<h2><?php esc_html_e( 'Google API Test', 'waypoints-trip-planner' ); ?></h2>
+			<p><?php esc_html_e( 'Run a lightweight admin-only probe using the configured default location, categories, and server-side Google keys.', 'waypoints-trip-planner' ); ?></p>
 			<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post">
 				<input type="hidden" name="action" value="plan_your_day_test_google_api" />
 				<?php wp_nonce_field( 'plan_your_day_test_google_api' ); ?>
-				<?php submit_button( __( 'Run Google API test', 'waypoints' ), 'secondary', 'submit', false ); ?>
+				<?php submit_button( __( 'Run Google API test', 'waypoints-trip-planner' ), 'secondary', 'submit', false ); ?>
 			</form>
 			<?php $this->render_google_test_results_panel(); ?>
 			<button type="button" class="button button-secondary plan-your-day-admin-back-to-top" data-plan-back-to-top hidden>
-				<?php esc_html_e( 'Back to top', 'waypoints' ); ?>
+				<?php esc_html_e( 'Back to top', 'waypoints-trip-planner' ); ?>
 			</button>
 		</div>
 		<?php
@@ -453,13 +454,13 @@ final class SettingsPage {
 			}
 		}
 		?>
-		<h2><?php esc_html_e( 'Setup Status', 'waypoints' ); ?></h2>
+		<h2><?php esc_html_e( 'Setup Status', 'waypoints-trip-planner' ); ?></h2>
 		<p>
 			<?php
 			echo esc_html(
 				sprintf(
 					/* translators: 1: number of passing checks, 2: number of warnings, 3: number of optional checks. */
-					__( '%1$d checks look ready, %2$d still need attention, and %3$d are optional.', 'waypoints' ),
+					__( '%1$d checks look ready, %2$d still need attention, and %3$d are optional.', 'waypoints-trip-planner' ),
 					$ready_check_count,
 					$warning_check_count,
 					$optional_check_count
@@ -470,9 +471,9 @@ final class SettingsPage {
 		<table class="widefat striped" style="margin-bottom:1.5rem;">
 			<thead>
 				<tr>
-					<th><?php esc_html_e( 'Area', 'waypoints' ); ?></th>
-					<th><?php esc_html_e( 'Status', 'waypoints' ); ?></th>
-					<th><?php esc_html_e( 'Details', 'waypoints' ); ?></th>
+					<th><?php esc_html_e( 'Area', 'waypoints-trip-planner' ); ?></th>
+					<th><?php esc_html_e( 'Status', 'waypoints-trip-planner' ); ?></th>
+					<th><?php esc_html_e( 'Details', 'waypoints-trip-planner' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -500,54 +501,54 @@ final class SettingsPage {
 
 		return [
 			[
-				'label'  => __( 'Required location settings', 'waypoints' ),
-				'status' => [] === $missing_required ? __( 'Ready', 'waypoints' ) : __( 'Needs setup', 'waypoints' ),
+				'label'  => __( 'Required location settings', 'waypoints-trip-planner' ),
+				'status' => [] === $missing_required ? __( 'Ready', 'waypoints-trip-planner' ) : __( 'Needs setup', 'waypoints-trip-planner' ),
 				'detail' => [] === $missing_required
-					? __( 'The planner has the required default location label and address.', 'waypoints' )
+					? __( 'The planner has the required default location label and address.', 'waypoints-trip-planner' )
 					: sprintf(
 						/* translators: %s is a comma-separated list of missing settings. */
-						__( 'Missing: %s.', 'waypoints' ),
+						__( 'Missing: %s.', 'waypoints-trip-planner' ),
 						implode( ', ', $missing_required )
 					),
 				'type'   => [] === $missing_required ? 'success' : 'warning',
 			],
 			[
-				'label'  => __( 'Places API key', 'waypoints' ),
-				'status' => '' !== $places_key ? __( 'Ready', 'waypoints' ) : __( 'Missing', 'waypoints' ),
+				'label'  => __( 'Places API key', 'waypoints-trip-planner' ),
+				'status' => '' !== $places_key ? __( 'Ready', 'waypoints-trip-planner' ) : __( 'Missing', 'waypoints-trip-planner' ),
 				'detail' => '' !== $places_key
-					? __( 'Server-side Places requests can run.', 'waypoints' )
-					: __( 'Add a Places API key before trying browse or place-detail requests.', 'waypoints' ),
+					? __( 'Server-side Places requests can run.', 'waypoints-trip-planner' )
+					: __( 'Add a Places API key before trying browse or place-detail requests.', 'waypoints-trip-planner' ),
 				'type'   => '' !== $places_key ? 'success' : 'warning',
 			],
 			[
-				'label'  => __( 'Geocoding configuration', 'waypoints' ),
-				'status' => '' !== $geocoding_key ? __( 'Ready', 'waypoints' ) : __( 'Missing', 'waypoints' ),
+				'label'  => __( 'Geocoding configuration', 'waypoints-trip-planner' ),
+				'status' => '' !== $geocoding_key ? __( 'Ready', 'waypoints-trip-planner' ) : __( 'Missing', 'waypoints-trip-planner' ),
 				'detail' => '' !== $geocoding_key
 					? ( $geocoding_key === $places_key
-						? __( 'Geocoding will use the Places API key fallback.', 'waypoints' )
-						: __( 'A dedicated Geocoding API key is configured.', 'waypoints' ) )
-					: __( 'Add a Geocoding API key or a Places API key fallback before testing location resolution.', 'waypoints' ),
+						? __( 'Geocoding will use the Places API key fallback.', 'waypoints-trip-planner' )
+						: __( 'A dedicated Geocoding API key is configured.', 'waypoints-trip-planner' ) )
+					: __( 'Add a Geocoding API key or a Places API key fallback before testing location resolution.', 'waypoints-trip-planner' ),
 				'type'   => '' !== $geocoding_key ? 'success' : 'warning',
 			],
 			[
-				'label'  => __( 'Maps Embed preview key', 'waypoints' ),
-				'status' => '' !== $embed_key ? __( 'Ready', 'waypoints' ) : __( 'Optional', 'waypoints' ),
+				'label'  => __( 'Maps Embed preview key', 'waypoints-trip-planner' ),
+				'status' => '' !== $embed_key ? __( 'Ready', 'waypoints-trip-planner' ) : __( 'Optional', 'waypoints-trip-planner' ),
 				'detail' => '' !== $embed_key
-					? __( 'On-page Google Maps embeds can render when preview mode is enabled.', 'waypoints' )
-					: __( 'Missing this key only affects on-page embed previews; Google Maps handoff links can still work.', 'waypoints' ),
+					? __( 'On-page Google Maps embeds can render when preview mode is enabled.', 'waypoints-trip-planner' )
+					: __( 'Missing this key only affects on-page embed previews; Google Maps handoff links can still work.', 'waypoints-trip-planner' ),
 				'type'   => '' !== $embed_key ? 'success' : 'optional',
 			],
 			[
-				'label'  => __( 'Planner categories', 'waypoints' ),
-				'status' => [] !== $active_categories ? __( 'Ready', 'waypoints' ) : __( 'Needs setup', 'waypoints' ),
+				'label'  => __( 'Planner categories', 'waypoints-trip-planner' ),
+				'status' => [] !== $active_categories ? __( 'Ready', 'waypoints-trip-planner' ) : __( 'Needs setup', 'waypoints-trip-planner' ),
 				'detail' => [] !== $active_categories
 					? sprintf(
 						/* translators: 1: active category count, 2: saved category count. */
-						__( '%1$d active categories are available. %2$d categories are saved in settings.', 'waypoints' ),
+						__( '%1$d active categories are available. %2$d categories are saved in settings.', 'waypoints-trip-planner' ),
 						count( $active_categories ),
 						count( $saved_categories )
 					)
-					: __( 'No active categories are available. Add at least one category, or leave the planner to custom search only.', 'waypoints' ),
+					: __( 'No active categories are available. Add at least one category, or leave the planner to custom search only.', 'waypoints-trip-planner' ),
 				'type'   => [] !== $active_categories ? 'success' : 'warning',
 			],
 		];
@@ -556,35 +557,35 @@ final class SettingsPage {
 	public function render_google_api_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Configure only the Google keys and request behavior needed by the backend Google client.', 'waypoints' )
+			esc_html__( 'Configure only the Google keys and request behavior needed by the backend Google client.', 'waypoints-trip-planner' )
 		);
 	}
 
 	public function render_default_location_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Set the required generic starting area. Site-specific destination values belong here, not in plugin defaults.', 'waypoints' )
+			esc_html__( 'Set the required generic starting area. Site-specific destination values belong here, not in plugin defaults.', 'waypoints-trip-planner' )
 		);
 	}
 
 	public function render_planner_behavior_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Register conservative behavior limits for later renderer and REST endpoint work.', 'waypoints' )
+			esc_html__( 'Register conservative behavior limits for later renderer and REST endpoint work.', 'waypoints-trip-planner' )
 		);
 	}
 
 	public function render_appearance_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Set the public planner default color mode. Visitors can switch modes on the planner without changing the saved plugin setting.', 'waypoints' )
+			esc_html__( 'Set the public planner default color mode. Visitors can switch modes on the planner without changing the saved plugin setting.', 'waypoints-trip-planner' )
 		);
 	}
 
 	public function render_interface_copy_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Edit the public planner copy here. Button labels and accessible labels fall back to defaults if saved blank. Optional helper text fields can be saved blank to hide them. Dynamic tokens such as {count}, {search}, {place}, and {start} are replaced automatically.', 'waypoints' )
+			esc_html__( 'Edit the public planner copy here. Button labels and accessible labels fall back to defaults if saved blank. Optional helper text fields can be saved blank to hide them. Dynamic tokens such as {count}, {search}, {place}, and {start} are replaced automatically.', 'waypoints-trip-planner' )
 		);
 
 		$this->render_interface_copy_accordion();
@@ -593,28 +594,28 @@ final class SettingsPage {
 	public function render_categories_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Edit the category buttons shown on the public planner. You can add, disable, delete, and reorder rows here, or leave the list empty to use custom search only.', 'waypoints' )
+			esc_html__( 'Edit the category buttons shown on the public planner. You can add, disable, delete, and reorder rows here, or leave the list empty to use custom search only.', 'waypoints-trip-planner' )
 		);
 	}
 
 	public function render_google_cache_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Configure transient-based caching for successful Google API responses.', 'waypoints' )
+			esc_html__( 'Configure transient-based caching for successful Google API responses.', 'waypoints-trip-planner' )
 		);
 	}
 
 	public function render_rate_limiting_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Control the active runtime limiter for public planner REST requests. Higher-cost requests can consume more of this budget before external Google work starts.', 'waypoints' )
+			esc_html__( 'Control the active runtime limiter for public planner REST requests. Higher-cost requests can consume more of this budget before external Google work starts.', 'waypoints-trip-planner' )
 		);
 	}
 
 	public function render_advanced_section(): void {
 		printf(
 			'<p>%s</p>',
-			esc_html__( 'Advanced networking settings used by later security and rate-limit code.', 'waypoints' )
+			esc_html__( 'Advanced networking settings used by later security and rate-limit code.', 'waypoints-trip-planner' )
 		);
 	}
 
@@ -631,18 +632,18 @@ final class SettingsPage {
 				esc_html(
 					sprintf(
 						/* translators: %s is a comma-separated list of missing settings. */
-						__( 'Waypoints needs required settings before the public planner can render: %s.', 'waypoints' ),
+						__( 'Waypoints: Trip Planner needs required settings before the public planner can render: %s.', 'waypoints-trip-planner' ),
 						$missing
 					)
 				),
 				esc_url( $url ),
-				esc_html__( 'Open settings', 'waypoints' )
+				esc_html__( 'Open settings', 'waypoints-trip-planner' )
 			);
 	}
 
 	public function handle_clear_google_cache(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage Waypoints settings.', 'waypoints' ) );
+			wp_die( esc_html__( 'You do not have permission to manage Waypoints: Trip Planner settings.', 'waypoints-trip-planner' ) );
 		}
 
 		check_admin_referer( 'plan_your_day_clear_google_cache' );
@@ -662,7 +663,7 @@ final class SettingsPage {
 
 	public function handle_clear_google_cache_scope(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage Waypoints settings.', 'waypoints' ) );
+			wp_die( esc_html__( 'You do not have permission to manage Waypoints: Trip Planner settings.', 'waypoints-trip-planner' ) );
 		}
 
 		check_admin_referer( 'plan_your_day_clear_google_cache_scope' );
@@ -684,7 +685,7 @@ final class SettingsPage {
 
 	public function handle_clear_google_cache_place(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage Waypoints settings.', 'waypoints' ) );
+			wp_die( esc_html__( 'You do not have permission to manage Waypoints: Trip Planner settings.', 'waypoints-trip-planner' ) );
 		}
 
 		check_admin_referer( 'plan_your_day_clear_google_cache_place' );
@@ -706,7 +707,7 @@ final class SettingsPage {
 
 	public function handle_test_google_api(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'You do not have permission to manage Waypoints settings.', 'waypoints' ) );
+			wp_die( esc_html__( 'You do not have permission to manage Waypoints: Trip Planner settings.', 'waypoints-trip-planner' ) );
 		}
 
 		check_admin_referer( 'plan_your_day_test_google_api' );
@@ -753,38 +754,38 @@ final class SettingsPage {
 			: null;
 		$checks               = [
 			[
-				'label'   => __( 'Geocoding probe', 'waypoints' ),
+				'label'   => __( 'Geocoding probe', 'waypoints-trip-planner' ),
 				'success' => $geocode_result->is_success(),
 				'detail'  => $geocode_result->is_success()
 					? sprintf(
 						/* translators: 1: latitude, 2: longitude. */
-						__( 'Resolved the default location to %1$s, %2$s.', 'waypoints' ),
+						__( 'Resolved the default location to %1$s, %2$s.', 'waypoints-trip-planner' ),
 						(string) $origin_latitude,
 						(string) $origin_longitude
 					)
 					: $geocode_result->message(),
 			],
 			[
-				'label'   => __( 'Text search probe', 'waypoints' ),
+				'label'   => __( 'Text search probe', 'waypoints-trip-planner' ),
 				'success' => $text_search_result->is_success(),
 				'detail'  => $text_search_result->is_success()
 					? sprintf(
 						/* translators: 1: query text, 2: result count. */
-						__( 'Query "%1$s" returned %2$d place results.', 'waypoints' ),
+						__( 'Query "%1$s" returned %2$d place results.', 'waypoints-trip-planner' ),
 						$probe_query,
 						count( $places )
 					)
 					: $text_search_result->message(),
 			],
 			[
-				'label'   => __( 'Place details probe', 'waypoints' ),
+				'label'   => __( 'Place details probe', 'waypoints-trip-planner' ),
 				'success' => $place_details_result instanceof \Acodebeard\PlanYourDay\Google\GoogleApiResult && $place_details_result->is_success(),
 				'detail'  => null === $place_details_result
-					? __( 'Skipped because the text search probe did not return a place ID to inspect.', 'waypoints' )
+					? __( 'Skipped because the text search probe did not return a place ID to inspect.', 'waypoints-trip-planner' )
 					: ( $place_details_result->is_success()
 						? sprintf(
 							/* translators: %s is a place label. */
-							__( 'Loaded details for %s.', 'waypoints' ),
+							__( 'Loaded details for %s.', 'waypoints-trip-planner' ),
 							(string) ( $place_details_result->data()['place']['label'] ?? $place_id )
 						)
 						: $place_details_result->message() ),
@@ -842,7 +843,7 @@ final class SettingsPage {
 			esc_html(
 				sprintf(
 					/* translators: 1: passed checks, 2: total checks. */
-					__( 'Google API test completed: %1$d of %2$d probes passed.', 'waypoints' ),
+					__( 'Google API test completed: %1$d of %2$d probes passed.', 'waypoints-trip-planner' ),
 					(int) ( $results['success_count'] ?? 0 ),
 					(int) ( $results['total_count'] ?? 0 )
 				)
@@ -858,13 +859,13 @@ final class SettingsPage {
 			return;
 		}
 		?>
-		<h3><?php esc_html_e( 'Latest Google API test results', 'waypoints' ); ?></h3>
+		<h3><?php esc_html_e( 'Latest Google API test results', 'waypoints-trip-planner' ); ?></h3>
 		<p>
 			<?php
 			echo esc_html(
 				sprintf(
 					/* translators: 1: checked datetime, 2: probe query. */
-					__( 'Checked at %1$s using the probe query "%2$s".', 'waypoints' ),
+					__( 'Checked at %1$s using the probe query "%2$s".', 'waypoints-trip-planner' ),
 					(string) ( $results['checked_at'] ?? '' ),
 					(string) ( $results['probe_query'] ?? '' )
 				)
@@ -874,9 +875,9 @@ final class SettingsPage {
 		<table class="widefat striped" style="margin-top:0.75rem;">
 			<thead>
 				<tr>
-					<th><?php esc_html_e( 'Probe', 'waypoints' ); ?></th>
-					<th><?php esc_html_e( 'Result', 'waypoints' ); ?></th>
-					<th><?php esc_html_e( 'Details', 'waypoints' ); ?></th>
+					<th><?php esc_html_e( 'Probe', 'waypoints-trip-planner' ); ?></th>
+					<th><?php esc_html_e( 'Result', 'waypoints-trip-planner' ); ?></th>
+					<th><?php esc_html_e( 'Details', 'waypoints-trip-planner' ); ?></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -884,7 +885,7 @@ final class SettingsPage {
 					<tr>
 						<td><strong><?php echo esc_html( (string) ( $check['label'] ?? '' ) ); ?></strong></td>
 						<td>
-							<strong><?php echo ! empty( $check['success'] ) ? esc_html__( 'Passed', 'waypoints' ) : esc_html__( 'Needs attention', 'waypoints' ); ?></strong>
+							<strong><?php echo ! empty( $check['success'] ) ? esc_html__( 'Passed', 'waypoints-trip-planner' ) : esc_html__( 'Needs attention', 'waypoints-trip-planner' ); ?></strong>
 						</td>
 						<td><?php echo esc_html( (string) ( $check['detail'] ?? '' ) ); ?></td>
 					</tr>
@@ -978,7 +979,7 @@ final class SettingsPage {
 				esc_attr( $name ),
 				esc_attr( $id ),
 				checked( true, (bool) $value, false ),
-				esc_html__( 'Enabled', 'waypoints' )
+				esc_html__( 'Enabled', 'waypoints-trip-planner' )
 			);
 		} elseif ( 'checkbox_group' === $type ) {
 			$this->render_checkbox_group( $name, $id, is_array( $value ) ? $value : [], $attributes );
@@ -988,6 +989,8 @@ final class SettingsPage {
 			$this->render_categories_editor( $name );
 		} elseif ( 'interface_copy_group' === $type ) {
 			$this->render_interface_copy_group( (string) ( $attributes['group'] ?? '' ) );
+		} elseif ( 'api_key' === $type ) {
+			$this->render_api_key_field( $name, $id, (string) $value );
 		} else {
 			printf(
 				'<input id="%1$s" name="%2$s" type="%3$s" value="%4$s" class="regular-text" autocomplete="off" spellcheck="false" />',
@@ -1001,6 +1004,18 @@ final class SettingsPage {
 		if ( '' !== $description ) {
 			printf( '<p class="description">%s</p>', esc_html( $description ) );
 		}
+	}
+
+	private function render_api_key_field( string $name, string $id, string $value ): void {
+		printf(
+			'<span class="plan-your-day-api-key-field"><input id="%1$s" name="%2$s" type="password" value="%3$s" class="regular-text code" autocomplete="new-password" autocapitalize="none" inputmode="text" spellcheck="false" pattern="%4$s" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" data-plan-api-key-input /><button type="button" class="button plan-your-day-api-key-reveal" aria-controls="%1$s" aria-pressed="false" data-plan-api-key-reveal data-plan-show-label="%5$s" data-plan-hide-label="%6$s"><span class="screen-reader-text" data-plan-api-key-reveal-label>%5$s</span><span class="plan-your-day-api-key-reveal-icon" aria-hidden="true"></span></button></span>',
+			esc_attr( $id ),
+			esc_attr( $name ),
+			esc_attr( $value ),
+			esc_attr( self::GOOGLE_API_KEY_PATTERN ),
+			esc_attr( __( 'Show API key', 'waypoints-trip-planner' ) ),
+			esc_attr( __( 'Hide API key', 'waypoints-trip-planner' ) )
+		);
 	}
 
 	private function render_interface_copy_group( string $group ): void {
@@ -1102,7 +1117,7 @@ final class SettingsPage {
 		<div
 			class="plan-your-day-categories-editor"
 			data-plan-category-editor
-			data-plan-delete-category-confirm="<?php echo esc_attr( __( 'Delete this category row? Save changes to make the deletion permanent.', 'waypoints' ) ); ?>">
+			data-plan-delete-category-confirm="<?php echo esc_attr( __( 'Delete this category row? Save changes to make the deletion permanent.', 'waypoints-trip-planner' ) ); ?>">
 			<table class="widefat striped">
 				<colgroup>
 					<col class="plan-your-day-category-order-col" />
@@ -1114,12 +1129,12 @@ final class SettingsPage {
 				</colgroup>
 				<thead>
 					<tr>
-						<th class="plan-your-day-category-order-column"><span class="screen-reader-text"><?php esc_html_e( 'Order', 'waypoints' ); ?></span></th>
-						<th class="plan-your-day-category-enabled-column"><span class="screen-reader-text"><?php esc_html_e( 'Enabled', 'waypoints' ); ?></span></th>
-						<th class="plan-your-day-category-label-column"><?php esc_html_e( 'Label', 'waypoints' ); ?></th>
-						<th class="plan-your-day-category-description-column"><?php esc_html_e( 'Description', 'waypoints' ); ?></th>
-						<th class="plan-your-day-category-query-column"><?php esc_html_e( 'Google search query', 'waypoints' ); ?></th>
-						<th class="plan-your-day-category-delete-column"><?php esc_html_e( 'Delete', 'waypoints' ); ?></th>
+						<th class="plan-your-day-category-order-column"><span class="screen-reader-text"><?php esc_html_e( 'Order', 'waypoints-trip-planner' ); ?></span></th>
+						<th class="plan-your-day-category-enabled-column"><span class="screen-reader-text"><?php esc_html_e( 'Enabled', 'waypoints-trip-planner' ); ?></span></th>
+						<th class="plan-your-day-category-label-column"><?php esc_html_e( 'Label', 'waypoints-trip-planner' ); ?></th>
+						<th class="plan-your-day-category-description-column"><?php esc_html_e( 'Description', 'waypoints-trip-planner' ); ?></th>
+						<th class="plan-your-day-category-query-column"><?php esc_html_e( 'Google search query', 'waypoints-trip-planner' ); ?></th>
+						<th class="plan-your-day-category-delete-column"><?php esc_html_e( 'Delete', 'waypoints-trip-planner' ); ?></th>
 					</tr>
 				</thead>
 				<tbody data-plan-category-rows>
@@ -1129,7 +1144,7 @@ final class SettingsPage {
 				</tbody>
 			</table>
 			<p class="plan-your-day-add-category-action">
-				<button type="button" class="button button-primary plan-your-day-add-category-button" data-plan-add-category><?php esc_html_e( 'Add category', 'waypoints' ); ?></button>
+				<button type="button" class="button button-primary plan-your-day-add-category-button" data-plan-add-category><?php esc_html_e( 'Add category', 'waypoints-trip-planner' ); ?></button>
 			</p>
 				<template data-plan-category-row-template>
 					<?php
@@ -1166,9 +1181,9 @@ final class SettingsPage {
 		$sort_order   = isset( $category['sort_order'] ) && is_numeric( $category['sort_order'] ) ? (int) $category['sort_order'] : 0;
 		$placeholders = $include_placeholders
 			? [
-				'label'       => __( 'Short button name, e.g. Farmers market', 'waypoints' ),
-				'description' => __( 'A helpful one-sentence description for visitors', 'waypoints' ),
-				'text_query'  => __( 'Google search phrase, e.g. farmers markets near me', 'waypoints' ),
+				'label'       => __( 'Short button name, e.g. Farmers market', 'waypoints-trip-planner' ),
+				'description' => __( 'A helpful one-sentence description for visitors', 'waypoints-trip-planner' ),
+				'text_query'  => __( 'Google search phrase, e.g. farmers markets near me', 'waypoints-trip-planner' ),
 			]
 			: [
 				'label'       => '',
@@ -1183,8 +1198,8 @@ final class SettingsPage {
 					class="plan-your-day-category-drag-handle"
 					data-plan-category-drag-handle
 					draggable="true"
-					aria-label="<?php echo esc_attr( __( 'Drag or use arrow keys to reorder category', 'waypoints' ) ); ?>"
-					title="<?php echo esc_attr( __( 'Drag or use arrow keys to reorder category', 'waypoints' ) ); ?>"
+					aria-label="<?php echo esc_attr( __( 'Drag or use arrow keys to reorder category', 'waypoints-trip-planner' ) ); ?>"
+					title="<?php echo esc_attr( __( 'Drag or use arrow keys to reorder category', 'waypoints-trip-planner' ) ); ?>"
 				></button>
 				<input type="hidden" name="<?php echo esc_attr( $row_name . '[sort_order]' ); ?>" value="<?php echo esc_attr( (string) $sort_order ); ?>" data-plan-category-sort-order />
 			</td>
@@ -1204,7 +1219,7 @@ final class SettingsPage {
 			</td>
 			<td class="plan-your-day-category-delete-cell">
 				<button type="button" class="button button-link-delete plan-your-day-category-delete-button" data-plan-delete-category>
-					<?php esc_html_e( 'Delete', 'waypoints' ); ?>
+					<?php esc_html_e( 'Delete', 'waypoints-trip-planner' ); ?>
 				</button>
 			</td>
 		</tr>
@@ -1271,7 +1286,7 @@ final class SettingsPage {
 			esc_html(
 				sprintf(
 					/* translators: %d is the number of cleared cache items. */
-					_n( 'Cleared %d Google API cache item.', 'Cleared %d Google API cache items.', $cleared, 'waypoints' ),
+					_n( 'Cleared %d Google API cache item.', 'Cleared %d Google API cache items.', $cleared, 'waypoints-trip-planner' ),
 					$cleared
 				)
 			)
@@ -1307,7 +1322,7 @@ final class SettingsPage {
 						'Cleared %2$d Google API cache item for the %1$s scope.',
 						'Cleared %2$d Google API cache items for the %1$s scope.',
 						$cleared,
-						'waypoints'
+						'waypoints-trip-planner'
 					),
 					$scope,
 					$cleared
@@ -1342,7 +1357,7 @@ final class SettingsPage {
 						'Cleared %2$d Google API cache item for place ID %1$s.',
 						'Cleared %2$d Google API cache items for place ID %1$s.',
 						$cleared,
-						'waypoints'
+						'waypoints-trip-planner'
 					),
 					$place_id,
 					$cleared
@@ -1354,9 +1369,9 @@ final class SettingsPage {
 
 	private function google_cache_scope_choices(): array {
 		return [
-			'text_search'   => __( 'Text search', 'waypoints' ),
-			'place_details' => __( 'Place details', 'waypoints' ),
-			'geocode'       => __( 'Geocoding', 'waypoints' ),
+			'text_search'   => __( 'Text search', 'waypoints-trip-planner' ),
+			'place_details' => __( 'Place details', 'waypoints-trip-planner' ),
+			'geocode'       => __( 'Geocoding', 'waypoints-trip-planner' ),
 		];
 	}
 }
