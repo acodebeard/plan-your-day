@@ -43,6 +43,14 @@ use PHPUnit\Framework\TestCase;
 			self::assertStringNotContainsString( "__( 'Plan Your Day', 'waypoints-trip-planner' )", $script );
 		}
 
+		public function test_admin_google_cache_notices_use_submission_text_domain(): void {
+			$source = $this->fixture( 'src/Admin/SettingsPage.php' );
+
+			preg_match_all( '/_n\(\s*[^;]*Google API cache item[^;]*[\'"]waypoints[\'"][^;]*\);/s', $source, $old_domain_matches );
+
+			self::assertCount( 0, $old_domain_matches[0] );
+		}
+
 		public function test_shortcode_exposes_waypoints_tag_with_legacy_alias(): void {
 			$source = $this->fixture( 'src/Frontend/PlannerShortcode.php' );
 

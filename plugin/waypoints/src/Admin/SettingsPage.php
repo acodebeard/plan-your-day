@@ -1322,7 +1322,7 @@ final class SettingsPage {
 						'Cleared %2$d Google API cache item for the %1$s scope.',
 						'Cleared %2$d Google API cache items for the %1$s scope.',
 						$cleared,
-						'waypoints'
+						'waypoints-trip-planner'
 					),
 					$scope,
 					$cleared
@@ -1357,7 +1357,7 @@ final class SettingsPage {
 						'Cleared %2$d Google API cache item for place ID %1$s.',
 						'Cleared %2$d Google API cache items for place ID %1$s.',
 						$cleared,
-						'waypoints'
+						'waypoints-trip-planner'
 					),
 					$place_id,
 					$cleared
