@@ -8,29 +8,27 @@ Stable tag: 1.0.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A configurable day planning plugin for WordPress.
+Adds a searchable trip planner with place search, waypoint ordering, route previews, and Google Maps handoff links.
 
 == Description ==
 
-Waypoints: Trip Planner is a configurable day planning plugin for WordPress.
-
-Use Waypoints: Trip Planner to add a searchable trip-planning interface to a page or post.
-Visitors can search Google place results, add stops to a waypoint list, reorder
-their trip, preview the route when map embeds are configured, and open the route
-in Google Maps.
+Waypoints: Trip Planner adds a configurable trip-planning interface to a page or
+post. Visitors can search Google place results, add stops to a waypoint list,
+reorder their trip, preview the route when map embeds are configured, and open
+the finished route in Google Maps.
 
 == Credits ==
 
-Special thanks to Hagan Franks (https://github.com/hagan) and Christopher
-Reaume (https://github.com/datapoke) for development help.
+Special thanks to [Hagan](https://github.com/hagan) and
+[Datapoke](https://github.com/datapoke) for development help.
 
 == Installation ==
 
-Release zip:
+Built release zip:
 
 1. Build or download the packaged `waypoints-trip-planner` release zip.
 2. Upload it through the Plugins screen in WordPress.
-3. Activate the plugin. Release zips include generated Composer autoload files.
+3. Activate the plugin. Built release zips include generated Composer autoload files.
 
 Source checkout:
 
@@ -43,7 +41,7 @@ Source checkout:
 
 == Configuration ==
 
-Settings are managed through Settings > Waypoints: Trip Planner.
+Manage settings in Settings > Waypoints: Trip Planner.
 
 Current settings include:
 
@@ -52,20 +50,24 @@ Current settings include:
   and Google Maps handoff toggles.
 * Editable categories and interface copy.
 * Browser-facing Maps Embed API key.
-* Server-side Places and Geocoding API keys.
+* Server-side Places API and Geocoding API keys.
 * Google API timeout and cache TTLs.
 * Rate-limit value and trusted proxy CIDRs for public endpoint protection.
 * Admin-only API call counter for troubleshooting request behavior.
 
+== Screenshots ==
+
+1. Add waypoints from categories or a search, then send the trip to Google Maps.
+
 == External services ==
 
-Waypoints: Trip Planner uses Google services to load place results, place details,
-geocoding data, embedded map previews, and Google Maps handoff links.
+Waypoints: Trip Planner uses Google services for place results, place details,
+geocoding, embedded map previews, and Google Maps handoff links.
 
 The plugin can send data to Google from the server when:
 
 * a visitor runs a category or custom place search
-* the plugin geocodes a configured or custom starting area
+* the plugin geocodes a configured or visitor-provided starting area
 * the plugin resolves selected waypoint place details
 
 The plugin can also send data to Google from the visitor's browser when:
@@ -92,14 +94,16 @@ Google provides these services. Review their terms and privacy information:
 = What do I need before using it on a live site? =
 
 Configure the required default location and Google API keys in Settings >
-Waypoints: Trip Planner. For best results, restrict Google API keys in Google Cloud Console
-and test the planner flow on a staging site before adding it to a public page.
+Waypoints: Trip Planner. For best results, restrict Google API keys in Google
+Cloud Console and test the planner flow on a staging site before adding it to a
+public page.
 
 = How do I display the planner? =
 
-Use the Waypoints: Trip Planner block in the block editor or add `[waypoints]` to a page,
-post, or Shortcode block. The optional `action_url` shortcode attribute and
-`Action URL` block setting can submit planner updates to a specific page URL.
+Use the Waypoints: Trip Planner block in the block editor or add `[waypoints]`
+to a page, post, or Shortcode block. The optional `action_url` shortcode
+attribute and `Action URL` block setting can submit planner updates to a
+specific page URL.
 
 = Where is the developer documentation? =
 

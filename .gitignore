@@ -2,6 +2,7 @@
 *.log
 *.cache
 readme.html
+!plugin/waypoints/readme.html
 README.html
 dist/
 tmp/

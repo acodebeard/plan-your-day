@@ -14,7 +14,10 @@ packaging, and browser smoke automation in place.
 - [Admin Workflows](ADMIN.md): settings-page sections, setup order, cache
   tools, and the Google API test workflow.
 - [Release Process](RELEASES.md): version metadata alignment, changelog
-  expectations, and the manual GitHub release zip workflow.
+  expectations, WordPress.org readme/listing assets, and the manual GitHub
+  release zip workflow.
+- [WordPress.org Listing](WORDPRESS-ORG-LISTING.md): readme source files,
+  formatted readme preview, and plugin-directory icons/screenshots.
 - [Frontend QA](QA.md): browser smoke coverage, local run steps, and ongoing
   public frontend QA expectations.
 - [Architecture](ARCHITECTURE.md): plugin layers, current service boundaries,

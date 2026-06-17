@@ -62,14 +62,18 @@ repo). Each decision can be revisited when that milestone's recommendation
   backward-compat needs against older hosts, the scaffold's headers drop back
   to the plan's 8.1 / 6.4 values. No work lost either way at this stage.
 
-## 6. Distribution / update channel — GitHub release zip, no updater in v1
+## 6. Distribution / update channel — release zip plus WordPress.org metadata
 
 - v1 is distributed as a built release zip generated from this source
   repository.
-- The plugin is not targeting WordPress.org distribution for v1.
+- The source now also maintains WordPress.org-ready listing metadata:
+  `readme.txt`, a formatted `readme.html` preview, and top-level listing
+  artwork in the repository root `assets/` directory.
+- WordPress.org listing assets are not plugin runtime assets. They should stay
+  out of `plugin/waypoints/assets/`.
 - No custom/private updater ships in the MVP. Manual deployment from release
-  zips is the supported update path until a later release issue introduces an
-  updater.
+  zips remains the supported update path until a later release issue introduces
+  an updater or WordPress.org release automation.
 - Release zips include Composer autoload files; production sites should not
   need Composer.
 - Issue #35 owns the build artifact, changelog, tag process, and any `Update

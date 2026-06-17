@@ -64,12 +64,16 @@ and WordPress Plugin Check.
 
 - `plugin/waypoints/` contains the WordPress plugin source.
 - The root PHP bootstrap file contains the WordPress plugin headers.
+- `plugin/waypoints/readme.txt` is the canonical WordPress.org plugin readme.
+- `plugin/waypoints/readme.html` is a formatted source preview of that readme.
 - `plugin/waypoints/src/` contains namespaced plugin classes.
 - `plugin/waypoints/src/Settings/` contains option defaults and
   sanitization.
 - `plugin/waypoints/src/Admin/` contains the settings UI.
 - `plugin/waypoints/src/Google/` contains Google API client and cache
   classes.
+- `assets/` contains WordPress.org plugin-directory listing artwork, such as
+  icons and screenshots. These are not plugin runtime assets.
 - `docs/` contains installation, usage, admin, release, architecture, settings,
   security, troubleshooting, and historical planning notes for the plugin.
 
@@ -142,6 +146,12 @@ smoke coverage, WordPress Plugin Check against the packaged artifact, and a
 repo-local metadata check. The metadata check intentionally expects
 **Waypoints: Trip Planner** to use the permanent WordPress.org slug and text
 domain `waypoints-trip-planner`.
+
+Readme-only WordPress.org listing updates may touch
+`plugin/waypoints/readme.txt`, `plugin/waypoints/readme.html`, and the root
+`assets/` directory without changing plugin runtime code. Keep those files in
+sync, but do not place plugin-directory icons or screenshots in
+`plugin/waypoints/assets/`.
 
 ## Configuration
 

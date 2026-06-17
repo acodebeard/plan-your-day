@@ -19,4 +19,5 @@
 /phpunit.xml
 /phpunit.xml.dist
 /DECISIONS.md
+/readme.html
 /*.log

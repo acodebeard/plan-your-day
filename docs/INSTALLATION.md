@@ -87,6 +87,10 @@ The source repository ignores `vendor/`, but the release artifact should include
 the built `vendor/autoload.php`. The plugin `.distignore` controls release zip
 exclusions separately from source control ignore rules.
 
+WordPress.org listing-only files, such as the formatted `readme.html` preview
+and root `assets/` icons/screenshots, are maintained in source for submission
+workflows but are not required in the installable release zip.
+
 Build the installable artifact from the source checkout with:
 
 ```sh

@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<!-- why are you reading the source code? -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Waypoints: Trip Planner</title>
+	<style>
+		:root {
+			color-scheme: light;
+			--wp-bg: #f6f7f7;
+			--wp-surface: #ffffff;
+			--wp-text: #1d2327;
+			--wp-muted: #50575e;
+			--wp-border: #dcdcde;
+			--wp-blue: #2271b1;
+			--wp-green: #008a20;
+			--wp-code: #f0f0f1;
+			--wp-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+		}
+
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			background: var(--wp-bg);
+			color: var(--wp-text);
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+			font-size: 18px;
+			line-height: 1.6;
+		}
+
+		a {
+			color: var(--wp-blue);
+			overflow-wrap: anywhere;
+		}
+
+		a:focus-visible {
+			outline: 2px solid var(--wp-blue);
+			outline-offset: 2px;
+		}
+
+		code {
+			border-radius: 4px;
+			background: var(--wp-code);
+			font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+			font-size: 0.95em;
+			overflow-wrap: anywhere;
+			padding: 0.1em 0.35em;
+		}
+
+		.skip-link {
+			position: absolute;
+			left: 1rem;
+			top: -5rem;
+			z-index: 10;
+			background: var(--wp-surface);
+			border: 1px solid var(--wp-border);
+			border-radius: 4px;
+			box-shadow: var(--wp-shadow);
+			padding: 0.5rem 0.75rem;
+		}
+
+		.skip-link:focus {
+			top: 1rem;
+		}
+
+		.page {
+			max-width: 1040px;
+			margin: 0 auto;
+			padding: 32px 20px 48px;
+		}
+
+		header {
+			border-top: 4px solid var(--wp-blue);
+			background: var(--wp-surface);
+			border-radius: 8px;
+			box-shadow: var(--wp-shadow);
+			padding: 28px;
+		}
+
+		h1,
+		h2,
+		h3 {
+			line-height: 1.25;
+			margin: 0 0 0.65rem;
+		}
+
+		h1 {
+			font-size: clamp(2rem, 4vw, 3rem);
+		}
+
+		h2 {
+			border-bottom: 1px solid var(--wp-border);
+			font-size: 1.6rem;
+			margin-top: 0;
+			padding-bottom: 0.45rem;
+		}
+
+		h3 {
+			font-size: 1.1rem;
+			margin-top: 1.25rem;
+		}
+
+		p {
+			margin: 0 0 1rem;
+		}
+
+		.lede {
+			color: var(--wp-muted);
+			font-size: 1.1rem;
+			max-width: 760px;
+		}
+
+		.metadata {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+			gap: 12px;
+			list-style: none;
+			margin-top: 24px;
+			padding: 0;
+		}
+
+		.metadata li {
+			border: 1px solid var(--wp-border);
+			border-radius: 6px;
+			background: #fbfbfc;
+			padding: 12px;
+		}
+
+		.metadata .meta-label {
+			display: block;
+			color: var(--wp-muted);
+			font-size: 0.82rem;
+			font-weight: 700;
+			letter-spacing: 0.04em;
+			margin: 0 0 2px;
+			text-transform: uppercase;
+		}
+
+		.layout {
+			display: grid;
+			grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+			gap: 24px;
+			margin-top: 24px;
+		}
+
+		nav,
+		section {
+			background: var(--wp-surface);
+			border: 1px solid var(--wp-border);
+			border-radius: 8px;
+			box-shadow: var(--wp-shadow);
+		}
+
+		nav {
+			align-self: start;
+			padding: 18px;
+			position: sticky;
+			top: 16px;
+		}
+
+		nav h2 {
+			border: 0;
+			font-size: 1rem;
+			margin-bottom: 0.5rem;
+			padding: 0;
+		}
+
+		nav ol {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+		}
+
+		nav li + li {
+			border-top: 1px solid var(--wp-border);
+			margin-top: 0.35rem;
+			padding-top: 0.35rem;
+		}
+
+		nav a {
+			display: block;
+			text-decoration: none;
+		}
+
+		nav a:hover {
+			text-decoration: underline;
+		}
+
+		main {
+			display: grid;
+			gap: 18px;
+		}
+
+		section {
+			padding: 24px;
+		}
+
+		ul,
+		ol {
+			margin: 0 0 1rem;
+			padding-left: 1.45rem;
+		}
+
+		li + li {
+			margin-top: 0.35rem;
+		}
+
+		.note {
+			border-left: 4px solid var(--wp-green);
+			background: #f4fbf6;
+			margin: 1rem 0;
+			padding: 0.85rem 1rem;
+		}
+
+		.screenshot {
+			margin: 0;
+		}
+
+		.screenshot img {
+			display: block;
+			width: 100%;
+			height: auto;
+			border: 1px solid var(--wp-border);
+			border-radius: 6px;
+		}
+
+		.screenshot figcaption {
+			color: var(--wp-muted);
+			font-size: 0.95rem;
+			margin-top: 0.65rem;
+		}
+
+		.release {
+			border-top: 1px solid var(--wp-border);
+			padding-top: 1rem;
+		}
+
+		.release:first-of-type {
+			border-top: 0;
+			padding-top: 0;
+		}
+
+		.footer {
+			color: var(--wp-muted);
+			font-size: 0.92rem;
+			margin-top: 24px;
+			text-align: center;
+		}
+
+		@media (max-width: 760px) {
+			.page {
+				padding: 20px 12px 36px;
+			}
+
+			header,
+			section {
+				padding: 20px;
+			}
+
+			.layout {
+				grid-template-columns: 1fr;
+			}
+
+			nav {
+				position: static;
+			}
+		}
+	</style>
+</head>
+<body>
+	<a class="skip-link" href="#content">Skip to content</a>
+	<div class="page">
+		<header>
+			<h1>Waypoints: Trip Planner</h1>
+			<p class="lede">Adds a searchable trip planner with place search, waypoint ordering, route previews, and Google Maps handoff links.</p>
+
+			<ul class="metadata" aria-label="Plugin metadata">
+				<li><span class="meta-label">Contributors</span> acodebeard</li>
+				<li><span class="meta-label">Tags</span> planning, maps, wayfinding</li>
+				<li><span class="meta-label">Requires WordPress</span> 6.8 or newer</li>
+				<li><span class="meta-label">Tested up to</span> 7.0</li>
+				<li><span class="meta-label">Requires PHP</span> 8.2 or newer</li>
+				<li><span class="meta-label">Stable tag</span> 1.0.2</li>
+				<li><span class="meta-label">License</span> <a href="https://www.gnu.org/licenses/gpl-2.0.html">GPLv2 or later</a></li>
+			</ul>
+		</header>
+
+		<div class="layout">
+			<nav aria-label="Readme sections">
+				<h2>Contents</h2>
+				<ol>
+					<li><a href="#description">Description</a></li>
+					<li><a href="#installation">Installation</a></li>
+					<li><a href="#configuration">Configuration</a></li>
+					<li><a href="#screenshots">Screenshots</a></li>
+					<li><a href="#external-services">External services</a></li>
+					<li><a href="#faq">Frequently asked questions</a></li>
+					<li><a href="#changelog">Changelog</a></li>
+					<li><a href="#credits">Credits</a></li>
+				</ol>
+			</nav>
+
+			<main id="content">
+				<section id="description" aria-labelledby="description-heading">
+					<h2 id="description-heading">Description</h2>
+					<p>Waypoints: Trip Planner adds a configurable trip-planning interface to a page or post. Visitors can search Google place results, add stops to a waypoint list, reorder their trip, preview the route when map embeds are configured, and open the finished route in Google Maps.</p>
+				</section>
+
+				<section id="installation" aria-labelledby="installation-heading">
+					<h2 id="installation-heading">Installation</h2>
+					<h3>Built release zip</h3>
+					<ol>
+						<li>Build or download the packaged <code>waypoints-trip-planner</code> release zip.</li>
+						<li>Upload it through the Plugins screen in WordPress.</li>
+						<li>Activate the plugin. Built release zips include generated Composer autoload files.</li>
+					</ol>
+
+					<h3>Source checkout</h3>
+					<ol>
+						<li>Copy or symlink this plugin directory as <code>/wp-content/plugins/waypoints-trip-planner/</code>.</li>
+						<li>Run <code>composer install</code> inside the plugin directory to generate <code>vendor/autoload.php</code>.</li>
+						<li>Activate the plugin through the Plugins screen in WordPress.</li>
+						<li>Open Settings &gt; Waypoints: Trip Planner and configure the required default location and Google API keys.</li>
+					</ol>
+				</section>
+
+				<section id="configuration" aria-labelledby="configuration-heading">
+					<h2 id="configuration-heading">Configuration</h2>
+					<p>Manage settings in Settings &gt; Waypoints: Trip Planner.</p>
+					<p>Current settings include:</p>
+					<ul>
+						<li>Default location label, address/search phrase, latitude, longitude, and Place ID.</li>
+						<li>Allowed start modes, max waypoints, result count, distance unit, map preview, and Google Maps handoff toggles.</li>
+						<li>Editable categories and interface copy.</li>
+						<li>Browser-facing Maps Embed API key.</li>
+						<li>Server-side Places API and Geocoding API keys.</li>
+						<li>Google API timeout and cache TTLs.</li>
+						<li>Rate-limit value and trusted proxy CIDRs for public endpoint protection.</li>
+						<li>Admin-only API call counter for troubleshooting request behavior.</li>
+					</ul>
+				</section>
+
+				<section id="screenshots" aria-labelledby="screenshots-heading">
+					<h2 id="screenshots-heading">Screenshots</h2>
+					<figure class="screenshot">
+						<img src="../../assets/screenshot-1.png" alt="Waypoints frontend planner showing category search results, a selected waypoint, route preview, and Google Maps handoff.">
+						<figcaption>Add waypoints from categories or a search, then send the trip to Google Maps.</figcaption>
+					</figure>
+				</section>
+
+				<section id="external-services" aria-labelledby="external-services-heading">
+					<h2 id="external-services-heading">External services</h2>
+					<p>Waypoints: Trip Planner uses Google services for place results, place details, geocoding, embedded map previews, and Google Maps handoff links.</p>
+
+					<p>The plugin can send data to Google from the server when:</p>
+					<ul>
+						<li>a visitor runs a category or custom place search</li>
+						<li>the plugin geocodes a configured or visitor-provided starting area</li>
+						<li>the plugin resolves selected waypoint place details</li>
+					</ul>
+
+					<p>The plugin can also send data to Google from the visitor's browser when:</p>
+					<ul>
+						<li>the frontend loads a Google Maps Embed preview from <code>https://www.google.com/maps/embed/v1/search</code> or <code>https://www.google.com/maps/embed/v1/directions</code></li>
+						<li>a visitor opens the generated Google Maps handoff link</li>
+					</ul>
+
+					<p>Depending on the interaction, data sent to Google can include:</p>
+					<ul>
+						<li>search phrases</li>
+						<li>configured or visitor-provided starting locations</li>
+						<li>selected Google Place IDs</li>
+						<li>visitor IP address and the browser-facing Maps Embed API key when the browser loads an embedded map preview</li>
+						<li>origin text plus waypoint and destination Place IDs when the browser loads an embedded directions preview</li>
+						<li>route waypoint information needed to build map previews or handoff URLs</li>
+					</ul>
+
+					<div class="note">
+						<p>Google provides these services. Review their <a href="https://policies.google.com/privacy">privacy policy</a> and <a href="https://cloud.google.com/maps-platform/terms">Google Maps Platform terms</a>.</p>
+					</div>
+				</section>
+
+				<section id="faq" aria-labelledby="faq-heading">
+					<h2 id="faq-heading">Frequently Asked Questions</h2>
+					<h3>What do I need before using it on a live site?</h3>
+					<p>Configure the required default location and Google API keys in Settings &gt; Waypoints: Trip Planner. For best results, restrict Google API keys in Google Cloud Console and test the planner flow on a staging site before adding it to a public page.</p>
+
+					<h3>How do I display the planner?</h3>
+					<p>Use the Waypoints: Trip Planner block in the block editor or add <code>[waypoints]</code> to a page, post, or Shortcode block. The optional <code>action_url</code> shortcode attribute and <code>Action URL</code> block setting can submit planner updates to a specific page URL.</p>
+
+					<h3>Where is the developer documentation?</h3>
+					<p>See the repository <code>docs/</code> directory for installation, usage, admin, release, architecture, settings, security, and troubleshooting notes.</p>
+				</section>
+
+				<section id="changelog" aria-labelledby="changelog-heading">
+					<h2 id="changelog-heading">Changelog</h2>
+
+					<div class="release">
+						<h3>1.0.2</h3>
+						<ul>
+							<li>Updated the WordPress.org submission name and slug to Waypoints: Trip Planner.</li>
+						</ul>
+					</div>
+
+					<div class="release">
+						<h3>1.0.1</h3>
+						<ul>
+							<li>Added an admin control for briefly revealing saved Google API keys while checking copied values.</li>
+							<li>Hardened Google API key settings against browser autofill and non-key values.</li>
+						</ul>
+					</div>
+
+					<div class="release">
+						<h3>1.0</h3>
+						<ul>
+							<li>Renamed the original public plugin surface to Waypoints, including the REST namespace, block name, preferred shortcode, release metadata, and package artifact.</li>
+							<li>Added WordPress.org submission-readiness checks covering PHP quality, PHPStan, browser smoke tests, WordPress Plugin Check, release packaging, and metadata validation.</li>
+							<li>Hardened the release artifact so it ships as a single <code>waypoints/</code> plugin directory with production Composer autoload files and normalized file permissions.</li>
+							<li>Added admin-only API request counting for troubleshooting Google API usage.</li>
+							<li>Added contributor credits and clearer production installation, configuration, and external-service documentation.</li>
+						</ul>
+					</div>
+
+					<div class="release">
+						<h3>0.5</h3>
+						<ul>
+							<li>Added block-editor and shortcode entry points that share the same planner renderer.</li>
+							<li>Added admin-editable categories and interface copy settings.</li>
+							<li>Added REST-powered planner interactions, rate limiting, and Google API admin tools.</li>
+							<li>Added a reproducible release zip builder and manual release-process documentation.</li>
+							<li>Added color mode controls, Noto Sans assets, and a cleaned-up settings interface.</li>
+							<li>Added an upgrade cleanup that prunes removed interface-copy settings from existing installs.</li>
+						</ul>
+					</div>
+
+					<div class="release">
+						<h3>0.1.0</h3>
+						<ul>
+							<li>Initial plugin scaffold (GH Issue #20): directory structure, main plugin file, activation/deactivation hooks, uninstall routine, PSR-4 autoloading.</li>
+						</ul>
+					</div>
+				</section>
+
+				<section id="credits" aria-labelledby="credits-heading">
+					<h2 id="credits-heading">Credits</h2>
+					<p>Special thanks to <a href="https://github.com/hagan">Hagan</a> and <a href="https://github.com/datapoke">Datapoke</a> for development help.</p>
+				</section>
+			</main>
+		</div>
+
+		<p class="footer">This HTML readme mirrors the WordPress plugin readme for Waypoints: Trip Planner.</p>
+	</div>
+</body>
+</html>
