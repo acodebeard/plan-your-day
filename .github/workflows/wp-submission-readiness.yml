@@ -39,7 +39,7 @@ jobs:
       PLUGIN_DIR: plugin/waypoints
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: shivammathur/setup-php@v2
         with:
